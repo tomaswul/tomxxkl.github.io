@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang=>
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  
+    <link rel="icon" href="/favicon.ico">
+  
+    
+  <title>Linux学习总结 | Hexo</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/lib/jquery.fancybox.min.css">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+  <header>
+  <div class="header-container">
+    <a class='logo' href="/">
+      <span>Hexo</span>
+    </a>
+    <ul class="right-header">
+      
+        <li class="nav-item">
+          
+            <a href="/" class="item-link">首页</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/about" class="item-link">关于</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/archives" class="item-link">归档</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/tags" class="item-link">标签</a>
+          
+        </li>
+      
+    </ul>
+  </div>
+</header>
+
+  <main id='post'>
+  <div class="content">
+    <article>
+        <section class="content markdown-body">
+          <h1>Linux学习总结</h1>
+          <div class='post-meta'>
+            <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/10/08</time>
+            
+            
+          </div>
+          <p>Linux学习总结<br><a id="more"></a><br>1.linux文件结构</p>
+<p>etc:存放的是系统的配置文件</p>
+<p>root:root用户主目录</p>
+<p>home:存放普通用户的主目录</p>
+<p>usr:相当于windows下的program files</p>
+<p>2.文件或者目录操作</p>
+<p>cat 文件:查看文件内容</p>
+<p>pwd:查看当前目录</p>
+<p>cd 目录:切换到指定目录</p>
+<p>ls:查看所有目录</p>
+<p>wget url:联网下载文件</p>
+<p>mkdir 文件夹名:创建指定文件名的文件夹</p>
+<p>rmdir 文件夹名:删除指定名字的空文件夹</p>
+<p>cp 资源:复制的文件或者目录</p>
+<p>rm 资源:删除文件或者目录</p>
+<p>mv 源文件:目标文件夹 剪切到指定文件夹下</p>
+<p>touch 文件名:创建一个空文件</p>
+<p>3.用户管理</p>
+<p>adduser 用户名:创建新用户</p>
+<p>passwd 用户名:设置指定用户的密码</p>
+<p>su 用户名:切换用户(switch user)</p>
+<p>userdel 用户名:删除用户</p>
+<p>sudo :-super user do(以超级管理员的身份执行命令)</p>
+<p>uname:查看系统名称</p>
+<p>hostname:查看主机名</p>
+<p>4.查询命令</p>
+<p>who:查看登录的用户</p>
+<p>which 命令:查看命令的全路径写法</p>
+<p>whereis 命令:找到命令的二进制、源和手动页文件</p>
+<p>apropos 命令:搜索指定命令的手册的名称和描述</p>
+<p>head:查看文件的开始部分</p>
+<p>head -3 文件名:查看文件的前三行</p>
+<p>tail:查看文件的结束部分</p>
+<p>tail -5 文件:查看文件的最后5行</p>
+<p>more: 分屏显示文件内容</p>
+<p>less :分屏显示文件内容</p>
+<p>5.linux运行级别</p>
+<p>0:系统停机状态，系统默认运行级别不能设为0，否则不能正常启动</p>
+<p>1:单用户工作状态，root权限，用于系统维护，禁止远程登陆</p>
+<p>2:多用户状态(没有NFS)</p>
+<p>3:完全的多用户状态(有NFS)，登陆后进入控制台命令行模式</p>
+<p>4:系统未使用，保留</p>
+<p>5:X11控制台，登陆后进入图形GUI模式</p>
+<p>6:系统正常关闭并重启，默认运行级别不能设为6，否则不能正常启动</p>
+
+        </section>
+    </article>
+    
+        <!-- disqus 评论框 start -->
+        <div class="comment">
+            <div id="disqus_thread" class="disqus-thread">
+              <i>Loading comments box needs to over the wall</i>
+            </div>
+        </div>
+        <!-- disqus 评论框 end -->
+    
+    
+        <!-- livere 评论框 start -->
+        <div class="comment">
+            <div id="lv-container" data-id="city" data-uid="your_livere_uid"></div>
+        </div>
+        <!-- livere 评论框 end -->
+        
+  </div>
+  <aside>
+    
+  </aside>
+</main>
+
+<!-- disqus 公共JS代码 -->
+<script type="text/javascript">
+  /* * * CONFIGURATION VARIABLES * * */
+  var disqus_shortname = "your_disqus_shortname";
+  var disqus_identifier = "http://yoursite.com/2018/10/08/Linux学习总结/";
+  var disqus_url = "http://yoursite.com/2018/10/08/Linux学习总结/";
+
+  isAgent(getDisqus)
+
+  // determine user agent in China
+  function isAgent(cb) {
+    var url = '//graph.facebook.com/feed?callback=h';
+    var xhr = new XMLHttpRequest();
+    var called = false;
+    xhr.open('GET', url);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+      called = true;
+      cb(true);
+      }
+    };
+    xhr.send();
+    // timeout 1s, this facebook API is very fast.
+    setTimeout(function() {
+      if (!called) {
+      xhr.abort();
+      cb(false)
+      }
+    }, 1000);
+  }
+
+  function getDisqus(isAgent) {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; 
+    dsq.async = true
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq)
+  }
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+<script type="text/javascript">
+  (function(d, s) {
+      var j, e = d.getElementsByTagName(s)[0];
+
+      if (typeof LivereTower === 'function') { return; }
+
+      j = d.createElement(s);
+      j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+      j.async = true;
+
+      e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+</script>
+
+
+  <footer>
+  <div class="copyright">
+    <div>
+      &copy; 2018 | Powered by <a href="https://hexo.io" target="_blank">Hexo</a>&nbsp
+    </div>
+    <div>
+      Theme by <a href="https://github.com/lewis-geek/hexo-theme-Aath" target="_blank">Aath</a>
+    </div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="/lib/in-view.min.js"></script>
+<script src="/lib/lodash.min.js"></script>
+<script>
+  var isDown = true
+  var oldY = 0
+  inView.offset(50)
+
+  document.body.addEventListener('touchstart', function(){});
+  
+  window.addEventListener('scroll', _.throttle(e => {
+    var currentY = window.scrollY
+    if((oldY - currentY) < 0) {
+      isDown = true
+    } else {
+      isDown = false
+    }
+    oldY = currentY
+  }, 250))
+
+  $("article img").each(function() {
+      var strA = "<a data-fancybox='gallery' href='" + this.src + "'></a>";
+      $(this).wrapAll(strA);
+  });
+
+  $('.toc-link').each(function() {
+      var href = $(this).attr("href");
+      
+      inView(href).on('exit', () => {
+        if (isDown) {
+          handleActive(href)
+        }
+      })
+
+      inView(href).on('enter', () => {
+        if (!isDown) {
+          handleActive(href)
+        }
+      })
+
+      this.onclick = function(e) {
+        var pos = $(href).offset().top - 10;
+        $("html,body").animate({scrollTop: pos}, 300);
+        setTimeout(() => {
+          handleActive(href)
+        }, 350)
+        return false
+      }
+  })
+
+  function handleActive(href) {
+    document.querySelectorAll('.toc-link').forEach(elm => {
+      elm.classList.remove('active')
+    })
+    document.querySelector(".toc [href='"+ href +"']").classList.add('active')
+  }
+</script>
+<script src="/lib/jquery.fancybox.min.js"></script>
+
+
+</body>
+</html>
