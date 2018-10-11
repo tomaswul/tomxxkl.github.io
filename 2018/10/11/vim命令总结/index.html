@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang=>
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  
+    <link rel="icon" href="/favicon.ico">
+  
+    
+  <title>vim命令总结 | Hexo</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/lib/jquery.fancybox.min.css">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+  <header>
+  <div class="header-container">
+    <a class='logo' href="/">
+      <span>Hexo</span>
+    </a>
+    <ul class="right-header">
+      
+        <li class="nav-item">
+          
+            <a href="/" class="item-link">首页</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/about" class="item-link">关于</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/archives" class="item-link">归档</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/tags" class="item-link">标签</a>
+          
+        </li>
+      
+    </ul>
+  </div>
+</header>
+
+  <main id='post'>
+  <div class="content">
+    <article>
+        <section class="content markdown-body">
+          <h1>vim命令总结</h1>
+          <div class='post-meta'>
+            <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/10/11</time>
+            
+            
+          </div>
+          <p>vim使用总结</p>
+<p>vim总共有三种模式一个是末行模式、一个是命令模式、还有一个是编辑模式</p>
+<h3 id="1-末行模式"><a href="#1-末行模式" class="headerlink" title="1. 末行模式"></a>1. 末行模式</h3><p>命令模式下输入: 或者? 或者/都可以进入末行模式，末行模式主要是通过输入参数进行文档控制</p>
+<p>常见的末行模式命令</p>
+<p>:set nu  -显示行号</p>
+<p>:syntax off/on - 关闭/开启高亮语法</p>
+<p>:set nonu - 不显示行号</p>
+<p>:wq - 保存文件并退出</p>
+<p>:q! - 强制退出</p>
+<p>:set autoindent 设置自动缩进(在编写html时建议打开)</p>
+<p>/<regex>  搜索满足正则表达式的内容</regex></p>
+<p>​    n—向光标下继续搜索<br>​    N—向光标上继续搜索</p>
+<p>?<regex></regex></p>
+<p>​    n—向光标上方继续搜索<br>​    N—向光标下方继续搜索</p>
+<p>:开始行数,结束行数s/词1/词2 (将从开始行数到结束行数中的词1全部替换成词2)</p>
+<p>:1,$s/被替换的词/替换的词/gice</p>
+<p>​    gice中:<br>​    g-是全局搜索<br>​    i-是忽略大小写<br>​    c-是每次找到询问是否替换</p>
+<p>​        n–不替换<br>​        y–不替换<br>​        a–全部替换<br>​        q–退出</p>
+<p>​    e-忽略错误</p>
+<p>当同时打开多个文件时:ls表示显示所有打开的文件编号</p>
+<p>:b 文件编号 切换其他的文件</p>
+<p>:vs 垂直拆分窗口</p>
+<p>​    光标最开始在左边按两次ctrl+w，光标会切换到右边的窗口<br>然后在:b 文件编号 切换当前窗口的文件内容</p>
+<p>:sp 水平拆分窗口</p>
+<p>​    光标最开始在上边窗口按两次ctrl+w，光标会切换到下边的窗口</p>
+<p>:qa 退出全部窗口</p>
+<p>:wqa 保存并退出全部窗口</p>
+<p>:map &lt;键&gt; 命令<br>​    :map <f2> gg99999999dd 设置F2为快捷键(删除99999999行内容)</f2></p>
+<p>:imap - 设置编辑模式下的快捷键<br>:inoremap _main if <strong>name</strong> == ‘<strong>main</strong>‘:<br>​    设置在编辑模式下,不要递归(inore)的映射当输入_main补全后面的内容</p>
+<h3 id="2-命令模式"><a href="#2-命令模式" class="headerlink" title="2.命令模式"></a>2.命令模式</h3><p>在编辑模式下按Esc键进入命令模式</p>
+<p>在命令模式下按两次shift+z 就是保存文件并退出</p>
+<h4 id="2-1-移动光标"><a href="#2-1-移动光标" class="headerlink" title="2.1 移动光标"></a>2.1 移动光标</h4><p>gg 光标移动到第一行</p>
+<p>G 光标移动到最后一行</p>
+<p>nG 光标移动到指定函数</p>
+<p>$ 光标移动到行末</p>
+<p>0 光标移动到行首</p>
+<p>h 光标向左移动一列</p>
+<p>​    nh 光标向左移动指定列数</p>
+<p>j 光标向下移动一行</p>
+<p>​    nj 光标向下移动指定行数</p>
+<p>k 光标向上移动一行</p>
+<p>​    nk 光标向上移动指定行数</p>
+<p>l 光标向右移动一列</p>
+<p>​    nl 光标向右移动指定列数</p>
+<p>HML(H光标移动当前页行首，M光标移动当前页中间，L光标移动当前页末行)</p>
+<p>w 光标移动一个单词</p>
+<h4 id="2-2-删除内容"><a href="#2-2-删除内容" class="headerlink" title="2.2 删除内容"></a>2.2 删除内容</h4><p>dd 删除光标所在那一行的内容</p>
+<p>100dd 删除光标之后的100行内容(包括光标所在行)</p>
+<p>dw 删除光标之后的一个单词</p>
+<p>d$ 从光标所在的位置删到行尾</p>
+<p>d0 从光标所在的位置删到行首</p>
+<p>u 撤销删除</p>
+<p>ctrl+r 恢复</p>
+<h4 id="2-3-复制"><a href="#2-3-复制" class="headerlink" title="2.3 复制"></a>2.3 复制</h4><p>yy 复制光标所在的那一行</p>
+<p>3yy 复制光标之后的3行(包括光标所在行)</p>
+<p>p 在光标所在行粘贴一次</p>
+<p>10p 在光标所在行粘贴10次(光标自动下移)</p>
+<h4 id="2-4-翻页"><a href="#2-4-翻页" class="headerlink" title="2.4 翻页"></a>2.4 翻页</h4><p>ctrl+e 向下翻一行</p>
+<p>ctrl+y 向上翻一行</p>
+<p>ctrl+f 向下翻一页</p>
+<p>ctrl+b 向上翻一页</p>
+<h3 id="3-编辑模式"><a href="#3-编辑模式" class="headerlink" title="3.编辑模式"></a>3.编辑模式</h3><p>i 在光标所在处进入编辑模式</p>
+<p>o 在光标下一行进入编辑模式</p>
+<p>a 在当前光标的右边进入编辑模式</p>
+<p>ctrl+x and ctrl+o 代码提示快捷键</p>
+<h3 id="4-1-其他常用命令"><a href="#4-1-其他常用命令" class="headerlink" title="4.1 其他常用命令"></a>4.1 其他常用命令</h3><p>vim -d 文件一 文件二 (打开两个文件)</p>
+
+        </section>
+    </article>
+    
+        <!-- disqus 评论框 start -->
+        <div class="comment">
+            <div id="disqus_thread" class="disqus-thread">
+              <i>Loading comments box needs to over the wall</i>
+            </div>
+        </div>
+        <!-- disqus 评论框 end -->
+    
+    
+        <!-- livere 评论框 start -->
+        <div class="comment">
+            <div id="lv-container" data-id="city" data-uid="your_livere_uid"></div>
+        </div>
+        <!-- livere 评论框 end -->
+        
+  </div>
+  <aside>
+    
+    <div class="toc-container">
+        <h1>目录</h1>
+        <div class="content">
+            <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-末行模式"><span class="toc-number">1.</span> <span class="toc-text">1. 末行模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-命令模式"><span class="toc-number">2.</span> <span class="toc-text">2.命令模式</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-1-移动光标"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 移动光标</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-删除内容"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 删除内容</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-复制"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 复制</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-4-翻页"><span class="toc-number">2.4.</span> <span class="toc-text">2.4 翻页</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-编辑模式"><span class="toc-number">3.</span> <span class="toc-text">3.编辑模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-其他常用命令"><span class="toc-number">4.</span> <span class="toc-text">4.1 其他常用命令</span></a></li></ol>
+        </div>
+    </div>
+    
+  </aside>
+</main>
+
+<!-- disqus 公共JS代码 -->
+<script type="text/javascript">
+  /* * * CONFIGURATION VARIABLES * * */
+  var disqus_shortname = "your_disqus_shortname";
+  var disqus_identifier = "http://yoursite.com/2018/10/11/vim命令总结/";
+  var disqus_url = "http://yoursite.com/2018/10/11/vim命令总结/";
+
+  isAgent(getDisqus)
+
+  // determine user agent in China
+  function isAgent(cb) {
+    var url = '//graph.facebook.com/feed?callback=h';
+    var xhr = new XMLHttpRequest();
+    var called = false;
+    xhr.open('GET', url);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+      called = true;
+      cb(true);
+      }
+    };
+    xhr.send();
+    // timeout 1s, this facebook API is very fast.
+    setTimeout(function() {
+      if (!called) {
+      xhr.abort();
+      cb(false)
+      }
+    }, 1000);
+  }
+
+  function getDisqus(isAgent) {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; 
+    dsq.async = true
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq)
+  }
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+<script type="text/javascript">
+  (function(d, s) {
+      var j, e = d.getElementsByTagName(s)[0];
+
+      if (typeof LivereTower === 'function') { return; }
+
+      j = d.createElement(s);
+      j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+      j.async = true;
+
+      e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+</script>
+
+
+  <footer>
+  <div class="copyright">
+    <div>
+      &copy; 2018 | Powered by <a href="https://hexo.io" target="_blank">Hexo</a>&nbsp
+    </div>
+    <div>
+      Theme by <a href="https://github.com/lewis-geek/hexo-theme-Aath" target="_blank">Aath</a>
+    </div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="/lib/in-view.min.js"></script>
+<script src="/lib/lodash.min.js"></script>
+<script>
+  var isDown = true
+  var oldY = 0
+  inView.offset(50)
+
+  document.body.addEventListener('touchstart', function(){});
+  
+  window.addEventListener('scroll', _.throttle(e => {
+    var currentY = window.scrollY
+    if((oldY - currentY) < 0) {
+      isDown = true
+    } else {
+      isDown = false
+    }
+    oldY = currentY
+  }, 250))
+
+  $("article img").each(function() {
+      var strA = "<a data-fancybox='gallery' href='" + this.src + "'></a>";
+      $(this).wrapAll(strA);
+  });
+
+  $('.toc-link').each(function() {
+      var href = $(this).attr("href");
+      
+      inView(href).on('exit', () => {
+        if (isDown) {
+          handleActive(href)
+        }
+      })
+
+      inView(href).on('enter', () => {
+        if (!isDown) {
+          handleActive(href)
+        }
+      })
+
+      this.onclick = function(e) {
+        var pos = $(href).offset().top - 10;
+        $("html,body").animate({scrollTop: pos}, 300);
+        setTimeout(() => {
+          handleActive(href)
+        }, 350)
+        return false
+      }
+  })
+
+  function handleActive(href) {
+    document.querySelectorAll('.toc-link').forEach(elm => {
+      elm.classList.remove('active')
+    })
+    document.querySelector(".toc [href='"+ href +"']").classList.add('active')
+  }
+</script>
+<script src="/lib/jquery.fancybox.min.js"></script>
+
+
+</body>
+</html>
