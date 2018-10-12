@@ -72,6 +72,52 @@
 <p>tail -5 文件:查看文件的最后5行</p>
 <p>more: 分屏显示文件内容<br>less :分屏显示文件内容</p>
 <h3 id="5-linux运行级别"><a href="#5-linux运行级别" class="headerlink" title="5.linux运行级别"></a>5.linux运行级别</h3><p>0:系统停机状态，系统默认运行级别不能设为0，否则不能正常启动<br>1:单用户工作状态，root权限，用于系统维护，禁止远程登陆<br>2:多用户状态(没有NFS)<br>3:完全的多用户状态(有NFS)，登陆后进入控制台命令行模式<br>4:系统未使用，保留<br>5:X11控制台，登陆后进入图形GUI模式<br>6:系统正常关闭并重启，默认运行级别不能设为6，否则不能正常启动</p>
+<h3 id="6-linux常用命令"><a href="#6-linux常用命令" class="headerlink" title="6.linux常用命令"></a>6.linux常用命令</h3><p>启动服务 : systemctl 状态 服务<br>write 用户:给指定用户发消息<br>mesg n:不接收消息<br>mesg y:接收消息<br>sftp:命令</p>
+<p>​    sftp 用户名@ip<br>​    sftp&gt; get 要下载的文件<br>​    sftp&gt; lls 查看本地的文件及文件夹（local ls）<br>​    注意:在sftp下载所有命令前加上l表示在本地执行命令<br>​    quit - 退出<br>​    bye - 退出<br>​    help - 查看sftp下的命令</p>
+<p>echo 语句&gt;文件:echo将语句重定向到文件中<br>安全的远程连接</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">ssh 用户名@ip</span><br></pre></td></tr></table></figure>
+<p>安全拷贝</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">scp 源文件 用户名@ip:/root/</span><br><span class="line">scp root@ip:/源文件路径 root@ip2::/文件路径2</span><br></pre></td></tr></table></figure>
+<p>date 查看系统时间日期</p>
+<p>cal 查看日历<br>alias 别名=长命令格式:可以给长命令起短名字</p>
+<pre><code>alias rmd=&quot;rm -rf&quot; 设置rmd别名
+</code></pre><p>unalias 别名:去掉这个别名<br>    unalias rmd 去掉rmd的别名<br>|表示管道<br>输出重定向<br>    &gt; 输出重定向<br>    &gt;&gt; 追加重定向<br>    2&gt; 错误输出重定向<br>输入重定向<br>    &lt; 输入重定向<br>    clear 清除屏幕<br>history 查看所有历史命令<br>grep搜索字符串</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">ls -l | grep ssh</span><br></pre></td></tr></table></figure>
+<p>ps 查看进程</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">ps aux | grep sshd</span><br></pre></td></tr></table></figure>
+<p>kill pid 杀掉进程</p>
+<p>wc统计次数</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">wc - word count</span><br><span class="line">wc -l 只看行数</span><br><span class="line">wc</span><br><span class="line">	行数	单词数	字节数</span><br></pre></td></tr></table></figure>
+<p>uniq-unqiue-实现文件去重<br>sort 对文件内容进行排序</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sort hello.txt | uniq | wc -l</span><br></pre></td></tr></table></figure>
+<p>diff 文件一 文件二 比较两个文件是否不同</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">这个命令没什么卵用</span><br></pre></td></tr></table></figure>
+<p>压缩文件</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">-gz---gzip（压缩）/gunzip(解压缩)</span><br><span class="line">-xz---xz -z (压缩)/xz -d(解压缩)</span><br><span class="line">winRAR归档和解归档</span><br><span class="line">tar-归档文件</span><br><span class="line">归档-把多个文件合并成一个文件</span><br><span class="line">解归档-把一个文件分成多个文件</span><br></pre></td></tr></table></figure>
+<p>tar命令</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">参数</span><br><span class="line">	-x 解归档</span><br><span class="line">	-v 看归档过程</span><br><span class="line">	-f	指定文件</span><br></pre></td></tr></table></figure>
+<p>链接</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">硬链接:ln 要被链接的文件(完整路径) 链接文件</span><br><span class="line">	硬链接-文件的引用，只要引用数不为0，文件就会一直存在</span><br><span class="line">软连接-相当于是文件的快捷方式，如果文件被删除软链接失效</span><br><span class="line">ln -s 带完整路径的文件名 链接文件名</span><br></pre></td></tr></table></figure>
+<p>exit/logout 退出登录</p>
+<h3 id="7-服务相关命令"><a href="#7-服务相关命令" class="headerlink" title="7.服务相关命令"></a>7.服务相关命令</h3><p>top 动态查看cpu使用情况(cpu从高到低)<br>如果需要把运行中的进程终止掉-Ctrl+c<br>如果要暂停运行中的进程并把它放到后台ctrl+z<br>如果执行命令时在命令后面加上&amp;就可以把命令放到后台运行</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">./fun.py &amp;</span><br></pre></td></tr></table></figure>
+<p>jobs:查看当前后台进程</p>
+<p>bg %后台程序编号 让后台暂停的经常继续在后台运行</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">bg %1</span><br></pre></td></tr></table></figure>
+<p>fg %后台进程编号 后台进程哪到前台执行</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">fg %1</span><br></pre></td></tr></table></figure>
+<p>systemctl status/start/rstart/stop 服务:查看服务状态/开启服务/重启服务/停止服务<br>centos6.x</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">service &lt;name&gt; start	启动服务</span><br><span class="line">service &lt;name&gt; stop 停止服务</span><br><span class="line">service &lt;name&gt; status 查看服务状态</span><br><span class="line">service &lt;name&gt; restart 重启服务</span><br></pre></td></tr></table></figure>
+<p>nginx （直接输入也能启动nginx但是不建议使用）<br>journalctl -xe 查看错误日志<br>ps 查看进程</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">参数</span><br><span class="line"> -ef 查看所有进程</span><br><span class="line">ps -ef | grep nginx | grep -v grep</span><br><span class="line">	grep -v grep:表示搜索结果中不要用</span><br></pre></td></tr></table></figure>
+<h3 id="8-网络相关命令"><a href="#8-网络相关命令" class="headerlink" title="8.网络相关命令"></a>8.网络相关命令</h3><p>查看ip地址ifconfig:也可以用ip address</p>
+<p>netstat -an 查看所有网络端口</p>
+<p>netstat -anp | grep 80 查看80端口的使用信息(包括端口占用程序)</p>
+<p>firewall防火墙:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">启动防火墙systemctl start firewalld</span><br><span class="line">firewall-cmd 配置防火墙命令</span><br><span class="line">firewall-cmd --permanent --add-port=端口/协议 开启指定协议下的指定端口</span><br><span class="line">firewall-cmd --query-port=端口/协议  搜索指定协议的指定端口是否开启</span><br><span class="line">firewall-cmd --remove-port=端口/协议 关闭指定协议下的指定端口</span><br></pre></td></tr></table></figure>
+<h3 id="9-补充知识"><a href="#9-补充知识" class="headerlink" title="9.补充知识"></a>9.补充知识</h3><p>DOS - Deny of Service(拒绝服务攻击)<br>DDOS - Distributed Deny of Service (分布式拒绝服务攻击)<br>min/avg/max/mdev = 41.489/41.533/41.608/0.207 ms</p>
+<p>计算机网络分层架构模型<br>Internet — TCP/IP协议族<br>TCP - Transfer Control Protocol - 传输控制协议<br>UDP - User Datagram Protocol - 用户数据报协议<br>IP - Internet Protocol -网际协议</p>
+<p>TCP/IP模型<br>应用层(定义应用级协议) - HTTP/SMTP/POP3/FTP/SSH/ICQ/QQ<br>传输层(端到端传输数据) - TCP/UDP<br>网络层/网际层(寻址和路由) - IP/ICMP<br>物理链路层(数据分帧+校验) - 冗余检验码</p>
 
         </section>
     </article>
@@ -97,7 +143,7 @@
     <div class="toc-container">
         <h1>目录</h1>
         <div class="content">
-            <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-linux文件结构"><span class="toc-number">1.</span> <span class="toc-text">1.linux文件结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-文件或者目录操作"><span class="toc-number">2.</span> <span class="toc-text">2.文件或者目录操作</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-用户管理"><span class="toc-number">3.</span> <span class="toc-text">3.用户管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-查询命令"><span class="toc-number">4.</span> <span class="toc-text">4.查询命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-linux运行级别"><span class="toc-number">5.</span> <span class="toc-text">5.linux运行级别</span></a></li></ol>
+            <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-linux文件结构"><span class="toc-number">1.</span> <span class="toc-text">1.linux文件结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-文件或者目录操作"><span class="toc-number">2.</span> <span class="toc-text">2.文件或者目录操作</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-用户管理"><span class="toc-number">3.</span> <span class="toc-text">3.用户管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-查询命令"><span class="toc-number">4.</span> <span class="toc-text">4.查询命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-linux运行级别"><span class="toc-number">5.</span> <span class="toc-text">5.linux运行级别</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-linux常用命令"><span class="toc-number">6.</span> <span class="toc-text">6.linux常用命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-服务相关命令"><span class="toc-number">7.</span> <span class="toc-text">7.服务相关命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-网络相关命令"><span class="toc-number">8.</span> <span class="toc-text">8.网络相关命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-补充知识"><span class="toc-number">9.</span> <span class="toc-text">9.补充知识</span></a></li></ol>
         </div>
     </div>
     
