@@ -76,7 +76,8 @@
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">alter table tb_student add column tel char(11) not null;</span><br></pre></td></tr></table></figure>
 <p>修改表(删除列)alter table &lt;表名&gt; drop column&lt;列名&gt;</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">alter table tb_student drop column brith;</span><br></pre></td></tr></table></figure>
-<h3 id="3-DML-数据操作语言"><a href="#3-DML-数据操作语言" class="headerlink" title="3.DML(数据操作语言)"></a>3.DML(数据操作语言)</h3><h4 id="3-1-insert-插入数据"><a href="#3-1-insert-插入数据" class="headerlink" title="3.1 insert(插入数据)"></a>3.1 insert(插入数据)</h4><p>插入数据:insert [into] &lt;表名&gt; values((行记录1),(行记录2),…);</p>
+<h3 id="3-DML-数据操作语言"><a href="#3-DML-数据操作语言" class="headerlink" title="3.DML(数据操作语言)"></a>3.DML(数据操作语言)</h3><p>判断一个字段是否为Null,不能用等号和不等号，要用is(是)或者is not(不是)</p>
+<h4 id="3-1-insert-插入数据"><a href="#3-1-insert-插入数据" class="headerlink" title="3.1 insert(插入数据)"></a>3.1 insert(插入数据)</h4><p>插入数据:insert [into] &lt;表名&gt; values((行记录1),(行记录2),…);</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">insert into tb_student values(1001,&apos;张三&apos;,1,&apos;12922221234&apos;,&apos;四川&apos;);</span><br></pre></td></tr></table></figure>
 <p>插入数据 insert [into] &lt;表名&gt;(列名1,列名2,…) values((行记录1),(行记录2),…);</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">insert into tb_student (stuname,stuid,gender) values(&apos;李四&apos;,1002,1);</span><br></pre></td></tr></table></figure>
