@@ -69,7 +69,7 @@
 <h3 id="2-DDL-数据定义语言"><a href="#2-DDL-数据定义语言" class="headerlink" title="2.DDL(数据定义语言)"></a>2.DDL(数据定义语言)</h3><h4 id="2-1-创建数据和删除数据库"><a href="#2-1-创建数据和删除数据库" class="headerlink" title="2.1 创建数据和删除数据库"></a>2.1 创建数据和删除数据库</h4><p>cretae databse &lt;数据库名&gt;</p>
 <p>drop database &lt;数据库名&gt; [if exists] &lt;数据库名&gt;   在删除数据库前判断数据库是否存在(不要在实际生产中使用)</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">create database tb_student ;</span><br><span class="line"></span><br><span class="line">drop databse tb_student if exists tb_student;</span><br></pre></td></tr></table></figure>
-<p>create table &lt;表名&gt; values(),</p>
+<p>create table &lt;表名&gt; (),</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">create table tb_student</span><br><span class="line">(</span><br><span class="line">stuid int not null,</span><br><span class="line">stuname varchar(4) not null,</span><br><span class="line">gender bit default 1,</span><br><span class="line">birth date,</span><br><span class="line">addr varchar(50),</span><br><span class="line">primary key(stuid);</span><br></pre></td></tr></table></figure>
 <h4 id="2-2-修改表"><a href="#2-2-修改表" class="headerlink" title="2.2 修改表"></a>2.2 修改表</h4><p>向原表中添加新列</p>
 <p>修改表(添加列)alter table &lt;表名&gt; add column &lt;列名&gt; &lt;数据类型&gt; [约束条件]</p>
