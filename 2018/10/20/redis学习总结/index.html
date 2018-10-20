@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang=>
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  
+    <link rel="icon" href="/favicon.ico">
+  
+    
+  <title>redis学习总结 | tomxxkl的个人博客</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/lib/jquery.fancybox.min.css">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+  <header>
+  <div class="header-container">
+    <a class='logo' href="/">
+      <span>tomxxkl的个人博客</span>
+    </a>
+    <ul class="right-header">
+      
+        <li class="nav-item">
+          
+            <a href="/" class="item-link">首页</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/about" class="item-link">关于</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/archives" class="item-link">归档</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/tags" class="item-link">标签</a>
+          
+        </li>
+      
+    </ul>
+  </div>
+</header>
+
+  <main id='post'>
+  <div class="content">
+    <article>
+        <section class="content markdown-body">
+          <h1>redis学习总结</h1>
+          <div class='post-meta'>
+            <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/10/20</time>
+            
+            
+          </div>
+          <h3 id="1-redis介绍"><a href="#1-redis介绍" class="headerlink" title="1.redis介绍"></a>1.redis介绍</h3><p>Redis是一个key-value存储系统。和Memcached类似，它支持存储的value类型相对更多，包括string(字符串)、list(链表)、set(集合)、zset(sorted set –有序集合)和hash（哈希类型）。这些数据类型都支持push/pop、add/remove及取交集并集和差集及更丰富的操作，而且这些操作都是原子性的。在此基础上，redis支持各种不同方式的排序。与memcached一样，为了保证效率，数据都是缓存在内存中。区别的是redis会周期性的把更新的数据写入磁盘或者把修改操作写入追加的记录文件，并且在此基础上实现了master-slave(主从)同步。</p>
+<p>Redis 是一个高性能的key-value数据库。 redis的出现，很大程度补偿了这类key/value存储的不足，在部 分场合可以对关系数据库起到很好的补充作用。它提供了Java，C/C++，C#，PHP，JavaScript，Perl，Object-C，Python，Ruby，Erlang等客户端，使用很方便。REmoteredis Dictionary Server(Redis)远程字典服务器，为网站提供高速缓存服务<br><a href="https://baike.baidu.com/item/Redis/6549233?fr=aladdin" target="_blank" rel="noopener">详细介绍</a></p>
+<h3 id="2-redis的安装和启动过程"><a href="#2-redis的安装和启动过程" class="headerlink" title="2.redis的安装和启动过程"></a>2.redis的安装和启动过程</h3><h4 id="2-1-redis安装"><a href="#2-1-redis安装" class="headerlink" title="2.1 redis安装"></a>2.1 redis安装</h4><p>redis的安装选择的源代码构建安装,先获取redis的源代码包<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">wget http://download.redis.io/releases/redis-4.0.11.tar.gz</span><br></pre></td></tr></table></figure></p>
+<p>减压压缩包</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">tar -zxvf redis-4.0.11.tar.gz</span><br></pre></td></tr></table></figure>
+<p>进入解压文件</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">cd redis-4.0.11</span><br></pre></td></tr></table></figure>
+<p>安装和导入</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">make &amp; make install</span><br></pre></td></tr></table></figure>
+<h4 id="2-2-redis启动"><a href="#2-2-redis启动" class="headerlink" title="2.2 redis启动"></a>2.2 redis启动</h4><p>启动前的配置,redis-server服务器启动前必须要进行配置，如果不进行配置将可能导致攻击者通过上传密钥配置直接获取系统的root权限</p>
+<p>在启动服务器之后可以使用redis-benchmark -h ip -a 密码    测试redis服务器性能</p>
+<p>1.将redis-4.0.11文件下的redis.conf文件复制到主目录下</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">cp ./redis-4.0.11/redis.conf redis.conf</span><br></pre></td></tr></table></figure>
+<p>2.使用vim对主目录下的redis.conf进行配置，主要修改一下的部分</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">vim redis.conf</span><br><span class="line"></span><br><span class="line">修改的部分:</span><br><span class="line">bind 172.18.28.55    绑定ip地址(这儿绑定的是内网的地址)</span><br><span class="line"></span><br><span class="line">port 6666			绑定指定的端口(默认是6379)</span><br><span class="line"></span><br><span class="line">requirepass ******	设置redis服务器的地址</span><br><span class="line"></span><br><span class="line">appendonly yes		开启aof存储数据</span><br><span class="line"></span><br><span class="line">appendfilename &quot;appendonly.aof&quot; 默认该文件在redis服务器启动的文件下文件名为appendonly.aof</span><br></pre></td></tr></table></figure>
+<p>3.开启redis服务器</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">redis-server redis.conf &gt; redis.log &amp;</span><br></pre></td></tr></table></figure>
+<p>4.使用redis客户端连接上服务器</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">redis-cli -h 172.18.28.55 -p 6666</span><br><span class="line"></span><br><span class="line">auth &lt;password&gt;</span><br></pre></td></tr></table></figure>
+<h3 id="3-常用的redis的数据类型"><a href="#3-常用的redis的数据类型" class="headerlink" title="3.常用的redis的数据类型"></a>3.常用的redis的数据类型</h3><p>redis具体的操作指令，和数据类型介绍可以去<a href="http://redisdoc.com/" target="_blank" rel="noopener">帮助</a></p>
+<h4 id="3-1字符串类型"><a href="#3-1字符串类型" class="headerlink" title="3.1字符串类型"></a>3.1字符串类型</h4><p>setnx:如果不存在才赋值<br>setex:在设置键值对的时候同时设置存活时间<br>mset:一次放很多键值对<br>mget:一个获取多个键值对</p>
+<h4 id="3-2-哈希表-hash"><a href="#3-2-哈希表-hash" class="headerlink" title="3.2 哈希表(hash)"></a>3.2 哈希表(hash)</h4><p>hset:设置hash类型<br>hget:获取值 hget key filed<br>hgetall:获取对应key的所有值（hgetall key）<br>hmget:一次性获取多个值<br>hmset:一次性赋值多个</p>
+<pre><code>hmset stu1 id 101 name baiyuan age 12 gender male
+</code></pre><p>hdel:删除哈希数据<br>    hdel stu1 age<br>hexists:判断对应键是否存在某字典<br>    hexists stu1 mile<br>hlen:统计键有多少字段<br>hkey:取出对应键的所有字段<br>hvals:取出对应键的所有值<br>hscan:遍历键值对</p>
+<h4 id="3-3-列表-List"><a href="#3-3-列表-List" class="headerlink" title="3.3 列表(List)"></a>3.3 列表(List)</h4><p>lpush:向列表放原始(从左边开始放)</p>
+<pre><code>lpush list1 1 2 3 4 5
+</code></pre><p>lpop:从左边开始取<br>rpop:从右边开始取<br>rpush:(从右边开始放)<br>lrange:指定范围取元素()<br>    lrange list1 start end<br>    lrange list1 0 -1<br>lset:修改列表指定下标的值<br>    lset list 1 1000<br>blpop:如果列表没东西，且时间未超时就阻塞，有东西拿走，超时就结束（从左边取）<br>    blpop list1 20<br>brpop：如果列表没东西，且时间未超时就阻塞，有东西拿走，超时就结束（从右边取）<br>brpoplpush:从右边取一个元素，并把这个元素放到另一个列表的左边（阻塞式）</p>
+<h4 id="3-4-集合-Set"><a href="#3-4-集合-Set" class="headerlink" title="3.4 集合(Set)"></a>3.4 集合(Set)</h4><p>sadd:向集合添加元素<br>    sadd set1 10 20 10 20 30<br>smebers:查看集合中的元素<br>    smerbers set1<br>sinter:交集<br>    sinter 集合1 集合2<br>sunion:并集<br>    sunion 集合1 集合2<br>sdiff:差集<br>    sdiff 集合1 集合2<br>sismenber:判断元素在不在集合中<br>    sismenber 集合 元素<br>spop:从集合中取出一个元素<br>srandmenber:从集合中随机返回一个元素（实际没有拿走）<br>srem:移除集合中的一个或者多个元素，如果不存在就忽略</p>
+<h4 id="3-5有序集合-zsort"><a href="#3-5有序集合-zsort" class="headerlink" title="3.5有序集合(zsort)"></a>3.5有序集合(zsort)</h4><p>zadd:添加有序集合<br>    zadd 集合名 值 元素<br>zrange:查看元素<br>    zrange zs1 0 -1<br>    zrange zs1 0 -1 withscores 显示元素的时候把分数值也显示出来<br>zrangebyscore:指定搜索范围来搜索数据<br>    zrangebyscore zs1 10 20<br>zrank:查看元素的排名<br>    zrank zs1 apple<br>zreverange:从大到小排序查询<br>    zreverange zs1</p>
+<h4 id="3-6其他常用操作"><a href="#3-6其他常用操作" class="headerlink" title="3.6其他常用操作"></a>3.6其他常用操作</h4><p>事务:<br>mult:开始事务<br>    要执行的操作<br>exec:执行 ( 实际执行)<br>discard：放弃执行</p>
+<p>服务器:<br>bgsave:后台保存<br>dbsize: 查看数据库有多少键<br>slaveof:把redis设置成那个的奴隶（主从复制，读写分离）<br>shutdown:关闭服务器<br>info:查看服务器相关信息</p>
+<p>type(值)：查看对应值的类型</p>
+<p>redis-check-aof -fix appendonly.aof    修复aof的文件</p>
+<h3 id="4-主从复制及哨兵"><a href="#4-主从复制及哨兵" class="headerlink" title="4.主从复制及哨兵"></a>4.主从复制及哨兵</h3><h4 id="4-1主从复制"><a href="#4-1主从复制" class="headerlink" title="4.1主从复制"></a>4.1主从复制</h4><p>主从复制一般来说是1组n从的结构，其中主人负责进行写数据，而奴隶复制读数据，主从复制的配置中，主人不需要进行任何设置，只需要配置奴隶的配置文件即可。</p>
+<p>本次的设置主人的信息如下:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">ip 172.18.28.55</span><br><span class="line">port 6666</span><br><span class="line">password 123456</span><br></pre></td></tr></table></figure>
+<p>需要设置三个奴隶: 主从复制中的奴隶的配置需要在自己服务器上的redis.conf进行配置，因此复制了redis,conf文件分别为redis01.conf,redis02.conf,redis03.conf</p>
+<p>redis01.conf的配置:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">bind 172.18.28.55		奴隶服务器1的主机ip</span><br><span class="line">port 6667 				奴隶服务1的端口</span><br><span class="line">slaveof 172.18.28.55 6666   第一个ip是主人的ip，6666表示主人的端口</span><br><span class="line">masterauth 123456	这是设置主人的密码</span><br></pre></td></tr></table></figure>
+<p>redis02.conf的配置</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">bind 172.18.28.55		奴隶服务器2的主机ip</span><br><span class="line">port 6668 				奴隶服务2的端口</span><br><span class="line">slaveof 172.18.28.55 6666   第一个ip是主人的ip，6666表示主人的端口</span><br><span class="line">masterauth 123456	这是设置主人的密码</span><br></pre></td></tr></table></figure>
+<p>redis03.conf的配置</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">bind 172.18.28.55		奴隶服务器3的主机ip</span><br><span class="line">port 6669 				奴隶服务3的端口</span><br><span class="line">slaveof 172.18.28.55 6666   第一个ip是主人的ip，6666表示主人的端口</span><br><span class="line">masterauth 123456	这是设置主人的密码</span><br></pre></td></tr></table></figure>
+<p>开启redis(master)服务器:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">redis-server redis.conf &gt; redis.log &amp;</span><br></pre></td></tr></table></figure>
+<p>开启三个redis(salve)服务器:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">redis-server redis01.conf &gt; redis01.log &amp;</span><br><span class="line">redis-server redis02.conf &gt; redis02.log &amp;</span><br><span class="line">redis-server redis03.conf &gt; redis03.log &amp;</span><br></pre></td></tr></table></figure>
+<p>测试主人服务器和奴隶服务器</p>
+<p>主人服务器:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[root@izwz99cyop0b1vo0ot11d5z ~]# !1019</span><br><span class="line">redis-cli -h 172.18.28.55 -p 6666</span><br><span class="line">172.18.28.55:6666&gt; auth 123456</span><br><span class="line">OK</span><br><span class="line">172.18.28.55:6666&gt; info replication</span><br><span class="line"># Replication</span><br><span class="line">role:master</span><br><span class="line">connected_slaves:3</span><br><span class="line">slave0:ip=172.18.28.55,port=6667,state=online,offset=742,lag=0</span><br><span class="line">slave1:ip=172.18.28.55,port=6668,state=online,offset=742,lag=1</span><br><span class="line">slave2:ip=172.18.28.55,port=6669,state=online,offset=742,lag=0</span><br><span class="line">master_replid:c65891b7f68a6fcfca0479adc617eb09443f5d63</span><br><span class="line">master_replid2:0000000000000000000000000000000000000000</span><br><span class="line">master_repl_offset:742</span><br><span class="line">second_repl_offset:-1</span><br><span class="line">repl_backlog_active:1</span><br><span class="line">repl_backlog_size:1048576</span><br><span class="line">repl_backlog_first_byte_offset:1</span><br><span class="line">repl_backlog_histlen:742</span><br></pre></td></tr></table></figure>
+<p>奴隶服务器:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[root@izwz99cyop0b1vo0ot11d5z ~]# redis-cli -h 172.18.28.55 -p 6667</span><br><span class="line">172.18.28.55:6667&gt; auth 123456</span><br><span class="line">OK</span><br><span class="line">172.18.28.55:6667&gt; info replication</span><br><span class="line"># Replication</span><br><span class="line">role:slave</span><br><span class="line">master_host:172.18.28.55</span><br><span class="line">master_port:6666</span><br><span class="line">master_link_status:up</span><br><span class="line">master_last_io_seconds_ago:0</span><br><span class="line">master_sync_in_progress:0</span><br><span class="line">slave_repl_offset:924</span><br><span class="line">slave_priority:100</span><br><span class="line">slave_read_only:1</span><br><span class="line">connected_slaves:0</span><br><span class="line">master_replid:c65891b7f68a6fcfca0479adc617eb09443f5d63</span><br><span class="line">master_replid2:0000000000000000000000000000000000000000</span><br><span class="line">master_repl_offset:924</span><br><span class="line">second_repl_offset:-1</span><br><span class="line">repl_backlog_active:1</span><br><span class="line">repl_backlog_size:1048576</span><br><span class="line">repl_backlog_first_byte_offset:1</span><br><span class="line">repl_backlog_histlen:924</span><br></pre></td></tr></table></figure>
+<h4 id="4-2哨兵服务器的配置"><a href="#4-2哨兵服务器的配置" class="headerlink" title="4.2哨兵服务器的配置"></a>4.2哨兵服务器的配置</h4><p>哨兵服务器是在主从复制中起到监视主人状态的服务器，一旦主服务器宕机了，那么哨兵服务器就会从从服务器(奴隶)中选出新的主人，这样就可以避免因为主人死掉而使业务中断。</p>
+<p>哨兵服务器的的设置需要从解压缩目录中拷贝一份sentinel.conf,配置这个文件中的部分内容，从而设置成哨兵服务器</p>
+<p>哨兵服务器sentinel.conf的配置如下:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">bind 172.18.28.55	绑定哨兵服务器的ip</span><br><span class="line">port 26379	绑定哨兵服务器的端口(默认是26379)</span><br><span class="line">sentinel monitor mymaster 172.18.28.55 6666  设置主人服务器和端口号</span><br><span class="line">sentinel down-after-milliseconds mymaster 10000 设置主人服务器挂掉时间多少后(单位毫秒)服务器，开始选主人</span><br><span class="line">sentinel failover-timeout mymaster 180000 设置故障恢复时间，在3分钟之内原来的主服务器连上现在的集群就，原来的主人将作为奴隶，3分钟之后没有连上那么原来的主服务器将不能再连接这个集群</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">sentinel parallel-syncs mymaster 2 设置主人挂掉之后，新选出的主人有几个奴隶需要进行业务转移</span><br><span class="line"></span><br><span class="line">entinel auth-pass mymaster 123456 设置主人的密码</span><br></pre></td></tr></table></figure>
+<p>启动哨兵服务器:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">redis-server sentinel.conf --sentinel</span><br></pre></td></tr></table></figure>
+<p>哨兵服务器是通过心跳事件来判断主人死掉还是活着的</p>
+<h3 id="5-补充知识"><a href="#5-补充知识" class="headerlink" title="5.补充知识"></a>5.补充知识</h3><p>网站优化的两大定律:<br>    1.缓存 - 用空间换取时间 - Redis/Memecached<br>    2.削峰 - 能推迟的事情都不要马上做 - 消息队列RabbitMQ/RocketMQ<br>设置指定的端口和密码来启动redis服务器<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">redis-server --port 1234 --requirepass 123456 --appendonly yes &gt; redis.log &amp;</span><br></pre></td></tr></table></figure></p>
+<p>redis的数据存储场景:<br>热(点)数据 - 经常被访问的数据</p>
+<p>redis放的应该是体量不是特别大的热点数据</p>
+
+        </section>
+    </article>
+    
+        <!-- disqus 评论框 start -->
+        <div class="comment">
+            <div id="disqus_thread" class="disqus-thread">
+              <i>Loading comments box needs to over the wall</i>
+            </div>
+        </div>
+        <!-- disqus 评论框 end -->
+    
+    
+        <!-- livere 评论框 start -->
+        <div class="comment">
+            <div id="lv-container" data-id="city" data-uid="your_livere_uid"></div>
+        </div>
+        <!-- livere 评论框 end -->
+        
+  </div>
+  <aside>
+    
+    <div class="toc-container">
+        <h1>目录</h1>
+        <div class="content">
+            <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-redis介绍"><span class="toc-number">1.</span> <span class="toc-text">1.redis介绍</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-redis的安装和启动过程"><span class="toc-number">2.</span> <span class="toc-text">2.redis的安装和启动过程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-1-redis安装"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 redis安装</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-redis启动"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 redis启动</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-常用的redis的数据类型"><span class="toc-number">3.</span> <span class="toc-text">3.常用的redis的数据类型</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#3-1字符串类型"><span class="toc-number">3.1.</span> <span class="toc-text">3.1字符串类型</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-2-哈希表-hash"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 哈希表(hash)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-3-列表-List"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 列表(List)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-4-集合-Set"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 集合(Set)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-5有序集合-zsort"><span class="toc-number">3.5.</span> <span class="toc-text">3.5有序集合(zsort)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-6其他常用操作"><span class="toc-number">3.6.</span> <span class="toc-text">3.6其他常用操作</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-主从复制及哨兵"><span class="toc-number">4.</span> <span class="toc-text">4.主从复制及哨兵</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1主从复制"><span class="toc-number">4.1.</span> <span class="toc-text">4.1主从复制</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2哨兵服务器的配置"><span class="toc-number">4.2.</span> <span class="toc-text">4.2哨兵服务器的配置</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-补充知识"><span class="toc-number">5.</span> <span class="toc-text">5.补充知识</span></a></li></ol>
+        </div>
+    </div>
+    
+  </aside>
+</main>
+
+<!-- disqus 公共JS代码 -->
+<script type="text/javascript">
+  /* * * CONFIGURATION VARIABLES * * */
+  var disqus_shortname = "your_disqus_shortname";
+  var disqus_identifier = "http://yoursite.com/2018/10/20/redis学习总结/";
+  var disqus_url = "http://yoursite.com/2018/10/20/redis学习总结/";
+
+  isAgent(getDisqus)
+
+  // determine user agent in China
+  function isAgent(cb) {
+    var url = '//graph.facebook.com/feed?callback=h';
+    var xhr = new XMLHttpRequest();
+    var called = false;
+    xhr.open('GET', url);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+      called = true;
+      cb(true);
+      }
+    };
+    xhr.send();
+    // timeout 1s, this facebook API is very fast.
+    setTimeout(function() {
+      if (!called) {
+      xhr.abort();
+      cb(false)
+      }
+    }, 1000);
+  }
+
+  function getDisqus(isAgent) {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; 
+    dsq.async = true
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq)
+  }
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+<script type="text/javascript">
+  (function(d, s) {
+      var j, e = d.getElementsByTagName(s)[0];
+
+      if (typeof LivereTower === 'function') { return; }
+
+      j = d.createElement(s);
+      j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+      j.async = true;
+
+      e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+</script>
+
+
+  <footer>
+  <div class="copyright">
+    <div>
+      &copy; 2018 | Powered by <a href="https://hexo.io" target="_blank">Hexo</a>&nbsp
+    </div>
+    <div>
+      Theme by <a href="https://github.com/lewis-geek/hexo-theme-Aath" target="_blank">Aath</a>
+    </div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="/lib/in-view.min.js"></script>
+<script src="/lib/lodash.min.js"></script>
+<script>
+  var isDown = true
+  var oldY = 0
+  inView.offset(50)
+
+  document.body.addEventListener('touchstart', function(){});
+  
+  window.addEventListener('scroll', _.throttle(e => {
+    var currentY = window.scrollY
+    if((oldY - currentY) < 0) {
+      isDown = true
+    } else {
+      isDown = false
+    }
+    oldY = currentY
+  }, 250))
+
+  $("article img").each(function() {
+      var strA = "<a data-fancybox='gallery' href='" + this.src + "'></a>";
+      $(this).wrapAll(strA);
+  });
+
+  $('.toc-link').each(function() {
+      var href = $(this).attr("href");
+      
+      inView(href).on('exit', () => {
+        if (isDown) {
+          handleActive(href)
+        }
+      })
+
+      inView(href).on('enter', () => {
+        if (!isDown) {
+          handleActive(href)
+        }
+      })
+
+      this.onclick = function(e) {
+        var pos = $(href).offset().top - 10;
+        $("html,body").animate({scrollTop: pos}, 300);
+        setTimeout(() => {
+          handleActive(href)
+        }, 350)
+        return false
+      }
+  })
+
+  function handleActive(href) {
+    document.querySelectorAll('.toc-link').forEach(elm => {
+      elm.classList.remove('active')
+    })
+    document.querySelector(".toc [href='"+ href +"']").classList.add('active')
+  }
+</script>
+<script src="/lib/jquery.fancybox.min.js"></script>
+
+
+</body>
+</html>
