@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang=>
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  
+    <link rel="icon" href="/favicon.ico">
+  
+    
+  <title>Django实现分页 | tomxxkl的个人博客</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/lib/jquery.fancybox.min.css">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+  <header>
+  <div class="header-container">
+    <a class='logo' href="/">
+      <span>tomxxkl的个人博客</span>
+    </a>
+    <ul class="right-header">
+      
+        <li class="nav-item">
+          
+            <a href="/" class="item-link">首页</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/about" class="item-link">关于</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/archives" class="item-link">归档</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/tags" class="item-link">标签</a>
+          
+        </li>
+      
+    </ul>
+  </div>
+</header>
+
+  <main id='post'>
+  <div class="content">
+    <article>
+        <section class="content markdown-body">
+          <h1>Django实现分页</h1>
+          <div class='post-meta'>
+            <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/10/30</time>
+            
+            
+          </div>
+          <p>Django实现分页主要借助于django.core.paginator.Paginator类。这个类的主要作用是对从数据库取回来的数据进行分割，进而封装成一个一个对象，例如一个表中有七条数据，按每三条进行分割，就可以生成三个page对象，两个page对象有各有三条记录，一个page对象有一条记录。</p>
+<p>这儿用一个分页的例子来演示分页的效果</p>
+<p>首先是urls.py配置:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">url(<span class="string">r'^articles/'</span>, views.articles, name=<span class="string">'articles'</span>)</span><br></pre></td></tr></table></figure>
+<p>其次是views.py里的方法:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> django.core.paginator <span class="keyword">import</span> Paginator  <span class="comment">#引入分页的类</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">articles</span><span class="params">(request)</span>:</span></span><br><span class="line">	<span class="keyword">if</span> request.method == <span class="string">'GET'</span>:</span><br><span class="line">		<span class="comment"># 查询所有文章对象并进行分页</span></span><br><span class="line">		articles = Article.objects.all()</span><br><span class="line">		<span class="comment"># 分页，按每页三条记录进行分页</span></span><br><span class="line">		paginator = Paginator(articles, <span class="number">3</span>)</span><br><span class="line">		<span class="comment"># 获取指定页数的数字，如果为None,默认值为1</span></span><br><span class="line">		page = request.GET.get(<span class="string">'page'</span>, <span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">		<span class="comment">#返回指定页数的数据(本质是返回一个页面的所有数据是一个对象列表)</span></span><br><span class="line">        arts = paginator.page(page)</span><br><span class="line">		<span class="comment"># arts.has_previous() 是否有上一页</span></span><br><span class="line">		<span class="comment"># arts.has_next() 是否有下一页</span></span><br><span class="line">		<span class="comment"># arts.number 当前页数</span></span><br><span class="line">		<span class="comment"># arts.next_page_number() 下一页页码</span></span><br><span class="line">		<span class="comment"># arts.previous_page_number() 上一页页码</span></span><br><span class="line">		<span class="comment"># arts.paginator.page_range() 是一个range对象(遍历的时候有用)</span></span><br><span class="line">		<span class="keyword">return</span> render(request, <span class="string">'arts.html'</span>, &#123;<span class="string">'arts'</span>:arts&#125;)</span><br></pre></td></tr></table></figure>
+<p>最后是在前端展示并实现分页效果:</p>
+<figure class="highlight django"><table><tr><td class="code"><pre><span class="line"><span class="template-tag">&#123;% <span class="name"><span class="name">extends</span></span> 'base.html' %&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="template-tag">&#123;% <span class="name"><span class="name">block</span></span> title %&#125;</span></span><br><span class="line">    分页查询</span><br><span class="line"><span class="template-tag">&#123;% <span class="name"><span class="name">endblock</span></span> %&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="template-tag">&#123;% <span class="name"><span class="name">block</span></span> content %&#125;</span></span><br><span class="line">    <span class="template-tag">&#123;% <span class="name"><span class="name">for</span></span> art <span class="keyword">in</span> arts %&#125;</span></span><br><span class="line">        &lt;h1&gt;<span class="template-variable">&#123;&#123; art.title &#125;&#125;</span>&lt;/h1&gt;</span><br><span class="line">        &lt;p&gt;<span class="template-variable">&#123;&#123; art.desc &#125;&#125;</span>&lt;/p&gt;</span><br><span class="line">        &lt;img src="/media/<span class="template-variable">&#123;&#123; art.img &#125;&#125;</span>"&gt;</span><br><span class="line">    <span class="template-tag">&#123;% <span class="name"><span class="name">endfor</span></span> %&#125;</span></span><br><span class="line">    <span class="template-tag">&#123;% <span class="name"><span class="name">if</span></span> arts.has_previous %&#125;</span></span><br><span class="line">	<span class="comment">&#123;# 这儿判断是否存在上一页，如果存在才显示上一页 #&#125;</span></span><br><span class="line">    &lt;a href="<span class="template-tag">&#123;% <span class="name"><span class="name">url</span></span> 'user:articles' %&#125;</span>?page=<span class="template-variable">&#123;&#123; arts.previous_page_number &#125;&#125;</span>"&gt;上一页&lt;/a&gt;</span><br><span class="line">    <span class="template-tag">&#123;% <span class="name"><span class="name">endif</span></span> %&#125;</span></span><br><span class="line">    <span class="template-tag">&#123;% <span class="name"><span class="name">for</span></span> i <span class="keyword">in</span> arts.paginator.page_range %&#125;</span></span><br><span class="line">	<span class="comment">&#123;# 这儿是进行遍历取出每一个具体的记录 #&#125;</span></span><br><span class="line">    &lt;a href="<span class="template-tag">&#123;% <span class="name"><span class="name">url</span></span> 'user:articles' %&#125;</span>?page=<span class="template-variable">&#123;&#123; i &#125;&#125;</span>"&gt;<span class="template-variable">&#123;&#123; i &#125;&#125;</span>&lt;/a&gt;</span><br><span class="line">    <span class="template-tag">&#123;% <span class="name"><span class="name">endfor</span></span> %&#125;</span></span><br><span class="line"></span><br><span class="line">    <span class="template-tag">&#123;% <span class="name"><span class="name">if</span></span> arts.has_next %&#125;</span></span><br><span class="line">	<span class="comment">&#123;# 这儿判断是否存在下一页，如果存在才显示下一页 #&#125;</span></span><br><span class="line">    &lt;a href="<span class="template-tag">&#123;% <span class="name"><span class="name">url</span></span> 'user:articles' %&#125;</span>?page=<span class="template-variable">&#123;&#123; arts.next_page_number &#125;&#125;</span>"&gt;下一页&lt;/a&gt;</span><br><span class="line">    <span class="template-tag">&#123;% <span class="name"><span class="name">endif</span></span> %&#125;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="template-tag">&#123;% <span class="name"><span class="name">endblock</span></span> %&#125;</span></span><br></pre></td></tr></table></figure>
+<p>实现分页这儿用到了前面的文件上传的知识(主要是图片展示的时候)</p>
+
+        </section>
+    </article>
+    
+        <!-- disqus 评论框 start -->
+        <div class="comment">
+            <div id="disqus_thread" class="disqus-thread">
+              <i>Loading comments box needs to over the wall</i>
+            </div>
+        </div>
+        <!-- disqus 评论框 end -->
+    
+    
+        <!-- livere 评论框 start -->
+        <div class="comment">
+            <div id="lv-container" data-id="city" data-uid="your_livere_uid"></div>
+        </div>
+        <!-- livere 评论框 end -->
+        
+  </div>
+  <aside>
+    
+  </aside>
+</main>
+
+<!-- disqus 公共JS代码 -->
+<script type="text/javascript">
+  /* * * CONFIGURATION VARIABLES * * */
+  var disqus_shortname = "your_disqus_shortname";
+  var disqus_identifier = "http://yoursite.com/2018/10/30/Django实现分页/";
+  var disqus_url = "http://yoursite.com/2018/10/30/Django实现分页/";
+
+  isAgent(getDisqus)
+
+  // determine user agent in China
+  function isAgent(cb) {
+    var url = '//graph.facebook.com/feed?callback=h';
+    var xhr = new XMLHttpRequest();
+    var called = false;
+    xhr.open('GET', url);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+      called = true;
+      cb(true);
+      }
+    };
+    xhr.send();
+    // timeout 1s, this facebook API is very fast.
+    setTimeout(function() {
+      if (!called) {
+      xhr.abort();
+      cb(false)
+      }
+    }, 1000);
+  }
+
+  function getDisqus(isAgent) {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; 
+    dsq.async = true
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq)
+  }
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+<script type="text/javascript">
+  (function(d, s) {
+      var j, e = d.getElementsByTagName(s)[0];
+
+      if (typeof LivereTower === 'function') { return; }
+
+      j = d.createElement(s);
+      j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+      j.async = true;
+
+      e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+</script>
+
+
+  <footer>
+  <div class="copyright">
+    <div>
+      &copy; 2018 | Powered by <a href="https://hexo.io" target="_blank">Hexo</a>&nbsp
+    </div>
+    <div>
+      Theme by <a href="https://github.com/lewis-geek/hexo-theme-Aath" target="_blank">Aath</a>
+    </div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="/lib/in-view.min.js"></script>
+<script src="/lib/lodash.min.js"></script>
+<script>
+  var isDown = true
+  var oldY = 0
+  inView.offset(50)
+
+  document.body.addEventListener('touchstart', function(){});
+  
+  window.addEventListener('scroll', _.throttle(e => {
+    var currentY = window.scrollY
+    if((oldY - currentY) < 0) {
+      isDown = true
+    } else {
+      isDown = false
+    }
+    oldY = currentY
+  }, 250))
+
+  $("article img").each(function() {
+      var strA = "<a data-fancybox='gallery' href='" + this.src + "'></a>";
+      $(this).wrapAll(strA);
+  });
+
+  $('.toc-link').each(function() {
+      var href = $(this).attr("href");
+      
+      inView(href).on('exit', () => {
+        if (isDown) {
+          handleActive(href)
+        }
+      })
+
+      inView(href).on('enter', () => {
+        if (!isDown) {
+          handleActive(href)
+        }
+      })
+
+      this.onclick = function(e) {
+        var pos = $(href).offset().top - 10;
+        $("html,body").animate({scrollTop: pos}, 300);
+        setTimeout(() => {
+          handleActive(href)
+        }, 350)
+        return false
+      }
+  })
+
+  function handleActive(href) {
+    document.querySelectorAll('.toc-link').forEach(elm => {
+      elm.classList.remove('active')
+    })
+    document.querySelector(".toc [href='"+ href +"']").classList.add('active')
+  }
+</script>
+<script src="/lib/jquery.fancybox.min.js"></script>
+
+
+</body>
+</html>

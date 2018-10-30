@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang=>
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  
+    <link rel="icon" href="/favicon.ico">
+  
+    
+  <title>Django日志处理 | tomxxkl的个人博客</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/lib/jquery.fancybox.min.css">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+  <header>
+  <div class="header-container">
+    <a class='logo' href="/">
+      <span>tomxxkl的个人博客</span>
+    </a>
+    <ul class="right-header">
+      
+        <li class="nav-item">
+          
+            <a href="/" class="item-link">首页</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/about" class="item-link">关于</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/archives" class="item-link">归档</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/tags" class="item-link">标签</a>
+          
+        </li>
+      
+    </ul>
+  </div>
+</header>
+
+  <main id='post'>
+  <div class="content">
+    <article>
+        <section class="content markdown-body">
+          <h1>Django日志处理</h1>
+          <div class='post-meta'>
+            <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/10/30</time>
+            
+            
+          </div>
+          <h4 id="1-日志的配置"><a href="#1-日志的配置" class="headerlink" title="1.日志的配置"></a>1.日志的配置</h4><p>日志处理是每个网站以及程序必须要做的功能，完整的日志可以追踪网站或者程序可能会出现的各种问题。</p>
+<p>logging的使用需要对项目的setting.py进行配置。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 配置日志</span></span><br><span class="line">LOGGING = &#123;</span><br><span class="line">    <span class="comment"># 必须是1</span></span><br><span class="line">    <span class="string">'version'</span>: <span class="number">1</span>,</span><br><span class="line">    <span class="comment"># True表示禁用日志</span></span><br><span class="line">    <span class="string">'disable_existing_loggers'</span>: <span class="keyword">False</span>,</span><br><span class="line">    <span class="comment"># 指定写入到日志文件中的日志格式</span></span><br><span class="line">    <span class="string">'formatters'</span>: &#123;</span><br><span class="line">      <span class="string">'default'</span>: &#123;</span><br><span class="line">          <span class="string">'format'</span>: <span class="string">'%(name)s %(asctime)s %(message)s'</span></span><br><span class="line">      &#125;,</span><br><span class="line"></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="string">'handlers'</span>: &#123;</span><br><span class="line">        <span class="string">'console'</span>: &#123;</span><br><span class="line">            <span class="string">'level'</span>: <span class="string">'INFO'</span>,</span><br><span class="line">            <span class="string">'filename'</span>: <span class="string">'%s/log.txt'</span> % os.path.join(BASE_DIR, <span class="string">'log'</span>),</span><br><span class="line">            <span class="string">'formatter'</span>: <span class="string">'default'</span>,</span><br><span class="line">            <span class="comment"># 当日志文件大于5M,则做自动备份</span></span><br><span class="line">            <span class="string">'class'</span>: <span class="string">'logging.handlers.RotatingFileHandler'</span>,</span><br><span class="line">            <span class="string">'maxBytes'</span>: <span class="number">5</span> * <span class="number">1024</span> * <span class="number">1024</span>,</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="string">'loggers'</span>: &#123;</span><br><span class="line">        <span class="string">''</span>: &#123;</span><br><span class="line">            <span class="string">'handlers'</span>: [<span class="string">'console'</span>],</span><br><span class="line">            <span class="string">'level'</span>: <span class="string">'INFO'</span>,</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>进行配置之后需要在中间件里面对要进行日志记录的信息进行捕获并把捕获到的信息存储在指定的log文件里面</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> time</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> logging</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">LoggingMiddleware</span><span class="params">(MiddlewareMixin)</span>:</span></span><br><span class="line">	<span class="function"><span class="keyword">def</span> <span class="title">process_request</span><span class="params">(self,request)</span>:</span></span><br><span class="line">		<span class="comment"># 记录当前请求服务器的时候，请求参数，请求内容</span></span><br><span class="line">		request.init_time = time.time()</span><br><span class="line">		request.init_body = request.body</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">None</span></span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">def</span> <span class="title">process_response</span><span class="params">(self,request,response)</span>:</span></span><br><span class="line">		<span class="comment"># 记录返回响应的时间和访问服务器的时间差(可以进行代码优化)，记录返回状态码</span></span><br><span class="line">		<span class="comment"># 响应时间差</span></span><br><span class="line">		times = time.time() - request.init_time</span><br><span class="line"></span><br><span class="line">		<span class="comment"># 响应状态码</span></span><br><span class="line">		code = response.status_code</span><br><span class="line">		<span class="comment"># 响应内容</span></span><br><span class="line">		<span class="keyword">try</span>:</span><br><span class="line">			res_body = response.content</span><br><span class="line">		<span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">			res_body = <span class="keyword">None</span></span><br><span class="line">		<span class="comment"># 请求内容</span></span><br><span class="line">		req_body = request.init_body</span><br><span class="line">		msg = <span class="string">'%s %s %s %s'</span> % (times, code, res_body, req_body)</span><br><span class="line">		<span class="comment"># 写入日志</span></span><br><span class="line">		<span class="keyword">try</span>:</span><br><span class="line">			logging.info(msg)</span><br><span class="line">		<span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">			logging.critical(<span class="string">'log error,Exception: %s'</span>% e)</span><br><span class="line">		<span class="keyword">return</span> response</span><br></pre></td></tr></table></figure>
+<p>日志的详细信息</p>
+<h4 id="2-日志logging模块"><a href="#2-日志logging模块" class="headerlink" title="2. 日志logging模块"></a>2. 日志logging模块</h4><p>logging模块可以收集记录错误，警告等调试信息，在程序中可以捕获这些信息，并且甚至可以将错误的重要信息等都可以通过邮件发送给开发者</p>
+<p>##### </p>
+<h5 id="1-1-logging的组成"><a href="#1-1-logging的组成" class="headerlink" title="1.1 logging的组成"></a>1.1 logging的组成</h5><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Loggers</span><br><span class="line"></span><br><span class="line">Handlers</span><br><span class="line"></span><br><span class="line">Filters</span><br><span class="line"></span><br><span class="line">Formatters</span><br></pre></td></tr></table></figure>
+<p>##### </p>
+<h5 id="1-1-Loggers"><a href="#1-1-Loggers" class="headerlink" title="1.1 Loggers"></a>1.1 Loggers</h5><p>Logger 为日志系统的入口。每个logger 是一个具名的容器，可以向它写入需要处理的消息。</p>
+<p>每个logger 都有一个日志级别。日志级别表示该logger 将要处理的消息的严重性。</p>
+<p>Python 定义以下几种日志级别：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">DEBUG：用于调试目的的底层系统信息</span><br><span class="line"></span><br><span class="line">INFO：普通的系统信息</span><br><span class="line"></span><br><span class="line">WARNING：表示出现一个较小的问题。</span><br><span class="line"></span><br><span class="line">ERROR：表示出现一个较大的问题。</span><br><span class="line"></span><br><span class="line">CRITICAL：表示出现一个致命的问题。</span><br></pre></td></tr></table></figure>
+<p>日志级别等级CRITICAL &gt; ERROR &gt; WARNING &gt; INFO &gt; DEBUG &gt; NOTSET</p>
+<p>##### </p>
+<h5 id="1-2-Handlers"><a href="#1-2-Handlers" class="headerlink" title="1.2 Handlers"></a>1.2 Handlers</h5><p>Handler 决定如何处理logger 中的每条消息。它表示一个特定的日志行为。</p>
+<p>与logger 一样，handler 也有一个日志级别。如果消息的日志级别小于handler 的级别，handler 将忽略该消息。</p>
+<p>Logger 可以有多个handler，而每个handler 可以有不同的日志级别。</p>
+<p>##### </p>
+<h5 id="1-3-Filters"><a href="#1-3-Filters" class="headerlink" title="1.3 Filters"></a>1.3 Filters</h5><p>Filter 用于对从logger 传递给handler 的日志记录进行额外的控制。</p>
+<p>##### </p>
+<h5 id="1-4-Formatters"><a href="#1-4-Formatters" class="headerlink" title="1.4 Formatters"></a>1.4 Formatters</h5><p>日志记录需要转换成文本。</p>
+<p>Formatter 表示文本的格式。Fomatter 通常由包含日志记录属性的Python 格式字符串组成；</p>
+<p>你也可以编写自定义的fomatter 来实现自己的格式。</p>
+<p>如下展示了formatters格式:<a href="https://github.com/coco369/knowledge/blob/master/django/images/django_logging_model.png" target="_blank" rel="noopener"><img src="https://github.com/coco369/knowledge/raw/master/django/images/django_logging_model.png" alt="图"></a></p>
+<h5 id="1-5-日志常见的写入方法"><a href="#1-5-日志常见的写入方法" class="headerlink" title="1.5 日志常见的写入方法"></a>1.5 日志常见的写入方法</h5><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> logging</span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取logger，logger用于接收日志信息，并且丢给handlers进行处理</span></span><br><span class="line">logger = logging.getLogger(__name__)</span><br><span class="line"></span><br><span class="line"><span class="comment"># logger接收日志信息的几个方法，如下:</span></span><br><span class="line">logger.debug()</span><br><span class="line">logger.info()</span><br><span class="line">logger.warning()</span><br><span class="line">logger.error()</span><br><span class="line">logger.critical()</span><br></pre></td></tr></table></figure>
+
+        </section>
+    </article>
+    
+        <!-- disqus 评论框 start -->
+        <div class="comment">
+            <div id="disqus_thread" class="disqus-thread">
+              <i>Loading comments box needs to over the wall</i>
+            </div>
+        </div>
+        <!-- disqus 评论框 end -->
+    
+    
+        <!-- livere 评论框 start -->
+        <div class="comment">
+            <div id="lv-container" data-id="city" data-uid="your_livere_uid"></div>
+        </div>
+        <!-- livere 评论框 end -->
+        
+  </div>
+  <aside>
+    
+    <div class="toc-container">
+        <h1>目录</h1>
+        <div class="content">
+            <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-日志的配置"><span class="toc-number">1.</span> <span class="toc-text">1.日志的配置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-日志logging模块"><span class="toc-number">2.</span> <span class="toc-text">2. 日志logging模块</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-1-logging的组成"><span class="toc-number">2.1.</span> <span class="toc-text">1.1 logging的组成</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#1-1-Loggers"><span class="toc-number">2.2.</span> <span class="toc-text">1.1 Loggers</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#1-2-Handlers"><span class="toc-number">2.3.</span> <span class="toc-text">1.2 Handlers</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#1-3-Filters"><span class="toc-number">2.4.</span> <span class="toc-text">1.3 Filters</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#1-4-Formatters"><span class="toc-number">2.5.</span> <span class="toc-text">1.4 Formatters</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#1-5-日志常见的写入方法"><span class="toc-number">2.6.</span> <span class="toc-text">1.5 日志常见的写入方法</span></a></li></ol></li></ol>
+        </div>
+    </div>
+    
+  </aside>
+</main>
+
+<!-- disqus 公共JS代码 -->
+<script type="text/javascript">
+  /* * * CONFIGURATION VARIABLES * * */
+  var disqus_shortname = "your_disqus_shortname";
+  var disqus_identifier = "http://yoursite.com/2018/10/30/Django日志处理/";
+  var disqus_url = "http://yoursite.com/2018/10/30/Django日志处理/";
+
+  isAgent(getDisqus)
+
+  // determine user agent in China
+  function isAgent(cb) {
+    var url = '//graph.facebook.com/feed?callback=h';
+    var xhr = new XMLHttpRequest();
+    var called = false;
+    xhr.open('GET', url);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+      called = true;
+      cb(true);
+      }
+    };
+    xhr.send();
+    // timeout 1s, this facebook API is very fast.
+    setTimeout(function() {
+      if (!called) {
+      xhr.abort();
+      cb(false)
+      }
+    }, 1000);
+  }
+
+  function getDisqus(isAgent) {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; 
+    dsq.async = true
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq)
+  }
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+<script type="text/javascript">
+  (function(d, s) {
+      var j, e = d.getElementsByTagName(s)[0];
+
+      if (typeof LivereTower === 'function') { return; }
+
+      j = d.createElement(s);
+      j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+      j.async = true;
+
+      e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+</script>
+
+
+  <footer>
+  <div class="copyright">
+    <div>
+      &copy; 2018 | Powered by <a href="https://hexo.io" target="_blank">Hexo</a>&nbsp
+    </div>
+    <div>
+      Theme by <a href="https://github.com/lewis-geek/hexo-theme-Aath" target="_blank">Aath</a>
+    </div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="/lib/in-view.min.js"></script>
+<script src="/lib/lodash.min.js"></script>
+<script>
+  var isDown = true
+  var oldY = 0
+  inView.offset(50)
+
+  document.body.addEventListener('touchstart', function(){});
+  
+  window.addEventListener('scroll', _.throttle(e => {
+    var currentY = window.scrollY
+    if((oldY - currentY) < 0) {
+      isDown = true
+    } else {
+      isDown = false
+    }
+    oldY = currentY
+  }, 250))
+
+  $("article img").each(function() {
+      var strA = "<a data-fancybox='gallery' href='" + this.src + "'></a>";
+      $(this).wrapAll(strA);
+  });
+
+  $('.toc-link').each(function() {
+      var href = $(this).attr("href");
+      
+      inView(href).on('exit', () => {
+        if (isDown) {
+          handleActive(href)
+        }
+      })
+
+      inView(href).on('enter', () => {
+        if (!isDown) {
+          handleActive(href)
+        }
+      })
+
+      this.onclick = function(e) {
+        var pos = $(href).offset().top - 10;
+        $("html,body").animate({scrollTop: pos}, 300);
+        setTimeout(() => {
+          handleActive(href)
+        }, 350)
+        return false
+      }
+  })
+
+  function handleActive(href) {
+    document.querySelectorAll('.toc-link').forEach(elm => {
+      elm.classList.remove('active')
+    })
+    document.querySelector(".toc [href='"+ href +"']").classList.add('active')
+  }
+</script>
+<script src="/lib/jquery.fancybox.min.js"></script>
+
+
+</body>
+</html>
