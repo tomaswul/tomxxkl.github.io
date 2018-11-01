@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang=>
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  
+    <link rel="icon" href="/favicon.ico">
+  
+    
+  <title>Django跨域请求问题 | tomxxkl的个人博客</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/lib/jquery.fancybox.min.css">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+  <header>
+  <div class="header-container">
+    <a class='logo' href="/">
+      <span>tomxxkl的个人博客</span>
+    </a>
+    <ul class="right-header">
+      
+        <li class="nav-item">
+          
+            <a href="/" class="item-link">首页</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/about" class="item-link">关于</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/archives" class="item-link">归档</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/tags" class="item-link">标签</a>
+          
+        </li>
+      
+    </ul>
+  </div>
+</header>
+
+  <main id='post'>
+  <div class="content">
+    <article>
+        <section class="content markdown-body">
+          <h1>Django跨域请求问题</h1>
+          <div class='post-meta'>
+            <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/11/01</time>
+            
+            
+          </div>
+          <p>同源：是指相同的协议、域名、端口，三者都相同才属于同源。</p>
+<p>同源策略：浏览器处于安全考虑，在全局层面禁止了页面加载或执行与自身来源不同的域的任何脚本，站外其他来源的脚本同页面的交互则被严格限制。</p>
+<p>跨域由于浏览器同源策略，凡是发送请求url的协议、域名、端口三者之间任意一与当前页面地址不同即为跨域</p>
+<p>这儿由于通过rest_framework设置了前后分离，因此为了解决跨域问题重写了相应的方法</p>
+<p>views.py</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> json</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> django.http <span class="keyword">import</span> HttpResponse</span><br><span class="line"><span class="keyword">from</span> django.shortcuts <span class="keyword">import</span> render</span><br><span class="line"><span class="keyword">from</span> rest_framework <span class="keyword">import</span> mixins, viewsets, status</span><br><span class="line"><span class="keyword">from</span> rest_framework.response <span class="keyword">import</span> Response</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> app.models <span class="keyword">import</span> Article</span><br><span class="line"><span class="keyword">from</span> app.serializers <span class="keyword">import</span> ArticleSerializer</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ArticleView</span><span class="params">(viewsets.GenericViewSet,</span></span></span><br><span class="line"><span class="class"><span class="params">				  mixins.ListModelMixin,</span></span></span><br><span class="line"><span class="class"><span class="params">				  mixins.DestroyModelMixin,</span></span></span><br><span class="line"><span class="class"><span class="params">				  mixins.CreateModelMixin,</span></span></span><br><span class="line"><span class="class"><span class="params">				  mixins.RetrieveModelMixin,</span></span></span><br><span class="line"><span class="class"><span class="params">				  mixins.UpdateModelMixin,</span></span></span><br><span class="line"><span class="class"><span class="params">				  )</span>:</span></span><br><span class="line">	<span class="comment"># 查询数据</span></span><br><span class="line">	queryset = Article.objects.all()</span><br><span class="line"></span><br><span class="line">	<span class="comment"># 序列化</span></span><br><span class="line">	serializer_class = ArticleSerializer</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">def</span> <span class="title">list</span><span class="params">(self, request, *args, **kwargs)</span>:</span></span><br><span class="line">		queryset = self.filter_queryset(self.get_queryset())</span><br><span class="line">		page = self.paginate_queryset(queryset)</span><br><span class="line">		<span class="keyword">if</span> page <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span>:</span><br><span class="line">			serializer = self.get_serializer(page, many=<span class="keyword">True</span>)</span><br><span class="line">			<span class="keyword">return</span> self.get_paginated_response(serializer.data)</span><br><span class="line"></span><br><span class="line">		serializer = self.get_serializer(queryset, many=<span class="keyword">True</span>)</span><br><span class="line"></span><br><span class="line">		<span class="comment">#这儿重写了list方法，并把headers重新赋值。就可以解决跨域问题</span></span><br><span class="line">		<span class="keyword">return</span> Response(serializer.data,headers=&#123;<span class="string">'Access-Control-Allow-Origin'</span>:<span class="string">'*'</span>,</span><br><span class="line">												 <span class="string">'Access-Control-Allow-Methods'</span>: <span class="string">'POST, GET, OPTIONS'</span>,</span><br><span class="line">												 <span class="string">'Access-Control-Max-Age'</span>: <span class="string">'1000'</span>,</span><br><span class="line">												 <span class="string">'Access-Control-Allow-Headers'</span>: <span class="string">'*'</span>&#125;)</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">def</span> <span class="title">destroy</span><span class="params">(self, request, *args, **kwargs)</span>:</span></span><br><span class="line">		instance = self.get_object()</span><br><span class="line">		self.perform_destroy (instance)</span><br><span class="line">		<span class="keyword">return</span> Response (status=status.HTTP_204_NO_CONTENT)</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">def</span> <span class="title">perform_destroy</span><span class="params">(self, instance)</span>:</span></span><br><span class="line">		instance.is_delete = <span class="number">1</span></span><br><span class="line">		instance.save()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">all_article</span><span class="params">(request)</span>:</span></span><br><span class="line">	<span class="keyword">if</span> request.method == <span class="string">'GET'</span>:</span><br><span class="line">		<span class="keyword">return</span> render(request, <span class="string">'all_article.html'</span>)</span><br></pre></td></tr></table></figure>
+
+        </section>
+    </article>
+    
+        <!-- disqus 评论框 start -->
+        <div class="comment">
+            <div id="disqus_thread" class="disqus-thread">
+              <i>Loading comments box needs to over the wall</i>
+            </div>
+        </div>
+        <!-- disqus 评论框 end -->
+    
+    
+        <!-- livere 评论框 start -->
+        <div class="comment">
+            <div id="lv-container" data-id="city" data-uid="your_livere_uid"></div>
+        </div>
+        <!-- livere 评论框 end -->
+        
+  </div>
+  <aside>
+    
+  </aside>
+</main>
+
+<!-- disqus 公共JS代码 -->
+<script type="text/javascript">
+  /* * * CONFIGURATION VARIABLES * * */
+  var disqus_shortname = "your_disqus_shortname";
+  var disqus_identifier = "http://yoursite.com/2018/11/01/Django跨域请求问题/";
+  var disqus_url = "http://yoursite.com/2018/11/01/Django跨域请求问题/";
+
+  isAgent(getDisqus)
+
+  // determine user agent in China
+  function isAgent(cb) {
+    var url = '//graph.facebook.com/feed?callback=h';
+    var xhr = new XMLHttpRequest();
+    var called = false;
+    xhr.open('GET', url);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+      called = true;
+      cb(true);
+      }
+    };
+    xhr.send();
+    // timeout 1s, this facebook API is very fast.
+    setTimeout(function() {
+      if (!called) {
+      xhr.abort();
+      cb(false)
+      }
+    }, 1000);
+  }
+
+  function getDisqus(isAgent) {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; 
+    dsq.async = true
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq)
+  }
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+<script type="text/javascript">
+  (function(d, s) {
+      var j, e = d.getElementsByTagName(s)[0];
+
+      if (typeof LivereTower === 'function') { return; }
+
+      j = d.createElement(s);
+      j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+      j.async = true;
+
+      e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+</script>
+
+
+  <footer>
+  <div class="copyright">
+    <div>
+      &copy; 2018 | Powered by <a href="https://hexo.io" target="_blank">Hexo</a>&nbsp
+    </div>
+    <div>
+      Theme by <a href="https://github.com/lewis-geek/hexo-theme-Aath" target="_blank">Aath</a>
+    </div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="/lib/in-view.min.js"></script>
+<script src="/lib/lodash.min.js"></script>
+<script>
+  var isDown = true
+  var oldY = 0
+  inView.offset(50)
+
+  document.body.addEventListener('touchstart', function(){});
+  
+  window.addEventListener('scroll', _.throttle(e => {
+    var currentY = window.scrollY
+    if((oldY - currentY) < 0) {
+      isDown = true
+    } else {
+      isDown = false
+    }
+    oldY = currentY
+  }, 250))
+
+  $("article img").each(function() {
+      var strA = "<a data-fancybox='gallery' href='" + this.src + "'></a>";
+      $(this).wrapAll(strA);
+  });
+
+  $('.toc-link').each(function() {
+      var href = $(this).attr("href");
+      
+      inView(href).on('exit', () => {
+        if (isDown) {
+          handleActive(href)
+        }
+      })
+
+      inView(href).on('enter', () => {
+        if (!isDown) {
+          handleActive(href)
+        }
+      })
+
+      this.onclick = function(e) {
+        var pos = $(href).offset().top - 10;
+        $("html,body").animate({scrollTop: pos}, 300);
+        setTimeout(() => {
+          handleActive(href)
+        }, 350)
+        return false
+      }
+  })
+
+  function handleActive(href) {
+    document.querySelectorAll('.toc-link').forEach(elm => {
+      elm.classList.remove('active')
+    })
+    document.querySelector(".toc [href='"+ href +"']").classList.add('active')
+  }
+</script>
+<script src="/lib/jquery.fancybox.min.js"></script>
+
+
+</body>
+</html>
