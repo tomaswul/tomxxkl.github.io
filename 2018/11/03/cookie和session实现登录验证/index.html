@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang=>
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  
+    <link rel="icon" href="/favicon.ico">
+  
+    
+  <title>cookie和session实现登录验证 | tomxxkl的个人博客</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/lib/jquery.fancybox.min.css">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+  <header>
+  <div class="header-container">
+    <a class='logo' href="/">
+      <span>tomxxkl的个人博客</span>
+    </a>
+    <ul class="right-header">
+      
+        <li class="nav-item">
+          
+            <a href="/" class="item-link">首页</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/about" class="item-link">关于</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/archives" class="item-link">归档</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/tags" class="item-link">标签</a>
+          
+        </li>
+      
+    </ul>
+  </div>
+</header>
+
+  <main id='post'>
+  <div class="content">
+    <article>
+        <section class="content markdown-body">
+          <h1>cookie和session实现登录验证</h1>
+          <div class='post-meta'>
+            <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/11/03</time>
+            
+            
+          </div>
+          <p>回话技术,比如在做登录功能的时候，需要配合是用存储在客户端的cookie信息，以及存储在服务端的session来实现登录功能。在cookie中保存了用户的信息，特别是一个特殊的令牌信息，当用户拿着这个特殊的令牌来访问网站的时候，网站会从cookie中获取这个特殊令牌去数据库session中去查询是否有这个对应的令牌的信息，如果有则验证成功，就可以把用户的信息返回给客户端了，如果验证失败则提示用户没有登录等等提示信息。</p>
+<p>cookie不属于http协议范围，由于http协议无法保持状态，但实际情况，我们却又需要“保持状态”，因此cookie就是在这样一个场景下诞生。</p>
+<p>cookie的工作原理是：由服务器产生内容，浏览器收到请求后保存在本地；当浏览器再次访问时，浏览器会自动带上cookie，这样服务器就能通过cookie的内容来判断这个是“谁”了。</p>
+<p>cookie虽然在一定程度上解决了“保持状态”的需求，但是由于cookie本身最大支持4096字节，以及cookie本身保存在客户端，可能被拦截或窃取，因此就需要有一种新的东西，它能支持更多的字节，并且他保存在服务器，有较高的安全性。这就是session。</p>
+<p>问题来了，基于http协议的无状态特征，服务器根本就不知道访问者是“谁”。那么上述的cookie就起到桥接的作用。</p>
+<p>我们可以给每个客户端的cookie分配一个唯一的id，这样用户在访问时，通过cookie，服务器就知道来的人是“谁”。然后我们再根据不同的cookie的id，在服务器上保存一段时间的私密资料，如“账号密码”等等。</p>
+<p>总结而言：cookie弥补了http无状态的不足，让服务器知道来的人是“谁”；但是cookie以文本的形式保存在本地，自身安全性较差；所以我们就通过cookie识别不同的用户，对应的在session里保存私密的信息以及超过4096字节的文本。</p>
+<p>另外，上述所说的cookie和session其实是共通性的东西，不限于语言和框架</p>
+<p>#### </p>
+<h4 id="1-cookie"><a href="#1-cookie" class="headerlink" title="1. cookie"></a>1. cookie</h4><p>HTTP 协议是无状态的。因此，若不借助其他手段，远程的服务器就无法知道以前和客户端做了哪些通信。Cookie 就是「其他手段」之一。 Cookie 一个典型的应用场景，就是用于记录用户在网站上的登录状态。</p>
+<p>用户登录成功后，服务器下发一个（通常是加密了的）Cookie 文件。客户端（通常是网页浏览器）将收到的 Cookie 文件保存起来。下次客户端与服务器连接时，将 Cookie 文件发送给服务器，由服务器校验其含义，恢复登录状态（从而避免再次登录）。</p>
+<p>##### </p>
+<h5 id="1-1-描述"><a href="#1-1-描述" class="headerlink" title="1.1 描述"></a>1.1 描述</h5><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">浏览器端的回话技术</span><br><span class="line">cookie本身由浏览器生成，通过Response将cookie写在浏览器上，下一次访问，浏览器会根据不同的规则携带cookie过来</span><br></pre></td></tr></table></figure>
+<p>##### </p>
+<h5 id="1-2-cookie方法"><a href="#1-2-cookie方法" class="headerlink" title="1.2 cookie方法"></a>1.2 cookie方法</h5><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">设置：response.set_cookie(key, value, max_age=None, exprise=None)</span><br><span class="line"></span><br><span class="line">获取：request.GET.get(key)</span><br><span class="line"></span><br><span class="line">删除：request.delete_cookie(key)</span><br></pre></td></tr></table></figure>
+<p>注意：cookie不能跨浏览器</p>
+<p>参数定义：</p>
+<p>max_age和exprise时间：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">max_age :  整数，指定cookie过期时间，以秒为单位</span><br><span class="line"></span><br><span class="line">exprise： 整数，指定过期时间，还支持是一个datetime或者timedelta，可以指定一个具体日期时间</span><br></pre></td></tr></table></figure>
+<p>设置10天后过期：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">exprise=datetime.datetime.now() + timedelta(days=10) 10天后过期</span><br></pre></td></tr></table></figure>
+<p>永不过期：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">exprise设置为None表示为永不过期</span><br></pre></td></tr></table></figure>
+<p>#### </p>
+<h4 id="2-session"><a href="#2-session" class="headerlink" title="2. session"></a>2. session</h4><p>##### </p>
+<h5 id="2-1-描述"><a href="#2-1-描述" class="headerlink" title="2.1 描述"></a>2.1 描述</h5><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">服务端会话技术，依赖于cookie</span><br></pre></td></tr></table></figure>
+<p>##### </p>
+<h5 id="2-2-开启session设置"><a href="#2-2-开启session设置" class="headerlink" title="2.2 开启session设置"></a>2.2 开启session设置</h5><p>1）django中启用SESSION</p>
+<p>在settings中修改如下地方</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">INSTALLED_APPS:</span><br><span class="line">    ‘django.contrib.sessions’</span><br><span class="line"></span><br><span class="line">MIDDLEWARE:</span><br><span class="line">    ‘django.contrib.sessions.middleware.SessionMiddleware’</span><br></pre></td></tr></table></figure>
+<p>每个HttpResponse对象都有一个session属性，也是一个类字典对象</p>
+<p>##### </p>
+<h5 id="2-3-常用操作"><a href="#2-3-常用操作" class="headerlink" title="2.3 常用操作"></a>2.3 常用操作</h5><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">request.session[‘user’] = username 设置数据</span><br><span class="line"></span><br><span class="line">request.session.get(key, default=None) 根据键获取会话的值</span><br><span class="line"></span><br><span class="line">request.session.flush() 删除当前的会话数据并删除会话的cookie，django.contrib.auth.logout() 函数中就会调用它。</span><br><span class="line"></span><br><span class="line">request.session.session_key  获取sessionid值</span><br><span class="line"></span><br><span class="line">request.session.delete(request.session.session_key) 删除当前用户的所有Session数据</span><br><span class="line"></span><br><span class="line">del request.session[&apos;key&apos;] 删除session中的key值</span><br><span class="line"></span><br><span class="line">request.session.set_expiry(value)</span><br><span class="line">	如果value是个整数，session会在些秒数后失效</span><br><span class="line">	如果value是个datatime或timedelta，session就会在这个时间后失效。 </span><br><span class="line">	如果value是0,用户关闭浏览器session就会失效。</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">数据存储到数据库中会进行编码使用的是base64</span><br></pre></td></tr></table></figure>
+<h4 id="3-使用session-cookie实现登录验证"><a href="#3-使用session-cookie实现登录验证" class="headerlink" title="3.使用session+cookie实现登录验证"></a>3.使用session+cookie实现登录验证</h4><h5 id="1-创建登录验证的views方法"><a href="#1-创建登录验证的views方法" class="headerlink" title="1.创建登录验证的views方法"></a>1.创建登录验证的views方法</h5><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">login</span><span class="params">(request)</span>:</span></span><br><span class="line">	<span class="keyword">if</span> request.method == <span class="string">'GET'</span>:</span><br><span class="line">		<span class="keyword">return</span> render(request,<span class="string">'login.html'</span>)</span><br><span class="line">	<span class="keyword">if</span> request.method == <span class="string">'POST'</span>:</span><br><span class="line">		<span class="comment"># 1.获取参数</span></span><br><span class="line">		username = request.POST.get(<span class="string">'username'</span>)</span><br><span class="line">		password = request.POST.get(<span class="string">'password'</span>)</span><br><span class="line">		<span class="comment"># 2.校验数据完整性</span></span><br><span class="line">		flag = all([username,password])</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> <span class="keyword">not</span> flag:</span><br><span class="line">			msg = <span class="string">'用户名密码不能为空'</span></span><br><span class="line">			<span class="keyword">return</span> render(request, <span class="string">'login.html'</span>, &#123;<span class="string">'msg'</span>: msg&#125;)</span><br><span class="line">		<span class="comment"># 3.验证用户是否注册</span></span><br><span class="line">		user = User.objects.filter(username=username).first()</span><br><span class="line">		<span class="keyword">if</span> <span class="keyword">not</span> user:</span><br><span class="line">			msg = <span class="string">'该账户未注册，请去注册'</span></span><br><span class="line">			<span class="keyword">return</span> render(request, <span class="string">'login.html'</span>, &#123;<span class="string">'msg'</span>: msg&#125;)</span><br><span class="line">		<span class="comment"># 4.校验密码</span></span><br><span class="line">		<span class="keyword">if</span> user.password != password:</span><br><span class="line">			msg = <span class="string">'密码不正确'</span></span><br><span class="line">			<span class="keyword">return</span> render(request, <span class="string">'login.html'</span>, &#123;<span class="string">'msg'</span>: msg&#125;)</span><br><span class="line">		<span class="comment"># 1.使用cookie+session</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">		<span class="comment"># 向cookie中设置sessionid值</span></span><br><span class="line">		<span class="comment"># 向django_session表中存sessionid值</span></span><br><span class="line">		request.session[<span class="string">'user_id'</span>] = user.id</span><br><span class="line">		<span class="keyword">return</span> HttpResponseRedirect(reverse(<span class="string">'user:index'</span>))</span><br></pre></td></tr></table></figure>
+<h5 id="2-创建相应的装饰器"><a href="#2-创建相应的装饰器" class="headerlink" title="2.创建相应的装饰器"></a>2.创建相应的装饰器</h5><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">login_required</span><span class="params">(func)</span>:</span></span><br><span class="line">	<span class="function"><span class="keyword">def</span> <span class="title">check_login</span><span class="params">(request)</span>:</span></span><br><span class="line">		<span class="keyword">try</span>:</span><br><span class="line">			<span class="comment"># 验证cookie中的sessionid值是否存在</span></span><br><span class="line">			<span class="comment"># 验证服务端django_session表中是否存在对应的记录信息</span></span><br><span class="line">			<span class="comment"># 如果存在则获取是否设置的user_id值</span></span><br><span class="line">			request.session[<span class="string">'user_id'</span>]</span><br><span class="line">		<span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">			<span class="keyword">return</span> HttpResponseRedirect(reverse(<span class="string">'user:login'</span>))</span><br><span class="line">		<span class="keyword">return</span> func (request)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> check_login</span><br></pre></td></tr></table></figure>
+<h5 id="3-实现注销"><a href="#3-实现注销" class="headerlink" title="3.实现注销"></a>3.实现注销</h5><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="meta">@login_required</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">logout</span><span class="params">(request)</span>:</span></span><br><span class="line">	<span class="keyword">if</span> request.method == <span class="string">'GET'</span>:</span><br><span class="line">		<span class="keyword">del</span> request.session[<span class="string">'user_id'</span>]</span><br><span class="line"></span><br><span class="line">		<span class="keyword">return</span> HttpResponse(<span class="string">'注销成功'</span>)</span><br></pre></td></tr></table></figure>
+
+        </section>
+    </article>
+    
+        <!-- disqus 评论框 start -->
+        <div class="comment">
+            <div id="disqus_thread" class="disqus-thread">
+              <i>Loading comments box needs to over the wall</i>
+            </div>
+        </div>
+        <!-- disqus 评论框 end -->
+    
+    
+        <!-- livere 评论框 start -->
+        <div class="comment">
+            <div id="lv-container" data-id="city" data-uid="your_livere_uid"></div>
+        </div>
+        <!-- livere 评论框 end -->
+        
+  </div>
+  <aside>
+    
+    <div class="toc-container">
+        <h1>目录</h1>
+        <div class="content">
+            <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-cookie"><span class="toc-number">1.</span> <span class="toc-text">1. cookie</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-1-描述"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 描述</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#1-2-cookie方法"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 cookie方法</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-session"><span class="toc-number">2.</span> <span class="toc-text">2. session</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#2-1-描述"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 描述</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-2-开启session设置"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 开启session设置</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-3-常用操作"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 常用操作</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-使用session-cookie实现登录验证"><span class="toc-number">3.</span> <span class="toc-text">3.使用session+cookie实现登录验证</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-创建登录验证的views方法"><span class="toc-number">3.1.</span> <span class="toc-text">1.创建登录验证的views方法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-创建相应的装饰器"><span class="toc-number">3.2.</span> <span class="toc-text">2.创建相应的装饰器</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-实现注销"><span class="toc-number">3.3.</span> <span class="toc-text">3.实现注销</span></a></li></ol></li></ol>
+        </div>
+    </div>
+    
+  </aside>
+</main>
+
+<!-- disqus 公共JS代码 -->
+<script type="text/javascript">
+  /* * * CONFIGURATION VARIABLES * * */
+  var disqus_shortname = "your_disqus_shortname";
+  var disqus_identifier = "http://yoursite.com/2018/11/03/cookie和session实现登录验证/";
+  var disqus_url = "http://yoursite.com/2018/11/03/cookie和session实现登录验证/";
+
+  isAgent(getDisqus)
+
+  // determine user agent in China
+  function isAgent(cb) {
+    var url = '//graph.facebook.com/feed?callback=h';
+    var xhr = new XMLHttpRequest();
+    var called = false;
+    xhr.open('GET', url);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+      called = true;
+      cb(true);
+      }
+    };
+    xhr.send();
+    // timeout 1s, this facebook API is very fast.
+    setTimeout(function() {
+      if (!called) {
+      xhr.abort();
+      cb(false)
+      }
+    }, 1000);
+  }
+
+  function getDisqus(isAgent) {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; 
+    dsq.async = true
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq)
+  }
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+<script type="text/javascript">
+  (function(d, s) {
+      var j, e = d.getElementsByTagName(s)[0];
+
+      if (typeof LivereTower === 'function') { return; }
+
+      j = d.createElement(s);
+      j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+      j.async = true;
+
+      e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+</script>
+
+
+  <footer>
+  <div class="copyright">
+    <div>
+      &copy; 2018 | Powered by <a href="https://hexo.io" target="_blank">Hexo</a>&nbsp
+    </div>
+    <div>
+      Theme by <a href="https://github.com/lewis-geek/hexo-theme-Aath" target="_blank">Aath</a>
+    </div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="/lib/in-view.min.js"></script>
+<script src="/lib/lodash.min.js"></script>
+<script>
+  var isDown = true
+  var oldY = 0
+  inView.offset(50)
+
+  document.body.addEventListener('touchstart', function(){});
+  
+  window.addEventListener('scroll', _.throttle(e => {
+    var currentY = window.scrollY
+    if((oldY - currentY) < 0) {
+      isDown = true
+    } else {
+      isDown = false
+    }
+    oldY = currentY
+  }, 250))
+
+  $("article img").each(function() {
+      var strA = "<a data-fancybox='gallery' href='" + this.src + "'></a>";
+      $(this).wrapAll(strA);
+  });
+
+  $('.toc-link').each(function() {
+      var href = $(this).attr("href");
+      
+      inView(href).on('exit', () => {
+        if (isDown) {
+          handleActive(href)
+        }
+      })
+
+      inView(href).on('enter', () => {
+        if (!isDown) {
+          handleActive(href)
+        }
+      })
+
+      this.onclick = function(e) {
+        var pos = $(href).offset().top - 10;
+        $("html,body").animate({scrollTop: pos}, 300);
+        setTimeout(() => {
+          handleActive(href)
+        }, 350)
+        return false
+      }
+  })
+
+  function handleActive(href) {
+    document.querySelectorAll('.toc-link').forEach(elm => {
+      elm.classList.remove('active')
+    })
+    document.querySelector(".toc [href='"+ href +"']").classList.add('active')
+  }
+</script>
+<script src="/lib/jquery.fancybox.min.js"></script>
+
+
+</body>
+</html>
