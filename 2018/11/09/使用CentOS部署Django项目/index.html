@@ -172,20 +172,11 @@ for path in paths:
     if re.match(path, request.path):
         return None
 </code></pre><h4 id="2-正式环境中部署方式"><a href="#2-正式环境中部署方式" class="headerlink" title="2. 正式环境中部署方式"></a>2. 正式环境中部署方式</h4><p>正式环境中部署为nginx+uwsgi来部署django项目</p>
-<h5 id="2-1-安装nginx"><a href="#2-1-安装nginx" class="headerlink" title="2.1 安装nginx"></a>2.1 安装nginx</h5><p>a）添加nginx存储库</p>
-<pre><code>yum install epel-release
-</code></pre><p>b) 安装nginx<br>    yum install nginx<br>c) 运行nginx<br>Nginx不会自行启动。要运行Nginx</p>
-<pre><code>systemctl start nginx
-</code></pre><p>nginx的运行命令：<br>     systemctl status nginx 查看nginx的状态<br>     systemctl start/stop/enable/disable nginx 启动/关闭/设置开机启动/禁止开机启动</p>
-<p>d）系统启动时启用Nginx</p>
-<pre><code>systemctl enable nginx
-</code></pre><p>e）如果您正在运行防火墙，请运行以下命令以允许HTTP和HTTPS通信：</p>
-<pre><code>sudo firewall-cmd --permanent --zone=public --add-service=http 
-sudo firewall-cmd --permanent --zone=public --add-service=https
-sudo firewall-cmd --reload
-</code></pre><p>运行结果如下:<br><img src="../django/images/django_centos_nginx.png" alt="图"></p>
+<h5 id="2-1-安装nginx"><a href="#2-1-安装nginx" class="headerlink" title="2.1 安装nginx"></a>2.1 安装nginx</h5><p>a）添加nginx存储库<br>​<br>    yum install epel-release</p>
+<p>b) 安装nginx<br>    yum install nginx<br>c) 运行nginx<br>Nginx不会自行启动。要运行Nginx<br>​<br>    systemctl start nginx<br>nginx的运行命令：<br>     systemctl status nginx 查看nginx的状态<br>     systemctl start/stop/enable/disable nginx 启动/关闭/设置开机启动/禁止开机启动</p>
+<p>d）系统启动时启用Nginx<br>​<br>    systemctl enable nginx<br>e）如果您正在运行防火墙，请运行以下命令以允许HTTP和HTTPS通信：<br>​<br>    sudo firewall-cmd –permanent –zone=public –add-service=http<br>    sudo firewall-cmd –permanent –zone=public –add-service=https<br>    sudo firewall-cmd –reload<br>运行结果如下:<br><img src="https://raw.githubusercontent.com/coco369/knowledge/master/django/images/django_centos_nginx.png" alt="图"></p>
 <h4 id="3-配置uwsgi"><a href="#3-配置uwsgi" class="headerlink" title="3.配置uwsgi"></a>3.配置uwsgi</h4><h5 id="3-1-安装uwsgi"><a href="#3-1-安装uwsgi" class="headerlink" title="3.1 安装uwsgi"></a>3.1 安装uwsgi</h5><p>在虚拟环境中安装uwsgi，假设虚拟环境安装在/home/env/axfenv中<br>    /home/env/axfeng/bin/python3/pip3 install uwsgi</p>
-<h4 id="4-配置项目代码，配置项目nginx，配置uwsgi-ini等"><a href="#4-配置项目代码，配置项目nginx，配置uwsgi-ini等" class="headerlink" title="4. 配置项目代码，配置项目nginx，配置uwsgi.ini等"></a>4. 配置项目代码，配置项目nginx，配置uwsgi.ini等</h4><p>本案例的配置文件，都习惯将每一个项目的配置文件，日志文件，虚拟环境放在一起，这样开发方便，运维也方便维护<br>项目的目录结构如下：<br><img src="../django/images/django_centos_project_mulu.png" alt="图"><br>其中：<br>conf是配置文件，用于存放项目的nginx.conf文件，uwsgi.ini文件<br>logs是日志文件，用于存放nginx的启动成功和失败文件，以及uwsgi的运行日志文件<br>env是用于存放虚拟环境<br>src是项目文件，该目录下上传的是目录代码</p>
+<h4 id="4-配置项目代码，配置项目nginx，配置uwsgi-ini等"><a href="#4-配置项目代码，配置项目nginx，配置uwsgi-ini等" class="headerlink" title="4. 配置项目代码，配置项目nginx，配置uwsgi.ini等"></a>4. 配置项目代码，配置项目nginx，配置uwsgi.ini等</h4><p>本案例的配置文件，都习惯将每一个项目的配置文件，日志文件，虚拟环境放在一起，这样开发方便，运维也方便维护<br>项目的目录结构如下：<br><img src="https://raw.githubusercontent.com/coco369/knowledge/master/django/images/django_centos_project_mulu.png" alt="图"><br>其中：<br>conf是配置文件，用于存放项目的nginx.conf文件，uwsgi.ini文件<br>logs是日志文件，用于存放nginx的启动成功和失败文件，以及uwsgi的运行日志文件<br>env是用于存放虚拟环境<br>src是项目文件，该目录下上传的是目录代码</p>
 <h4 id="4-1-配置nginx-conf文件"><a href="#4-1-配置nginx-conf文件" class="headerlink" title="4.1 配置nginx.conf文件"></a>4.1 配置nginx.conf文件</h4><p><b>首先</b>：编写自己项目的nginx.conf文件如下：<br>每一个项目对应有一个自己定义的nginx的配置文件，比如爱鲜蜂项目，我定义为axfnginx.conf文件<br>    server {<br>         listen       80;<br>         server_name 39.104.176.9 localhost;</p>
 <pre><code>    access_log /home/logs/access.log;
     error_log /home/logs/error.log;
