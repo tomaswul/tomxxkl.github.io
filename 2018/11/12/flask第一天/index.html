@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang=>
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  
+    <link rel="icon" href="/favicon.ico">
+  
+    
+  <title>flask第一天 | tomxxkl的个人博客</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/lib/jquery.fancybox.min.css">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+  <header>
+  <div class="header-container">
+    <a class='logo' href="/">
+      <span>tomxxkl的个人博客</span>
+    </a>
+    <ul class="right-header">
+      
+        <li class="nav-item">
+          
+            <a href="/" class="item-link">首页</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/about" class="item-link">关于</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/archives" class="item-link">归档</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/tags" class="item-link">标签</a>
+          
+        </li>
+      
+    </ul>
+  </div>
+</header>
+
+  <main id='post'>
+  <div class="content">
+    <article>
+        <section class="content markdown-body">
+          <h1>flask第一天</h1>
+          <div class='post-meta'>
+            <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/11/12</time>
+            
+            
+          </div>
+          <h3 id="1-flask介绍"><a href="#1-flask介绍" class="headerlink" title="1. flask介绍"></a>1. flask介绍</h3><p>Flask是一个基于Python实现的web开发的’微’框架</p>
+<p><a href="http://docs.jinkan.org/docs/flask/" target="_blank" rel="noopener">中文文档地址</a></p>
+<p>Flask和Django一样，也是一个基于MVC设计模式的Web框架</p>
+<p>flask流行的主要原因：</p>
+<pre><code>a）有非常齐全的官方文档，上手非常方便
+
+b) 有非常好的拓展机制和第三方的拓展环境，工作中常见的软件都有对应的拓展，自己动手实现拓展也很容易
+
+c) 微型框架的形式给了开发者更大的选择空间
+</code></pre><h3 id="2-安装flask"><a href="#2-安装flask" class="headerlink" title="2. 安装flask"></a>2. 安装flask</h3><h4 id="2-1虚拟环境搭建"><a href="#2-1虚拟环境搭建" class="headerlink" title="2.1虚拟环境搭建"></a>2.1虚拟环境搭建</h4><pre><code>virtualenv --no-site-packages falskenv
+
+激活windows下虚拟环境
+cd Scripts
+activate
+</code></pre><h4 id="2-2-安装"><a href="#2-2-安装" class="headerlink" title="2.2 安装"></a>2.2 安装</h4><pre><code>pip install flask
+</code></pre><h3 id="3-基于flask的最小的应用"><a href="#3-基于flask的最小的应用" class="headerlink" title="3. 基于flask的最小的应用"></a>3. 基于flask的最小的应用</h3><p>创建hello.py文件<br>​<br>    from flask import Flask</p>
+<pre><code>#Flask类构造函数进行初始化
+app = Flask(__name__)
+
+#这儿指定的的是路由--&gt;视图
+
+def gello_world():
+    return &apos;Hello World&apos;
+
+if __name__ == &apos;__main__&apos;:
+    #app.run()表示运行这个flaskapp
+    app.run()
+</code></pre><p>运行：python hello.py</p>
+<h4 id="3-1-flask-script"><a href="#3-1-flask-script" class="headerlink" title="3.1 flask_script"></a>3.1 flask_script</h4><p>使用flask_script在命令行里指定ip和端口</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">python xxx.py runserver -p 8080 -h 0.0.0.0 -d</span><br><span class="line">-p:指定端口</span><br><span class="line">-h:指定ip</span><br><span class="line">-d:开启调试模式(调试模式下修改代码无须重启服务，但是这种模式绝对不能用于生产环境)</span><br></pre></td></tr></table></figure>
+<h5 id="3-1-1-可变参数传递（转换器）"><a href="#3-1-1-可变参数传递（转换器）" class="headerlink" title="3.1.1 可变参数传递（转换器）"></a>3.1.1 可变参数传递（转换器）</h5><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask</span><br><span class="line"><span class="keyword">from</span> flask_script <span class="keyword">import</span> Manager</span><br><span class="line"><span class="comment"># 生成Flask类对象</span></span><br><span class="line">app = Flask(__name__)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用Manager去管理app对象</span></span><br><span class="line">manage = Manager(app)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 注册一个路由，并装饰下面的函数</span></span><br><span class="line"><span class="comment"># 这儿的name是路径的参数，注意后面带\和不带\的区别。</span></span><br><span class="line"><span class="comment"># &lt;int:xxx&gt;:可以接收一个特定的整数</span></span><br><span class="line"><span class="comment"># &lt;float:xxx&gt;:可以接收一个浮点数（不能是字符串和整型，只能是浮点型）</span></span><br><span class="line"><span class="comment"># &lt;path:xxxx&gt;:可以接收一个路径，'/'也是一个字符</span></span><br><span class="line"><span class="comment"># &lt;string:xxx&gt;:可以接收一个string参数</span></span><br><span class="line"><span class="comment"># &lt;uuid:xxx&gt;:接收一个uuid参数</span></span><br><span class="line"><span class="comment"># &lt;xxxx&gt;:可以接收一个参数(字符串)</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route('/hello/&lt;name&gt;/')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">index</span><span class="params">(name)</span>:</span></span><br><span class="line">	<span class="keyword">return</span> <span class="string">'Hello world! %s'</span> % name</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route('/he/&lt;int:id&gt;/')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">he</span><span class="params">(id)</span>:</span></span><br><span class="line">    <span class="keyword">return</span> <span class="string">'我是id是%d'</span> % id</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route('/float/&lt;float:numbers&gt;/')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hello_float</span><span class="params">(numbers)</span>:</span></span><br><span class="line">	<span class="keyword">return</span> <span class="string">'我是%s'</span> % numbers</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route('/path/&lt;path:s&gt;/')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hello_path</span><span class="params">(s)</span>:</span></span><br><span class="line">	<span class="keyword">return</span> s</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route('/get_uuid/')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_uuid</span><span class="params">()</span>:</span></span><br><span class="line">	uu = uuid.uuid4()</span><br><span class="line">	<span class="keyword">return</span> str(uu)</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route('/uuid/&lt;uuid:u&gt;/')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hello_uuid</span><span class="params">(u)</span>:</span></span><br><span class="line">	<span class="keyword">return</span> <span class="string">'hello %s'</span>%u</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">	<span class="comment"># debug = True 表示开启调试模式</span></span><br><span class="line">	<span class="comment"># 启动应用，默认端口是5000，并且调试模式是关闭的</span></span><br><span class="line">	<span class="comment"># host指定ip地址，port指定运行端口</span></span><br><span class="line">    <span class="comment"># app.run(host='0.0.0.0', port=8080, debug=True)</span></span><br><span class="line"></span><br><span class="line">	<span class="comment"># 使用manage.run()去启动flask对象</span></span><br><span class="line"></span><br><span class="line">	manage.run()</span><br></pre></td></tr></table></figure>
+<h4 id="3-2路由器匹配规则"><a href="#3-2路由器匹配规则" class="headerlink" title="3.2路由器匹配规则"></a>3.2路由器匹配规则</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;选择器：参数名&gt;</span><br><span class="line">选择器有int:表示接收的参数为int类型</span><br><span class="line">没有定义选择器:表示接收的参数为string类型(默认)</span><br><span class="line">选择器string:表示接收的参数一定为string类型</span><br></pre></td></tr></table></figure>
+<h3 id="4-使用蓝图实现应用分离"><a href="#4-使用蓝图实现应用分离" class="headerlink" title="4. 使用蓝图实现应用分离"></a>4. 使用蓝图实现应用分离</h3><p>步骤：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">第一步，生成蓝图对象，使用蓝图对象管理路由,这儿的app相当于namespace</span><br><span class="line">app_blueprint = Blueprint(&apos;app&apos;, name)</span><br><span class="line"></span><br><span class="line"># 第二步，注册蓝图,url_prefix表示模块前缀。相当于django工程目录下的urls.py</span><br><span class="line">app.register_blueprint(blueprint=app_blueprint, url_prefix=&apos;/app&apos;,)</span><br></pre></td></tr></table></figure>
+<p>通过上述的基础，我们可以构建一个小的应用了，但是复杂的应用不会是这样构建的，因为这样构建意味着manage.py文件会非常庞大且复杂，这个时候就需要把每个app单独分离出来，在manage.py里面进行总和设计，项目结构如下</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">flask_day01:</span><br><span class="line">	app	</span><br><span class="line">		: __init__.py</span><br><span class="line">		: views.py</span><br><span class="line">	manage.py</span><br></pre></td></tr></table></figure>
+<p>同样在设计的时候需要注意循环引入的问题。</p>
+<h4 id="4-1-manag-py"><a href="#4-1-manag-py" class="headerlink" title="4.1 manag.py"></a>4.1 manag.py</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> uuid</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask</span><br><span class="line"><span class="keyword">from</span> flask_script <span class="keyword">import</span> Manager</span><br><span class="line"><span class="comment"># 生成Flask类对象</span></span><br><span class="line"><span class="keyword">from</span> app.views <span class="keyword">import</span> app_blueprint</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">app = Flask(__name__)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 第二步，注册蓝图,url_prefix表示模块前缀。相当于django工程目录下的urls.py</span></span><br><span class="line">app.register_blueprint(blueprint=app_blueprint, url_prefix=<span class="string">'/app'</span>,)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用Manager去管理app对象</span></span><br><span class="line">manage = Manager(app)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 注册一个路由，并装饰下面的函数</span></span><br><span class="line"><span class="comment"># 这儿的name是路径的参数，注意后面带\和不带\的区别。</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">	<span class="comment"># debug = True 表示开启调试模式</span></span><br><span class="line">	<span class="comment"># 启动应用，默认端口是5000，并且调试模式是关闭的</span></span><br><span class="line">	<span class="comment"># host指定ip地址，port指定运行端口</span></span><br><span class="line">    <span class="comment"># app.run(host='0.0.0.0', port=8080, debug=True)</span></span><br><span class="line"></span><br><span class="line">	<span class="comment"># 使用manage.run()去启动flask对象</span></span><br><span class="line"></span><br><span class="line">	manage.run()</span><br></pre></td></tr></table></figure>
+<h4 id="4-2-app-views-py"><a href="#4-2-app-views-py" class="headerlink" title="4.2 app.views.py"></a>4.2 app.views.py</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> uuid</span><br><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> Blueprint, redirect, url_for, render_template, request, make_response, abort</span><br><span class="line"></span><br><span class="line"><span class="comment"># 第一步，生成蓝图对象，使用蓝图对象管理路由,这儿的app相当于namespace</span></span><br><span class="line">app_blueprint = Blueprint(<span class="string">'app'</span>, __name__)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@app_blueprint.route('/hello/&lt;name&gt;')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">index</span><span class="params">(name)</span>:</span></span><br><span class="line">	<span class="keyword">return</span> render_template(<span class="string">'index.html'</span>, name=name)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@app_blueprint.route('/float/&lt;float:numbers&gt;/')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hello_float</span><span class="params">(numbers)</span>:</span></span><br><span class="line">	<span class="keyword">return</span> <span class="string">'我是%s'</span> % numbers</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@app_blueprint.route('/path/&lt;path:s&gt;/')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hello_path</span><span class="params">(s)</span>:</span></span><br><span class="line">	<span class="keyword">return</span> s</span><br><span class="line"></span><br><span class="line"><span class="meta">@app_blueprint.route('/get_uuid/')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_uuid</span><span class="params">()</span>:</span></span><br><span class="line">	uu = uuid.uuid4()</span><br><span class="line">	<span class="keyword">return</span> str(uu)</span><br></pre></td></tr></table></figure>
+<h3 id="5-请求与响应"><a href="#5-请求与响应" class="headerlink" title="5.请求与响应"></a>5.请求与响应</h3><p>在app.views里每个视图函数在进行蓝图绑定的时候也可以通过methods指定这个视图函数可以接受的请求方式</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@app_blueprint.route(&apos;/hello/&apos;, methods=[&apos;GET&apos;, &apos;POST&apos;, &apos;PATCH&apos;])</span><br></pre></td></tr></table></figure>
+<h4 id="5-1请求"><a href="#5-1请求" class="headerlink" title="5.1请求"></a>5.1请求</h4><p>get请求:可以通过request.args方式来获取get请求的参数(request需引入flask.request)</p>
+<ul>
+<li>request.args.get(xxx):获取一个值</li>
+<li>request.args.getlist(xxx):获取指定的参数(转换成列表,获取一个参数的多个值)</li>
+</ul>
+<p>post请求:可以通过request.form方式获取post请求的参数    </p>
+<ul>
+<li>equest.form.get(xxx):获取一个值</li>
+<li>request.form.getlist(xxx):获取指定的参数(转换成列表,获取一个参数的多个值)</li>
+</ul>
+<p>文件上传: 通过request.files</p>
+<p>判断请求方式:request.method</p>
+<p>获取路径：request.path</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># methods定义当前路由允许的请求方式</span></span><br><span class="line"><span class="meta">@app_blueprint.route('/hello/', methods=['GET', 'POST', 'PATCH'])</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_request</span><span class="params">()</span>:</span></span><br><span class="line">	<span class="keyword">if</span> request.method == <span class="string">'GET'</span>:</span><br><span class="line">		<span class="comment"># 获取get提交请求传递的参数</span></span><br><span class="line">		<span class="comment"># request.args.get(xxx):获取参数名为xxx的参数值</span></span><br><span class="line">		<span class="comment"># request.args.getlist(xxx)获取名称为xxx的参数列表</span></span><br><span class="line">		name = request.args.get(<span class="string">'name'</span>)</span><br><span class="line">		age = request.args.get(<span class="string">'age'</span>)</span><br><span class="line">		<span class="keyword">return</span> <span class="string">'你好'</span></span><br><span class="line">	<span class="keyword">if</span> request.method == <span class="string">'POST'</span>:</span><br><span class="line"></span><br><span class="line">		<span class="comment"># 获取post请求提交传递的参数: request.form</span></span><br><span class="line">		<span class="comment"># request.form.get(xxx)：获取参数名为xxx的参数值</span></span><br><span class="line">		<span class="comment"># request.form.getlist(xxx): 获取参数名为xxx的参数列表</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">		<span class="comment"># 获取get参数：request.args</span></span><br><span class="line">		<span class="comment"># 获取post传参：request.form</span></span><br><span class="line">		<span class="comment"># 获取上传文件：request.files</span></span><br><span class="line">		<span class="comment"># 获取路径：request.path</span></span><br><span class="line">		<span class="comment"># 请求方式：request.method</span></span><br><span class="line">		name = request.form.get(<span class="string">'name'</span>)</span><br><span class="line">		age = request.form.getlist(<span class="string">'age'</span>)</span><br><span class="line">		<span class="keyword">return</span> <span class="string">'我是post请求'</span></span><br></pre></td></tr></table></figure>
+<h4 id="5-2响应"><a href="#5-2响应" class="headerlink" title="5.2响应"></a>5.2响应</h4><p>flask的响应是通过flask.make_response(content, code)方法来进行响应的,其中content是响应的内容，code是响应的状态码(默认指定状态码为200)</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 响应</span></span><br><span class="line"><span class="meta">@app_blueprint.route('/make_response/', methods = ['GET', 'POST'])</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">response_style</span><span class="params">()</span>:</span></span><br><span class="line">	<span class="comment"># 两个参数第二个那个参数是状态码，基本不用写</span></span><br><span class="line">	<span class="comment"># make_response(响应内容，响应状态码(默认是200))</span></span><br><span class="line">	res = make_response(<span class="string">'&lt;h2&gt;好想睡觉&lt;/h2&gt;'</span>, <span class="number">404</span>)</span><br><span class="line"></span><br><span class="line">	<span class="comment"># 设置cookie键值对</span></span><br><span class="line">	<span class="comment"># res.set_cookie(key,value)</span></span><br><span class="line">	<span class="keyword">return</span> res</span><br></pre></td></tr></table></figure>
+<h3 id="6-异常"><a href="#6-异常" class="headerlink" title="6.异常"></a>6.异常</h3><p>flask的异常是通过flask.abort(code)来抛出的，code表示本次错误的状态码，flask的异常捕获需要在捕获后的执行函数上加上@app_blueprint.errorhandler(500)装饰器，声明这个函数捕获的是哪种状态码的异常。如下的例子清晰的显示了flask是如何抛出异常的和异常捕获的。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 异常</span></span><br><span class="line"><span class="meta">@app_blueprint.route('/route_a/', methods=['POST'])</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">abort_a</span><span class="params">()</span>:</span></span><br><span class="line">	a = int(request.form.get(<span class="string">'a'</span>))</span><br><span class="line">	b = int(request.form.get(<span class="string">'b'</span>))</span><br><span class="line">	<span class="keyword">try</span>:</span><br><span class="line">		c = a/b</span><br><span class="line">	<span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">		<span class="comment"># 抛出异常</span></span><br><span class="line">		abort(<span class="number">500</span>)</span><br><span class="line">	<span class="keyword">return</span> <span class="string">'%s/%s=%s'</span> % (a, b, c)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 异常捕获</span></span><br><span class="line"><span class="meta">@app_blueprint.errorhandler(500)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">error_handler</span><span class="params">(error)</span>:</span></span><br><span class="line">	<span class="keyword">return</span> <span class="string">'Exception is %s'</span> % error</span><br></pre></td></tr></table></figure>
+
+        </section>
+    </article>
+    
+        <!-- disqus 评论框 start -->
+        <div class="comment">
+            <div id="disqus_thread" class="disqus-thread">
+              <i>Loading comments box needs to over the wall</i>
+            </div>
+        </div>
+        <!-- disqus 评论框 end -->
+    
+    
+        <!-- livere 评论框 start -->
+        <div class="comment">
+            <div id="lv-container" data-id="city" data-uid="your_livere_uid"></div>
+        </div>
+        <!-- livere 评论框 end -->
+        
+  </div>
+  <aside>
+    
+    <div class="toc-container">
+        <h1>目录</h1>
+        <div class="content">
+            <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-flask介绍"><span class="toc-number">1.</span> <span class="toc-text">1. flask介绍</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-安装flask"><span class="toc-number">2.</span> <span class="toc-text">2. 安装flask</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-1虚拟环境搭建"><span class="toc-number">2.1.</span> <span class="toc-text">2.1虚拟环境搭建</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-安装"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 安装</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-基于flask的最小的应用"><span class="toc-number">3.</span> <span class="toc-text">3. 基于flask的最小的应用</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#3-1-flask-script"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 flask_script</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#3-1-1-可变参数传递（转换器）"><span class="toc-number">3.1.1.</span> <span class="toc-text">3.1.1 可变参数传递（转换器）</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-2路由器匹配规则"><span class="toc-number">3.2.</span> <span class="toc-text">3.2路由器匹配规则</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-使用蓝图实现应用分离"><span class="toc-number">4.</span> <span class="toc-text">4. 使用蓝图实现应用分离</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-manag-py"><span class="toc-number">4.1.</span> <span class="toc-text">4.1 manag.py</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-app-views-py"><span class="toc-number">4.2.</span> <span class="toc-text">4.2 app.views.py</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-请求与响应"><span class="toc-number">5.</span> <span class="toc-text">5.请求与响应</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#5-1请求"><span class="toc-number">5.1.</span> <span class="toc-text">5.1请求</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-2响应"><span class="toc-number">5.2.</span> <span class="toc-text">5.2响应</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-异常"><span class="toc-number">6.</span> <span class="toc-text">6.异常</span></a></li></ol>
+        </div>
+    </div>
+    
+  </aside>
+</main>
+
+<!-- disqus 公共JS代码 -->
+<script type="text/javascript">
+  /* * * CONFIGURATION VARIABLES * * */
+  var disqus_shortname = "your_disqus_shortname";
+  var disqus_identifier = "http://yoursite.com/2018/11/12/flask第一天/";
+  var disqus_url = "http://yoursite.com/2018/11/12/flask第一天/";
+
+  isAgent(getDisqus)
+
+  // determine user agent in China
+  function isAgent(cb) {
+    var url = '//graph.facebook.com/feed?callback=h';
+    var xhr = new XMLHttpRequest();
+    var called = false;
+    xhr.open('GET', url);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+      called = true;
+      cb(true);
+      }
+    };
+    xhr.send();
+    // timeout 1s, this facebook API is very fast.
+    setTimeout(function() {
+      if (!called) {
+      xhr.abort();
+      cb(false)
+      }
+    }, 1000);
+  }
+
+  function getDisqus(isAgent) {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; 
+    dsq.async = true
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq)
+  }
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+<script type="text/javascript">
+  (function(d, s) {
+      var j, e = d.getElementsByTagName(s)[0];
+
+      if (typeof LivereTower === 'function') { return; }
+
+      j = d.createElement(s);
+      j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+      j.async = true;
+
+      e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+</script>
+
+
+  <footer>
+  <div class="copyright">
+    <div>
+      &copy; 2018 | Powered by <a href="https://hexo.io" target="_blank">Hexo</a>&nbsp
+    </div>
+    <div>
+      Theme by <a href="https://github.com/lewis-geek/hexo-theme-Aath" target="_blank">Aath</a>
+    </div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="/lib/in-view.min.js"></script>
+<script src="/lib/lodash.min.js"></script>
+<script>
+  var isDown = true
+  var oldY = 0
+  inView.offset(50)
+
+  document.body.addEventListener('touchstart', function(){});
+  
+  window.addEventListener('scroll', _.throttle(e => {
+    var currentY = window.scrollY
+    if((oldY - currentY) < 0) {
+      isDown = true
+    } else {
+      isDown = false
+    }
+    oldY = currentY
+  }, 250))
+
+  $("article img").each(function() {
+      var strA = "<a data-fancybox='gallery' href='" + this.src + "'></a>";
+      $(this).wrapAll(strA);
+  });
+
+  $('.toc-link').each(function() {
+      var href = $(this).attr("href");
+      
+      inView(href).on('exit', () => {
+        if (isDown) {
+          handleActive(href)
+        }
+      })
+
+      inView(href).on('enter', () => {
+        if (!isDown) {
+          handleActive(href)
+        }
+      })
+
+      this.onclick = function(e) {
+        var pos = $(href).offset().top - 10;
+        $("html,body").animate({scrollTop: pos}, 300);
+        setTimeout(() => {
+          handleActive(href)
+        }, 350)
+        return false
+      }
+  })
+
+  function handleActive(href) {
+    document.querySelectorAll('.toc-link').forEach(elm => {
+      elm.classList.remove('active')
+    })
+    document.querySelector(".toc [href='"+ href +"']").classList.add('active')
+  }
+</script>
+<script src="/lib/jquery.fancybox.min.js"></script>
+
+
+</body>
+</html>
