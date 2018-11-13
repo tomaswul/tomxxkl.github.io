@@ -155,6 +155,8 @@ result = session.get(&apos;key&apos;) ：如果内容不存在，将返回None
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#123;&#123; var &#125;&#125;</span><br><span class="line">视图传递给模板的数据</span><br><span class="line">前面定义出来的数据</span><br><span class="line">变量不存在，默认忽略</span><br></pre></td></tr></table></figure>
 <p>模板中的标签：</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#123;% tag %&#125;</span><br><span class="line">控制逻辑</span><br><span class="line">使用外部表达式</span><br><span class="line">创建变量</span><br><span class="line">宏定义</span><br></pre></td></tr></table></figure>
+<p>继承:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#123;% extends &apos;base.html&apos; %&#125;</span><br></pre></td></tr></table></figure>
 <h4 id="2-2-模板中的block"><a href="#2-2-模板中的block" class="headerlink" title="2.2 模板中的block"></a>2.2 模板中的block</h4><p>在jiaja2的模板中同样可以有挖坑和填坑的操作，父模板挖坑，子模板填坑，这种方式和django中的模板一样，但是在继承父模板的时候，如果子模板要使用父模板中的内容，需要如下书写来表示继承并且使用父模板的内容</p>
 <figure class="highlight html"><table><tr><td class="code"><pre><span class="line">&#123;% block css %&#125;</span><br><span class="line">	&#123;&#123; super() &#125;&#125;</span><br><span class="line">&#123;% endblock %&#125;</span><br></pre></td></tr></table></figure>
 <h4 id="2-3-模板中的静态文件导入"><a href="#2-3-模板中的静态文件导入" class="headerlink" title="2.3 模板中的静态文件导入"></a>2.3 模板中的静态文件导入</h4><p>jiaja2模板管理的静态文件导入，有两种方式，一种是直接导入，一种是通过url_for(‘static’, filename=’url’)来导入，静态文件的导入应该在基础模板中导入共有的静态文件。每个具体的模板在导入自己特有的静态文件</p>
