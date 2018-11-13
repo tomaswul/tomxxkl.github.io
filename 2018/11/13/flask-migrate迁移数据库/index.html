@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang=>
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  
+    <link rel="icon" href="/favicon.ico">
+  
+    
+  <title>flask_migrate迁移数据库 | tomxxkl的个人博客</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/lib/jquery.fancybox.min.css">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+  <header>
+  <div class="header-container">
+    <a class='logo' href="/">
+      <span>tomxxkl的个人博客</span>
+    </a>
+    <ul class="right-header">
+      
+        <li class="nav-item">
+          
+            <a href="/" class="item-link">首页</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/about" class="item-link">关于</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/archives" class="item-link">归档</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/tags" class="item-link">标签</a>
+          
+        </li>
+      
+    </ul>
+  </div>
+</header>
+
+  <main id='post'>
+  <div class="content">
+    <article>
+        <section class="content markdown-body">
+          <h1>flask_migrate迁移数据库</h1>
+          <div class='post-meta'>
+            <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/11/13</time>
+            
+            
+          </div>
+          <p>flask框架本身不能对修改之后的模型进行迁移，因此需要使用到flask_migrate模块来进行数据库迁移管理,其使用方式类似于django中的migrate。要使用flask_migrate首先需要安装flask_migrate</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">pip install flask-migrate</span><br></pre></td></tr></table></figure>
+<p>安装完成之后，需要对项目的初始化文件manage.py添加如下的配置</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">mport redis</span><br><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask</span><br><span class="line"><span class="keyword">from</span> flask_script <span class="keyword">import</span> Manager</span><br><span class="line"><span class="keyword">from</span> flask_session <span class="keyword">import</span> Session</span><br><span class="line"><span class="keyword">from</span> flask_migrate <span class="keyword">import</span> Migrate,MigrateCommand</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> app.model <span class="keyword">import</span> db</span><br><span class="line"><span class="keyword">from</span> app.views <span class="keyword">import</span> app_blueprint</span><br><span class="line">app = Flask(__name__)</span><br><span class="line">app.register_blueprint(blueprint=app_blueprint, url_prefix=<span class="string">'/app'</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置加密的复杂程度</span></span><br><span class="line">app.secret_key = <span class="string">'asdfqaz123'</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 配置session存储数据为redis</span></span><br><span class="line">app.config[<span class="string">'SESSION_TYPE'</span>] = <span class="string">'redis'</span></span><br><span class="line"><span class="comment"># 配置redis的ip和端口</span></span><br><span class="line">app.config[<span class="string">'SESSION_REDIS'</span>] = redis.Redis(host=<span class="string">'127.0.0.1'</span>, port=<span class="number">6379</span>)</span><br><span class="line"><span class="comment"># 初始化flask对象app</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 第一种</span></span><br><span class="line"><span class="comment"># Session(app)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 第二种</span></span><br><span class="line">sess = Session()</span><br><span class="line">sess.init_app(app)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 数据库配置</span></span><br><span class="line"><span class="comment"># dialect+driver://username:password@host:port/database</span></span><br><span class="line">app.config[<span class="string">'SQLALCHEMY_DATABASE_URI'</span>] = <span class="string">'mysql+pymysql://root:123456@127.0.0.1:3306/flask6'</span></span><br><span class="line"></span><br><span class="line">app.config[<span class="string">'SQLALCHEMY_TRACK_MODIFICATIONS'</span>] = <span class="keyword">False</span></span><br><span class="line"><span class="comment"># 初始化app和db</span></span><br><span class="line">db.init_app(app)</span><br><span class="line"><span class="comment"># 需要创建migrate对象</span></span><br><span class="line">migrate = Migrate(app, db)</span><br><span class="line"></span><br><span class="line">manage = Manager(app)</span><br><span class="line"><span class="comment">#给manage绑定migrate命令</span></span><br><span class="line">manage.add_command(<span class="string">'db'</span>,MigrateCommand)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    manage.run()</span><br></pre></td></tr></table></figure>
+<p>进行完配置之后，需要执行以下的代码实现数据库的迁移</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">第一步:</span><br><span class="line">python manage.py db init   初始化数据库,会创建一个migations文件夹,并且会在数据库中生成一个alembic_version表</span><br><span class="line"></span><br><span class="line">第二步:</span><br><span class="line">python manage.py db migrate  创建迁移历史</span><br><span class="line"></span><br><span class="line">第三步:</span><br><span class="line">python manage.py db upgrade  更新数据库</span><br></pre></td></tr></table></figure>
+<p>执行完上述步骤之后，模型就成功的迁移到了数据库，但是要注意迁移过程中的一些坑</p>
+<p>如设计字段的时候，不能使用default来设置默认值，而是需要使用server_default</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">test = db.Column(db.String(<span class="number">10</span>),server_default=<span class="string">'test'</span>,nullable=<span class="keyword">True</span>)</span><br></pre></td></tr></table></figure>
+<p>同样，如果迁移数据库出现以下的错误</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Heroku Postgres, db migrate fail: alembic.util.exc.CommandError: Can&apos;t locate revision identified by</span><br></pre></td></tr></table></figure>
+<p>将alembic_version表中的数据删掉即可</p>
+
+        </section>
+    </article>
+    
+        <!-- disqus 评论框 start -->
+        <div class="comment">
+            <div id="disqus_thread" class="disqus-thread">
+              <i>Loading comments box needs to over the wall</i>
+            </div>
+        </div>
+        <!-- disqus 评论框 end -->
+    
+    
+        <!-- livere 评论框 start -->
+        <div class="comment">
+            <div id="lv-container" data-id="city" data-uid="your_livere_uid"></div>
+        </div>
+        <!-- livere 评论框 end -->
+        
+  </div>
+  <aside>
+    
+  </aside>
+</main>
+
+<!-- disqus 公共JS代码 -->
+<script type="text/javascript">
+  /* * * CONFIGURATION VARIABLES * * */
+  var disqus_shortname = "your_disqus_shortname";
+  var disqus_identifier = "http://yoursite.com/2018/11/13/flask-migrate迁移数据库/";
+  var disqus_url = "http://yoursite.com/2018/11/13/flask-migrate迁移数据库/";
+
+  isAgent(getDisqus)
+
+  // determine user agent in China
+  function isAgent(cb) {
+    var url = '//graph.facebook.com/feed?callback=h';
+    var xhr = new XMLHttpRequest();
+    var called = false;
+    xhr.open('GET', url);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+      called = true;
+      cb(true);
+      }
+    };
+    xhr.send();
+    // timeout 1s, this facebook API is very fast.
+    setTimeout(function() {
+      if (!called) {
+      xhr.abort();
+      cb(false)
+      }
+    }, 1000);
+  }
+
+  function getDisqus(isAgent) {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; 
+    dsq.async = true
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq)
+  }
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+<script type="text/javascript">
+  (function(d, s) {
+      var j, e = d.getElementsByTagName(s)[0];
+
+      if (typeof LivereTower === 'function') { return; }
+
+      j = d.createElement(s);
+      j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+      j.async = true;
+
+      e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+</script>
+
+
+  <footer>
+  <div class="copyright">
+    <div>
+      &copy; 2018 | Powered by <a href="https://hexo.io" target="_blank">Hexo</a>&nbsp
+    </div>
+    <div>
+      Theme by <a href="https://github.com/lewis-geek/hexo-theme-Aath" target="_blank">Aath</a>
+    </div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="/lib/in-view.min.js"></script>
+<script src="/lib/lodash.min.js"></script>
+<script>
+  var isDown = true
+  var oldY = 0
+  inView.offset(50)
+
+  document.body.addEventListener('touchstart', function(){});
+  
+  window.addEventListener('scroll', _.throttle(e => {
+    var currentY = window.scrollY
+    if((oldY - currentY) < 0) {
+      isDown = true
+    } else {
+      isDown = false
+    }
+    oldY = currentY
+  }, 250))
+
+  $("article img").each(function() {
+      var strA = "<a data-fancybox='gallery' href='" + this.src + "'></a>";
+      $(this).wrapAll(strA);
+  });
+
+  $('.toc-link').each(function() {
+      var href = $(this).attr("href");
+      
+      inView(href).on('exit', () => {
+        if (isDown) {
+          handleActive(href)
+        }
+      })
+
+      inView(href).on('enter', () => {
+        if (!isDown) {
+          handleActive(href)
+        }
+      })
+
+      this.onclick = function(e) {
+        var pos = $(href).offset().top - 10;
+        $("html,body").animate({scrollTop: pos}, 300);
+        setTimeout(() => {
+          handleActive(href)
+        }, 350)
+        return false
+      }
+  })
+
+  function handleActive(href) {
+    document.querySelectorAll('.toc-link').forEach(elm => {
+      elm.classList.remove('active')
+    })
+    document.querySelector(".toc [href='"+ href +"']").classList.add('active')
+  }
+</script>
+<script src="/lib/jquery.fancybox.min.js"></script>
+
+
+</body>
+</html>
