@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang=>
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  
+    <link rel="icon" href="/favicon.ico">
+  
+    
+  <title>flask第二天 | tomxxkl的个人博客</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/lib/jquery.fancybox.min.css">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+  <header>
+  <div class="header-container">
+    <a class='logo' href="/">
+      <span>tomxxkl的个人博客</span>
+    </a>
+    <ul class="right-header">
+      
+        <li class="nav-item">
+          
+            <a href="/" class="item-link">首页</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/about" class="item-link">关于</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/archives" class="item-link">归档</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/tags" class="item-link">标签</a>
+          
+        </li>
+      
+    </ul>
+  </div>
+</header>
+
+  <main id='post'>
+  <div class="content">
+    <article>
+        <section class="content markdown-body">
+          <h1>flask第二天</h1>
+          <div class='post-meta'>
+            <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/11/13</time>
+            
+            
+          </div>
+          <h2 id="一、Session和Cookie"><a href="#一、Session和Cookie" class="headerlink" title="一、Session和Cookie"></a>一、Session和Cookie</h2><h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>Session和Cookie的结合使用，一般有两种存储方式:</p>
+<p><b>第一种</b>: session数据存储在客户端: Flask采用’secure cookie’方式保存session，即session数据是使用base64编码后保存在客户端的cookie中。也就是说无须依赖第三方数据库保存session数据。</p>
+<p><b>第二种</b>: session数据存储在服务端，分为以下三步骤:</p>
+<p>步骤1: 当客户端发送请求到服务端的时候，服务端会校验请求中cookie参数中的sessionid值，如果cookie中不存在sessionid则认为客户端访问服务端时，是发起了一个新的会话。</p>
+<p>步骤2: 如果是新的会话，则服务端会传递给客户端一个cookie，并在cookie中存储一个新的sessionid值，并将相关数据保存在session中。</p>
+<p>步骤3: 客户端下次再发送请求的时候，请求上下文对象会携带cookie，通过校验cookie中的sessionid值，即可判断是否是同一会话。 </p>
+<p>步骤4: 如果校验会话是同一会话，则可以从session中获取到之前保存的数据。</p>
+<p>访问者的标识问题服务器需要识别来自同一访问者的请求。这主要是通过浏览器的cookie实现的。 访问者在第一次访问服务器时，服务器在其cookie中设置一个唯一的ID号——会话ID(session)。 这样，访问者后续对服务器的访问头中将自动包含该信息，服务器通过这个ID号，即可区 隔不同的访问者。</p>
+<p><a href="http://www.pythondoc.com/flask/config.html" target="_blank" rel="noopener">官网文档地址</a>  </p>
+<h3 id="1-Cookie"><a href="#1-Cookie" class="headerlink" title="1. Cookie"></a>1. Cookie</h3><p>概念：</p>
+<pre><code>a）客户端会话技术，浏览器的会话技术
+b）数据全部存储在客户端中
+c）存储使用的键值对结构进行存储
+特性：
+    支持过期时间
+    默认会自动携带本网站的cookie
+    不能跨域名
+    不能跨浏览器
+</code></pre><p>创建：</p>
+<pre><code>Cookie是通过服务器创建的make_response()来创建的
+设置：set_cookie(&apos;key&apos;, value, max_ages=&apos;&apos;, expires=&apos;&apos;)
+
+删除, 有三种删除方式
+    1. 直接清空浏览器的cookie
+    2. delete_cookie(&apos;key&apos;) 直接使用delete_cookie函数
+    3. set_cookie(&apos;key&apos;,&apos;&apos;,expires=0) 重新设置key的值为空，过期时间为0
+</code></pre><p>获取：</p>
+<pre><code>在每次请求中，url都会向服务器传递Request，在request中可以获取到cookie的信息
+request.cookies.get(&apos;name&apos;)
+</code></pre><p>例子1，设置cookie：</p>
+<pre><code>import datetime
+@blue.route(&apos;/setcookie/&apos;)
+def set_cookie():
+    temp = render_template(&apos;index.html&apos;)
+    response = make_response(temp)
+    outdate=datetime.datetime.today() + datetime.timedelta(days=30)
+    # 设置cookie中的name的存在时长，设置为30天才过期  
+    response.set_cookie(&apos;name&apos;,&apos;cocoococo&apos;,expires=outdate)
+    return response
+</code></pre><p>例子2，删除cookie中的值</p>
+<pre><code>@blue.route(&apos;/setcookie/&apos;)
+def set_cookie():
+    temp = render_template(&apos;index.html&apos;)
+    response = make_response(temp)
+    # 第一种方式，通过set_cookie去删除
+    response.set_cookie(&apos;name&apos;,&apos;&apos;,expires=0)
+    # 第二种方式，del_cookie删除
+    response.del_cookie(&apos;name&apos;)
+    return response
+</code></pre><p>例子3，获取cookie中的值</p>
+<pre><code>@blue.route(&apos;/getcookie/&apos;)
+def get_cookie():
+    name=request.cookies.get(&apos;name&apos;)  
+    return name
+</code></pre><h3 id="2-将session存储在客户端"><a href="#2-将session存储在客户端" class="headerlink" title="2.将session存储在客户端"></a>2.将session存储在客户端</h3><h4 id="2-1创建登录模板"><a href="#2-1创建登录模板" class="headerlink" title="2.1创建登录模板"></a>2.1创建登录模板</h4><figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE html&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">"en"</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">"UTF-8"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>登录<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">p</span>&gt;</span>&#123;&#123; msg &#125;&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">form</span> <span class="attr">action</span>=<span class="string">"/app/login/"</span> <span class="attr">method</span>=<span class="string">"post"</span>&gt;</span></span><br><span class="line">        用户名:<span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">"text"</span> <span class="attr">name</span>=<span class="string">"username"</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span></span><br><span class="line">        密码:<span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">"password"</span> <span class="attr">name</span>=<span class="string">"password"</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">"submit"</span> <span class="attr">value</span>=<span class="string">"登录"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">form</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h4 id="2-2实现登录验证"><a href="#2-2实现登录验证" class="headerlink" title="2.2实现登录验证"></a>2.2实现登录验证</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> session,request,redirect,url_for,render_template</span><br><span class="line"><span class="meta">@app_blueprint.route('/login/', methods=['GET', 'POST'])</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">login</span><span class="params">()</span>:</span></span><br><span class="line">	<span class="keyword">if</span> request.method == <span class="string">'GET'</span>:</span><br><span class="line">		<span class="keyword">return</span> render_template(<span class="string">'login.html'</span>)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> request.method == <span class="string">'POST'</span>:</span><br><span class="line">		username = request.form.get(<span class="string">'username'</span>)</span><br><span class="line">		password = request.form.get(<span class="string">'password'</span>)</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> username == <span class="string">'tom'</span>:</span><br><span class="line">			<span class="keyword">if</span> password == <span class="string">'123'</span>:</span><br><span class="line">				<span class="comment"># 模拟校验用户名和密码成功，则向session中存储登录成功后的用户id值</span></span><br><span class="line"></span><br><span class="line">				session[<span class="string">'user_id'</span>] = <span class="number">1</span></span><br><span class="line"></span><br><span class="line">				<span class="comment"># 正向解析可以，反向解析不行,反向解析因为添加了装饰器找不到路径</span></span><br><span class="line">				<span class="keyword">return</span> redirect(<span class="string">'/app/index/'</span>)</span><br><span class="line">			<span class="keyword">else</span>:</span><br><span class="line">				<span class="keyword">return</span> render_template(<span class="string">'login.html'</span>,msg=<span class="string">'密码错误'</span>)</span><br><span class="line">		<span class="keyword">else</span>:</span><br><span class="line">			<span class="keyword">return</span> render_template(<span class="string">'login.html'</span>,msg=<span class="string">'用户不存在'</span>)</span><br></pre></td></tr></table></figure>
+<p>注意：这个函数是在相应的应用模块里面的函数,其中的session[‘user_id’] = 1进行设置之前需要在整个项目的manage.py里面进行sercet_key的设置，这个是设置session加密的复杂程度，同时这个session设置完成之后的跳转的函数，因为使用了中间件执行登录验证，从而导致无法使用反向解析，只能使用正向解析。</p>
+<p>manag.py增加的配置</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># 设置加密的复杂程度</span><br><span class="line">app.secret_key = &apos;asdfqaz123&apos;</span><br></pre></td></tr></table></figure>
+<p>装饰器执行的函数:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> session, redirect, url_for</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">login_required</span><span class="params">(func)</span>:</span></span><br><span class="line">	<span class="function"><span class="keyword">def</span> <span class="title">check_login</span><span class="params">()</span>:</span></span><br><span class="line">		user_id = session.get(<span class="string">'user_id'</span>)</span><br><span class="line">		<span class="keyword">if</span> <span class="keyword">not</span> user_id:</span><br><span class="line">			<span class="keyword">return</span> redirect(url_for(<span class="string">'app.login'</span>))</span><br><span class="line">		<span class="keyword">return</span> func()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> check_login</span><br></pre></td></tr></table></figure>
+<p>登录验证通过之后的首页:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="meta">@app_blueprint.route('/index/')</span></span><br><span class="line"><span class="meta">@login_required #这儿自己写的装饰器要写在路由的下面，不然就没用</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">index</span><span class="params">()</span>:</span></span><br><span class="line">	<span class="comment"># 获取登录后的用户id</span></span><br><span class="line">	user_id = session.get(<span class="string">'user_id'</span>)</span><br><span class="line">	<span class="keyword">return</span> <span class="string">'Hello world %s'</span> % user_id</span><br></pre></td></tr></table></figure>
+<p>注意:这儿自己写的装饰器要写在路由的下面，不然就起不到装饰下面的函数的作用</p>
+<h4 id="2-3-使用redis数据库实现session登录验证"><a href="#2-3-使用redis数据库实现session登录验证" class="headerlink" title="2.3 使用redis数据库实现session登录验证"></a>2.3 使用redis数据库实现session登录验证</h4><p>flask-session是flask框架的session组件</p>
+<p>该组件则将支持session保存到多个地方</p>
+<p>如：</p>
+<pre><code>redis：保存数据的一种工具，五大类型。非关系型数据库
+memcached
+mongodb
+sqlalchmey：那数据存到数据库表里面
+</code></pre><h5 id="1-安装"><a href="#1-安装" class="headerlink" title="1.安装"></a>1.安装</h5><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">pip install Flask-Session</span><br></pre></td></tr></table></figure>
+<p>如果指定存session的类型为redis的话，需要安装redis</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">pip install redis</span><br></pre></td></tr></table></figure>
+<h5 id="2-语法"><a href="#2-语法" class="headerlink" title="2.语法"></a>2.语法</h5><p>设置session：</p>
+<pre><code>session[&apos;key&apos;] = value
+</code></pre><p>读取session：</p>
+<pre><code>result = session[&apos;key&apos;] ：如果内容不存在，将会报异常
+result = session.get(&apos;key&apos;) ：如果内容不存在，将返回None
+</code></pre><p>删除session：</p>
+<pre><code>session.pop(&apos;key&apos;)
+</code></pre><p>清空session中所有数据：</p>
+<pre><code>session.clear()
+</code></pre><h5 id="3-修改项目初始化文件manage-py，增加配置"><a href="#3-修改项目初始化文件manage-py，增加配置" class="headerlink" title="3.修改项目初始化文件manage.py，增加配置"></a>3.修改项目初始化文件manage.py，增加配置</h5><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> flask_session <span class="keyword">import</span> Session</span><br><span class="line"><span class="keyword">import</span> redis</span><br><span class="line"><span class="comment"># 配置session存储数据为redis</span></span><br><span class="line">app.config[<span class="string">'SESSION_TYPE'</span>] = <span class="string">'redis'</span></span><br><span class="line"><span class="comment"># 配置redis的ip和端口</span></span><br><span class="line">app.config[<span class="string">'SESSION_REDIS'</span>] = redis.Redis(host=<span class="string">'127.0.0.1'</span>, port=<span class="number">6379</span>)</span><br><span class="line"><span class="comment"># 初始化flask对象app</span></span><br><span class="line"><span class="comment"># 第一种</span></span><br><span class="line"><span class="comment"># Session(app)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 第二种</span></span><br><span class="line">sess = Session()</span><br><span class="line">sess.init_app(app)</span><br></pre></td></tr></table></figure>
+<p>注意:redis数据库默认端口是6379，如果修改了需要体现在此处配置里，并且增加这儿的配置之后，不需要修改登录的代码，登录的代码和将session保存在客户端的一样，只是session[‘user_id’]=1会同时将session存储在redis数据库中，并且会给浏览器返回一个响应cookie，其值和redis里的session值一样</p>
+<h2 id="二、flask中的jiaja2模板"><a href="#二、flask中的jiaja2模板" class="headerlink" title="二、flask中的jiaja2模板"></a>二、flask中的jiaja2模板</h2><h3 id="1-jiajie2"><a href="#1-jiajie2" class="headerlink" title="1.jiajie2"></a>1.jiajie2</h3><p>Flask中使用jinja2模板引擎</p>
+<p>jinja2是由Flask作者开发，模仿Django的模板引擎</p>
+<p>优点：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">速度快，被广泛使用</span><br><span class="line"></span><br><span class="line">HTML设计和后端python分离</span><br><span class="line"></span><br><span class="line">非常灵活，快速和安全</span><br><span class="line"></span><br><span class="line">提供了控制，继承等高级功能</span><br></pre></td></tr></table></figure>
+<h3 id="2-模板语法"><a href="#2-模板语法" class="headerlink" title="2.模板语法"></a>2.模板语法</h3><h4 id="2-1-模板语法主要分为两种：变量和标签"><a href="#2-1-模板语法主要分为两种：变量和标签" class="headerlink" title="2.1 模板语法主要分为两种：变量和标签"></a>2.1 模板语法主要分为两种：变量和标签</h4><p>模板中的变量：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#123;&#123; var &#125;&#125;</span><br><span class="line">视图传递给模板的数据</span><br><span class="line">前面定义出来的数据</span><br><span class="line">变量不存在，默认忽略</span><br></pre></td></tr></table></figure>
+<p>模板中的标签：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#123;% tag %&#125;</span><br><span class="line">控制逻辑</span><br><span class="line">使用外部表达式</span><br><span class="line">创建变量</span><br><span class="line">宏定义</span><br></pre></td></tr></table></figure>
+<h4 id="2-2-模板中的block"><a href="#2-2-模板中的block" class="headerlink" title="2.2 模板中的block"></a>2.2 模板中的block</h4><p>在jiaja2的模板中同样可以有挖坑和填坑的操作，父模板挖坑，子模板填坑，这种方式和django中的模板一样，但是在继承父模板的时候，如果子模板要使用父模板中的内容，需要如下书写来表示继承并且使用父模板的内容</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line">&#123;% block css %&#125;</span><br><span class="line">	&#123;&#123; super() &#125;&#125;</span><br><span class="line">&#123;% endblock %&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="2-3-模板中的静态文件导入"><a href="#2-3-模板中的静态文件导入" class="headerlink" title="2.3 模板中的静态文件导入"></a>2.3 模板中的静态文件导入</h4><p>jiaja2模板管理的静态文件导入，有两种方式，一种是直接导入，一种是通过url_for(‘static’, filename=’url’)来导入，静态文件的导入应该在基础模板中导入共有的静态文件。每个具体的模板在导入自己特有的静态文件</p>
+<p>直接导入:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;link rel=&apos;stylesheet&apos; type=&quot;text/css&quot; href=&quot;/static/css/style.css&quot;&gt;</span><br></pre></td></tr></table></figure>
+<p>通过url_for方法导入</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;link href=&quot;&#123;&#123; url_for(&apos;static&apos;, filename=&apos;css/style.css&apos;) &#125;&#125;&quot; rel=&quot;stylesheet&quot;&gt;</span><br></pre></td></tr></table></figure>
+<h4 id="2-4-模板中的宏"><a href="#2-4-模板中的宏" class="headerlink" title="2.4 模板中的宏"></a>2.4 模板中的宏</h4><p>jiaja2有宏定义(使用macro进行定义)，相当于函数定义，并且宏是可以从外部的文件中导入的，因此为了合理性，需要将需要导入的外部的宏集合在一个特定的文件中，每个模板只导入这个特定的文件中自己需要的宏即可。同时宏也可以有参数，这里将宏集中在function.html文件中</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;!--jiaja2宏定义(macro) 类似于声明函数--&gt;</span><br><span class="line">&#123;% macro hello() %&#125;</span><br><span class="line">        &lt;p&gt;你好，世界&lt;/p&gt;</span><br><span class="line">&#123;% endmacro %&#125;&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&lt;!--宏参数传递--&gt;</span><br><span class="line">&#123;% macro say(name) %&#125;</span><br><span class="line">    &lt;p&gt;你好，&#123;&#123; name &#125;&#125;&lt;/p&gt;</span><br><span class="line">&#123;% endmacro %&#125;</span><br></pre></td></tr></table></figure>
+<p>在login.html引入宏并使用hello()</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;!--从外部页面引入宏,外部宏需要单独提取组成一个function.html，从而引入这个共有的宏--&gt;</span><br><span class="line">&#123;% from &apos;function.html&apos; import hello %&#125;</span><br><span class="line">&#123;&#123; hello() &#125;&#125;</span><br></pre></td></tr></table></figure>
+<p>在temp.html引入宏并使用say()</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line">&#123;% from 'function.html' import say %&#125;</span><br><span class="line">&#123;&#123; say(title) &#125;&#125;  <span class="comment">&lt;!--title是后台传的--&gt;</span></span><br></pre></td></tr></table></figure>
+<h4 id="2-5-模板中的过滤器"><a href="#2-5-模板中的过滤器" class="headerlink" title="2.5 模板中的过滤器"></a>2.5 模板中的过滤器</h4><p>模板中的过滤器主要起到对后台传来的数据通过管道符进行过滤，有以下的过滤器</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#123;&#123; 变量|过滤器|过滤器... &#125;&#125;</span><br><span class="line"></span><br><span class="line">capitalize 单词首字母大写</span><br><span class="line">lower 单词变为小写</span><br><span class="line">upper 单词变为大写</span><br><span class="line">title</span><br><span class="line">trim 去掉字符串的前后的空格</span><br><span class="line">reverse 单词反转</span><br><span class="line">format</span><br><span class="line">striptags 渲染之前，将值中标签去掉</span><br><span class="line">safe 讲样式渲染到页面中</span><br><span class="line">default</span><br><span class="line">last 最后一个字母</span><br><span class="line">first</span><br><span class="line">length</span><br><span class="line">sum</span><br><span class="line">sort</span><br></pre></td></tr></table></figure>
+<p>比较重要的过滤器是safe，safe能够将字符串中的html标签渲染到页面上，而不是原样输出</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#123;&#123; content_h2|safe &#125;&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="2-6-循环"><a href="#2-6-循环" class="headerlink" title="2.6 循环"></a>2.6 循环</h4><p>jiaja2中的循环计数和django中不一样，jiaja2使用的是loop.index进行计数（从1开始），循环中常用的计数有如下方式:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">标签解析</span><br><span class="line">   loop.index表示循环计数，从1开始</span><br><span class="line">   loop.index0，从0开始计数</span><br><span class="line">   loop.revindex0,倒序，以0结束</span><br><span class="line">   loop.revindex,倒序，以1结束</span><br><span class="line"></span><br><span class="line">   loop.first,是否循环第一次</span><br><span class="line">   loop.last,是否循环最后一次</span><br></pre></td></tr></table></figure>
+<p>例子:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;!--jiaja2模板没有ifequal,只有if--&gt;</span><br><span class="line">&#123;% for value in content %&#125;</span><br><span class="line">    &#123;% if loop.index == 1 %&#125;</span><br><span class="line">        &lt;h5 style=&quot;color: red&quot;&gt;&#123;&#123; value &#125;&#125;&lt;/h5&gt;</span><br><span class="line">    &#123;% else %&#125;</span><br><span class="line">        &lt;h5&gt;&#123;&#123; value &#125;&#125;&lt;/h5&gt;</span><br><span class="line">    &#123;% endif %&#125;</span><br><span class="line">    是否循环第一次:&#123;&#123; loop.first &#125;&#125;</span><br><span class="line">    是否循环最后一次:&#123;&#123; loop.last &#125;&#125;</span><br><span class="line"></span><br><span class="line">&#123;% endfor %&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="三、flask中的模型"><a href="#三、flask中的模型" class="headerlink" title="三、flask中的模型"></a>三、flask中的模型</h2><h3 id="1-Flask模型"><a href="#1-Flask模型" class="headerlink" title="1. Flask模型"></a>1. Flask模型</h3><p>Flask默认并没有提供任何数据库操作的API<br>我们可以选择任何适合自己项目的数据库来使用<br>Flask中可以自己的选择数据，用原生语句实现功能，也可以选择ORM（SQLAlchemy，MongoEngine）</p>
+<p>SQLAlchemy是一个很强大的关系型数据库框架，支持多种数据库后台。SQLAlchemy提供了高层ORM，也提供了使用数据库原生SQL的低层功能。</p>
+<p>ORM：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">将对对象的操作转换为原生SQL</span><br><span class="line">优点</span><br><span class="line">	易用性，可以有效减少重复SQL</span><br><span class="line">	性能损耗少</span><br><span class="line">	设计灵活，可以轻松实现复杂查询</span><br><span class="line">	移植性好</span><br></pre></td></tr></table></figure>
+<p>针对于Flask的支持，<a href="http://flask-sqlalchemy.pocoo.org/2.3/" target="_blank" rel="noopener">官网地址</a></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">pip install flask-sqlalchemy</span><br></pre></td></tr></table></figure>
+<p>安装驱动</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">pip install pymysql</span><br></pre></td></tr></table></figure>
+<h3 id="2-创建模型"><a href="#2-创建模型" class="headerlink" title="2.创建模型"></a>2.创建模型</h3><p>在相应的app先创建一个model.py文件，在文件里通过SQLAlchemy创建数据模型,在使用前需要创建db对象</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">__tablename__ 指定模型在数据中的表名，如果没有这个默认的就是模型名小写</span><br></pre></td></tr></table></figure>
+<p>如下:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> flask_sqlalchemy <span class="keyword">import</span> SQLAlchemy</span><br><span class="line"></span><br><span class="line">db = SQLAlchemy()</span><br><span class="line"><span class="comment"># 声明模型</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">User</span><span class="params">(db.Model)</span>:</span></span><br><span class="line">	id = db.Column(db.Integer, primary_key=<span class="keyword">True</span>, autoincrement=<span class="keyword">True</span>)</span><br><span class="line">	username = db.Column(db.String(<span class="number">10</span>), unique=<span class="keyword">True</span>, nullable=<span class="keyword">False</span>)</span><br><span class="line">	password = db.Column(db.String(<span class="number">100</span>), nullable=<span class="keyword">True</span>)</span><br><span class="line">	gender = db.Column(db.Boolean, default=<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">	__tablename__ = <span class="string">'tb_user'</span></span><br></pre></td></tr></table></figure>
+<p>创建完模型类之后需要对整个项目的初始化文件manage.py添加SQLAlchemy的配置</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> app.model <span class="keyword">import</span> db</span><br><span class="line"><span class="comment"># 第一步: 数据库配置</span></span><br><span class="line"><span class="comment"># dialect+driver://username:password@host:port/database</span></span><br><span class="line">app.config[<span class="string">'SQLALCHEMY_DATABASE_URI'</span>] = <span class="string">'mysql+pymysql://root:123456@127.0.0.1:3306/flask6'</span></span><br><span class="line"><span class="comment"># 配置这个就不会有警告</span></span><br><span class="line">app.config[<span class="string">'SQLALCHEMY_TRACK_MODIFICATIONS'</span>] = <span class="keyword">False</span> </span><br><span class="line"><span class="comment"># 第二步:初始化app和db</span></span><br><span class="line">db.init_app(app)</span><br></pre></td></tr></table></figure>
+<p>进行完数据库配置之后需要在app下的views.py创建相应的迁移数据库的方法，和删除表的方</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> app.model <span class="keyword">import</span> db</span><br><span class="line"><span class="meta">@app_blueprint.route('/create_db/')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">create_db</span><span class="params">()</span>:</span></span><br><span class="line">	<span class="comment"># 第一次迁移模型</span></span><br><span class="line">	db.create_all()</span><br><span class="line">	<span class="keyword">return</span> <span class="string">'创建模型成功'</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@app_blueprint.route('/drop_db/')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">drop_db</span><span class="params">()</span>:</span></span><br><span class="line">	db.drop_all() <span class="comment">#这个方法绝对不能在生产环境中使用</span></span><br><span class="line">	<span class="keyword">return</span> <span class="string">'成功删除所有表'</span></span><br></pre></td></tr></table></figure>
+
+        </section>
+    </article>
+    
+        <!-- disqus 评论框 start -->
+        <div class="comment">
+            <div id="disqus_thread" class="disqus-thread">
+              <i>Loading comments box needs to over the wall</i>
+            </div>
+        </div>
+        <!-- disqus 评论框 end -->
+    
+    
+        <!-- livere 评论框 start -->
+        <div class="comment">
+            <div id="lv-container" data-id="city" data-uid="your_livere_uid"></div>
+        </div>
+        <!-- livere 评论框 end -->
+        
+  </div>
+  <aside>
+    
+    <div class="toc-container">
+        <h1>目录</h1>
+        <div class="content">
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#一、Session和Cookie"><span class="toc-number">1.</span> <span class="toc-text">一、Session和Cookie</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#前言"><span class="toc-number">1.1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-Cookie"><span class="toc-number">1.2.</span> <span class="toc-text">1. Cookie</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-将session存储在客户端"><span class="toc-number">1.3.</span> <span class="toc-text">2.将session存储在客户端</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-1创建登录模板"><span class="toc-number">1.3.1.</span> <span class="toc-text">2.1创建登录模板</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2实现登录验证"><span class="toc-number">1.3.2.</span> <span class="toc-text">2.2实现登录验证</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-使用redis数据库实现session登录验证"><span class="toc-number">1.3.3.</span> <span class="toc-text">2.3 使用redis数据库实现session登录验证</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-安装"><span class="toc-number">1.3.3.1.</span> <span class="toc-text">1.安装</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-语法"><span class="toc-number">1.3.3.2.</span> <span class="toc-text">2.语法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-修改项目初始化文件manage-py，增加配置"><span class="toc-number">1.3.3.3.</span> <span class="toc-text">3.修改项目初始化文件manage.py，增加配置</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、flask中的jiaja2模板"><span class="toc-number">2.</span> <span class="toc-text">二、flask中的jiaja2模板</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-jiajie2"><span class="toc-number">2.1.</span> <span class="toc-text">1.jiajie2</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-模板语法"><span class="toc-number">2.2.</span> <span class="toc-text">2.模板语法</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-1-模板语法主要分为两种：变量和标签"><span class="toc-number">2.2.1.</span> <span class="toc-text">2.1 模板语法主要分为两种：变量和标签</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-模板中的block"><span class="toc-number">2.2.2.</span> <span class="toc-text">2.2 模板中的block</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-模板中的静态文件导入"><span class="toc-number">2.2.3.</span> <span class="toc-text">2.3 模板中的静态文件导入</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-4-模板中的宏"><span class="toc-number">2.2.4.</span> <span class="toc-text">2.4 模板中的宏</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-5-模板中的过滤器"><span class="toc-number">2.2.5.</span> <span class="toc-text">2.5 模板中的过滤器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-6-循环"><span class="toc-number">2.2.6.</span> <span class="toc-text">2.6 循环</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、flask中的模型"><span class="toc-number">3.</span> <span class="toc-text">三、flask中的模型</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-Flask模型"><span class="toc-number">3.1.</span> <span class="toc-text">1. Flask模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-创建模型"><span class="toc-number">3.2.</span> <span class="toc-text">2.创建模型</span></a></li></ol></li></ol>
+        </div>
+    </div>
+    
+  </aside>
+</main>
+
+<!-- disqus 公共JS代码 -->
+<script type="text/javascript">
+  /* * * CONFIGURATION VARIABLES * * */
+  var disqus_shortname = "your_disqus_shortname";
+  var disqus_identifier = "http://yoursite.com/2018/11/13/flask第二天/";
+  var disqus_url = "http://yoursite.com/2018/11/13/flask第二天/";
+
+  isAgent(getDisqus)
+
+  // determine user agent in China
+  function isAgent(cb) {
+    var url = '//graph.facebook.com/feed?callback=h';
+    var xhr = new XMLHttpRequest();
+    var called = false;
+    xhr.open('GET', url);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+      called = true;
+      cb(true);
+      }
+    };
+    xhr.send();
+    // timeout 1s, this facebook API is very fast.
+    setTimeout(function() {
+      if (!called) {
+      xhr.abort();
+      cb(false)
+      }
+    }, 1000);
+  }
+
+  function getDisqus(isAgent) {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; 
+    dsq.async = true
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq)
+  }
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+<script type="text/javascript">
+  (function(d, s) {
+      var j, e = d.getElementsByTagName(s)[0];
+
+      if (typeof LivereTower === 'function') { return; }
+
+      j = d.createElement(s);
+      j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+      j.async = true;
+
+      e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+</script>
+
+
+  <footer>
+  <div class="copyright">
+    <div>
+      &copy; 2018 | Powered by <a href="https://hexo.io" target="_blank">Hexo</a>&nbsp
+    </div>
+    <div>
+      Theme by <a href="https://github.com/lewis-geek/hexo-theme-Aath" target="_blank">Aath</a>
+    </div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="/lib/in-view.min.js"></script>
+<script src="/lib/lodash.min.js"></script>
+<script>
+  var isDown = true
+  var oldY = 0
+  inView.offset(50)
+
+  document.body.addEventListener('touchstart', function(){});
+  
+  window.addEventListener('scroll', _.throttle(e => {
+    var currentY = window.scrollY
+    if((oldY - currentY) < 0) {
+      isDown = true
+    } else {
+      isDown = false
+    }
+    oldY = currentY
+  }, 250))
+
+  $("article img").each(function() {
+      var strA = "<a data-fancybox='gallery' href='" + this.src + "'></a>";
+      $(this).wrapAll(strA);
+  });
+
+  $('.toc-link').each(function() {
+      var href = $(this).attr("href");
+      
+      inView(href).on('exit', () => {
+        if (isDown) {
+          handleActive(href)
+        }
+      })
+
+      inView(href).on('enter', () => {
+        if (!isDown) {
+          handleActive(href)
+        }
+      })
+
+      this.onclick = function(e) {
+        var pos = $(href).offset().top - 10;
+        $("html,body").animate({scrollTop: pos}, 300);
+        setTimeout(() => {
+          handleActive(href)
+        }, 350)
+        return false
+      }
+  })
+
+  function handleActive(href) {
+    document.querySelectorAll('.toc-link').forEach(elm => {
+      elm.classList.remove('active')
+    })
+    document.querySelector(".toc [href='"+ href +"']").classList.add('active')
+  }
+</script>
+<script src="/lib/jquery.fancybox.min.js"></script>
+
+
+</body>
+</html>
