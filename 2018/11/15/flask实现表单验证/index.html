@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang=>
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  
+    <link rel="icon" href="/favicon.ico">
+  
+    
+  <title>flask实现表单验证 | tomxxkl的个人博客</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/lib/jquery.fancybox.min.css">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+  <header>
+  <div class="header-container">
+    <a class='logo' href="/">
+      <span>tomxxkl的个人博客</span>
+    </a>
+    <ul class="right-header">
+      
+        <li class="nav-item">
+          
+            <a href="/" class="item-link">首页</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/about" class="item-link">关于</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/archives" class="item-link">归档</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/tags" class="item-link">标签</a>
+          
+        </li>
+      
+    </ul>
+  </div>
+</header>
+
+  <main id='post'>
+  <div class="content">
+    <article>
+        <section class="content markdown-body">
+          <h1>flask实现表单验证</h1>
+          <div class='post-meta'>
+            <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/11/15</time>
+            
+            
+          </div>
+          <h3 id="2-使用flask-wtf实现表单验证"><a href="#2-使用flask-wtf实现表单验证" class="headerlink" title="2.使用flask-wtf实现表单验证"></a>2.使用flask-wtf实现表单验证</h3><p>在Flask项目开发中针对提交表单的校验，可以使用Flask-WTF扩展库进行快速的字段校验，也可以进行页面快速渲染，并提供跨站请求伪造的保护功能</p>
+<h4 id="1-安装Flask-WTF"><a href="#1-安装Flask-WTF" class="headerlink" title="1. 安装Flask-WTF"></a>1. 安装Flask-WTF</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">pip install flask-wtf</span><br></pre></td></tr></table></figure>
+<h4 id="2-实现注册功能"><a href="#2-实现注册功能" class="headerlink" title="2. 实现注册功能"></a>2. 实现注册功能</h4><h5 id="2-1-注册表单模型定义"><a href="#2-1-注册表单模型定义" class="headerlink" title="2.1 注册表单模型定义"></a>2.1 注册表单模型定义</h5><p>在定义的表单类中定义需要验证的username、password和password2字段，并实现如下校验:</p>
+<ol>
+<li><p>校验密码password2和password相等</p>
+</li>
+<li><p>校验用户名是否存在</p>
+</li>
+<li><p>校验用户名的长度是否符合规范</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 导入扩展类</span></span><br><span class="line"><span class="keyword">from</span> flask_wtf <span class="keyword">import</span> FlaskForm</span><br><span class="line"><span class="comment"># 导入验证字段</span></span><br><span class="line"><span class="keyword">from</span> wtforms <span class="keyword">import</span> StringField, SubmitField, ValidationError</span><br><span class="line"><span class="comment"># 导入表单验证</span></span><br><span class="line"><span class="comment"># EqualTo用来进行密码比较</span></span><br><span class="line"><span class="keyword">from</span> wtforms.validators <span class="keyword">import</span> DataRequired, EqualTo</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> user.models <span class="keyword">import</span> User</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UserForm</span><span class="params">(FlaskForm)</span>:</span></span><br><span class="line">    <span class="string">"""</span></span><br><span class="line"><span class="string">    登录注册表单验证</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line">  	 <span class="comment"># 注意:DataRequired()是一个对象，而不是一个属性     </span></span><br><span class="line">    username = StringField(<span class="string">'用户名'</span>, validators=[DataRequired()])</span><br><span class="line">    password = StringField(<span class="string">'密码'</span>, validators=[DataRequired()])</span><br><span class="line">   </span><br><span class="line">    <span class="comment"># validators里面存放的是字段的约束    </span></span><br><span class="line">    password2 = StringField(<span class="string">'确认密码'</span>, validators=[DataRequired(),</span><br><span class="line">                                              EqualTo(<span class="string">'password'</span>, <span class="string">'密码不一致'</span>)]</span><br><span class="line">                            )</span><br><span class="line">    submit = SubmitField(<span class="string">'提交'</span>)</span><br><span class="line"></span><br><span class="line"> <span class="comment"># 这儿是验证详细验证用户名字段</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">validate_username</span><span class="params">(self, field)</span>:</span></span><br><span class="line">        <span class="comment"># 验证用户名是否重复</span></span><br><span class="line">        <span class="keyword">if</span> User.query.filter(User.username == field.data).first():</span><br><span class="line">            <span class="keyword">raise</span> ValidationError(<span class="string">'用户名已存在'</span>)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 对用户名的长度进行判断</span></span><br><span class="line">        <span class="keyword">if</span> len(field.data) &lt; <span class="number">3</span>:</span><br><span class="line">            <span class="keyword">raise</span> ValidationError(<span class="string">'用户名长度不能少于3个字符'</span>)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> len(field.data) &gt; <span class="number">6</span>:</span><br><span class="line">            <span class="keyword">raise</span> ValidationError(<span class="string">'用户名长度不能大于6个字符'</span>)</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p><strong>注意: 验证字段的方法名为: validate_字段(self, field)</strong></p>
+<h5 id="2-2-定义注册视图函数"><a href="#2-2-定义注册视图函数" class="headerlink" title="2.2 定义注册视图函数"></a>2.2 定义注册视图函数</h5><p>当HTTP请求为GET时，将表单验证对象返回给页面。</p>
+<p>当HTTP请求为POST时，通过方法validate_on_submit()方法进行字段校验和提交判断，如果校验失败，则可以从form.errors中获取错误信息。</p>
+<p>如果验证通过，则从form.字段.data中获取到字段的值。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="meta">@blue.route('/register/', methods=['GET', 'POST'])</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">register</span><span class="params">()</span>:</span></span><br><span class="line">    form = UserForm()</span><br><span class="line">    <span class="keyword">if</span> request.method == <span class="string">'GET'</span>:</span><br><span class="line">        <span class="keyword">return</span> render_template(<span class="string">'register.html'</span>, form=form)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> request.method == <span class="string">'POST'</span>:</span><br><span class="line">        <span class="comment"># 判断表单中的数据是否通过验证</span></span><br><span class="line">        <span class="keyword">if</span> form.validate_on_submit():</span><br><span class="line">            <span class="comment"># 获取验证通过后的数据</span></span><br><span class="line">            username = form.username.data</span><br><span class="line">            password = form.password.data</span><br><span class="line">            <span class="comment"># 保存</span></span><br><span class="line">            user = User()</span><br><span class="line">            user.username = username</span><br><span class="line">            <span class="comment"># 这是对password进行加密</span></span><br><span class="line">            <span class="comment"># 通过check_password_hash(passhsh,password)对密码进行校验</span></span><br><span class="line">            user.password = generate_password_hash(password)</span><br><span class="line">            user.save()</span><br><span class="line">            <span class="keyword">return</span> redirect(url_for(<span class="string">'user.login'</span>))</span><br><span class="line">        <span class="keyword">return</span> render_template(<span class="string">'register.html'</span>, form=form)</span><br></pre></td></tr></table></figure>
+<h5 id="2-3-模板展示"><a href="#2-3-模板展示" class="headerlink" title="2.3 模板展示"></a>2.3 模板展示</h5><p>注册模板采用继承父模板base.html的形式。在register.html模压中分析如下:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">1. 定义字段名: &#123;&#123; form.字段.label &#125;&#125;</span><br><span class="line"></span><br><span class="line">2. 定义input输入框: &#123;&#123; form.字段 &#125;&#125;</span><br><span class="line"></span><br><span class="line">3. 展示错误信息: &#123;&#123; form.errors.字段 &#125;&#125;</span><br><span class="line"></span><br><span class="line">4. 跨站请求伪造: &#123;&#123; form.csrf_token &#125;&#125;</span><br></pre></td></tr></table></figure>
+<p>注册register.html页面如下:</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line">&#123;% extends 'base.html' %&#125;</span><br><span class="line"></span><br><span class="line">&#123;% block title %&#125;</span><br><span class="line">    注册页面</span><br><span class="line">&#123;% endblock %&#125;</span><br><span class="line"></span><br><span class="line">&#123;% block content %&#125;</span><br><span class="line">    <span class="tag">&lt;<span class="name">form</span> <span class="attr">action</span>=<span class="string">""</span> <span class="attr">method</span>=<span class="string">"post"</span>&gt;</span></span><br><span class="line">        &#123;&#123; form.csrf_token &#125;&#125;</span><br><span class="line">        &#123;&#123; form.username.label &#125;&#125;:&#123;&#123; form.username(style='color:red;', placeholder='请输入用户名', onblur="alert('123')") &#125;&#125;</span><br><span class="line">        &#123;&#123; form.password.label &#125;&#125;:&#123;&#123; form.password &#125;&#125;</span><br><span class="line">        &#123;&#123; form.password2.label &#125;&#125;:&#123;&#123; form.password2 &#125;&#125;</span><br><span class="line">        &#123;&#123; form.submit &#125;&#125;</span><br><span class="line"></span><br><span class="line">        &#123;% if form.errors %&#125;</span><br><span class="line">            姓名错误信息:&#123;&#123; form.errors.username &#125;&#125;</span><br><span class="line">            密码错误信息:&#123;&#123; form.errors.password2 &#125;&#125;</span><br><span class="line">        &#123;% endif %&#125;</span><br><span class="line">    <span class="tag">&lt;/<span class="name">form</span>&gt;</span></span><br><span class="line">&#123;% endblock %&#125;</span><br></pre></td></tr></table></figure>
+<p>注意: 通过form.字段解析的input标签中可以自定义样式，如</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#123;&#123; form.字段(class=&apos;xxx&apos;， style=&apos;color:red&apos;) &#125;&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="3-常见字段类型"><a href="#3-常见字段类型" class="headerlink" title="3. 常见字段类型"></a>3. 常见字段类型</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">字段类型	说明</span><br><span class="line">StringField	普通文本字段</span><br><span class="line">PasswordField	密码文本字段</span><br><span class="line">SubmitField	提交按钮</span><br><span class="line">HiddenField	隐藏文本字段</span><br><span class="line">TextAreaField	多行文本字段</span><br><span class="line">DateField	文本字段，datetime.date格式</span><br><span class="line">DateTimeField	文本字段，datetime.datetime格式</span><br><span class="line">IntegerField	文本字段，整数类型</span><br><span class="line">FloatField	文本字段，小数类型</span><br><span class="line">BooleanField	复选框，值为True或False</span><br><span class="line">RadioField	单选框</span><br><span class="line">SelectField	下拉列表</span><br><span class="line">FileField	文件上传字段</span><br></pre></td></tr></table></figure>
+<h4 id="4-验证器"><a href="#4-验证器" class="headerlink" title="4. 验证器"></a>4. 验证器</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">验证器	说明</span><br><span class="line">DataRequired	确保字段有值(并且if判断为真)</span><br><span class="line">Email	邮箱地址</span><br><span class="line">IPAddress	IPv4的IP地址</span><br><span class="line">Length	规定字符长度</span><br><span class="line">NumberRange	输入数值的范围</span><br><span class="line">EqualTo	验证两个字段的一致性</span><br><span class="line">URL	有效的URL</span><br><span class="line">Regexp	正则验证</span><br></pre></td></tr></table></figure>
+<h4 id="5-实现登录验证"><a href="#5-实现登录验证" class="headerlink" title="5.实现登录验证"></a>5.实现登录验证</h4><p>登录验证表单类:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">LoginForm</span><span class="params">(FlaskForm)</span>:</span></span><br><span class="line">	username = StringField(<span class="string">'用户名'</span>, validators=[DataRequired()])</span><br><span class="line">	password = PasswordField(<span class="string">'password'</span>, validators=[DataRequired()])</span><br><span class="line"></span><br><span class="line">	submit = SubmitField(<span class="string">'登录'</span>)</span><br></pre></td></tr></table></figure>
+<p>登录验证的视图函数:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="meta">@blue.route('/login/', methods=['GET','POST'])</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">login</span><span class="params">()</span>:</span></span><br><span class="line">	form = LoginForm()</span><br><span class="line">	<span class="keyword">if</span> request.method == <span class="string">'GET'</span>:</span><br><span class="line">		<span class="keyword">return</span> render_template(<span class="string">'login.html'</span>,form=form)</span><br><span class="line">	<span class="keyword">if</span> request.method == <span class="string">'POST'</span>:</span><br><span class="line">		<span class="keyword">if</span> form.validate_on_submit():</span><br><span class="line">			<span class="comment"># 通过验证</span></span><br><span class="line">			username = form.username.data</span><br><span class="line">			password = form.password.data</span><br><span class="line">			user = User.query.filter_by(username=username).first()</span><br><span class="line">			<span class="keyword">if</span> user:</span><br><span class="line">				flag = check_password_hash(user.password, password)</span><br><span class="line">				<span class="keyword">if</span> flag:</span><br><span class="line">					session[<span class="string">'user_id'</span>] = user.id</span><br><span class="line">					<span class="keyword">return</span> <span class="string">'登录成功'</span></span><br><span class="line">			<span class="keyword">return</span> <span class="string">'用户名或者密码不正确'</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">		<span class="keyword">else</span>:</span><br><span class="line">			<span class="keyword">return</span> render_template(<span class="string">'login.html'</span>, form=form, errors=form.errors)</span><br></pre></td></tr></table></figure>
+<p>登录模板:</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line">&#123;% extends 'base.html' %&#125;</span><br><span class="line"></span><br><span class="line">&#123;% block content %&#125;</span><br><span class="line">    <span class="tag">&lt;<span class="name">form</span> <span class="attr">action</span>=<span class="string">""</span> <span class="attr">method</span>=<span class="string">"post"</span>&gt;</span></span><br><span class="line">        &#123;&#123; form.csrf_token &#125;&#125;</span><br><span class="line">        &#123;&#123; form.username.label &#125;&#125;</span><br><span class="line">        &#123;&#123; form.username &#125;&#125;</span><br><span class="line">        <span class="tag">&lt;<span class="name">br</span>&gt;</span></span><br><span class="line">        &#123;&#123; form.password.label &#125;&#125;</span><br><span class="line">        &#123;&#123; form.password &#125;&#125;</span><br><span class="line">        <span class="tag">&lt;<span class="name">br</span>&gt;</span></span><br><span class="line">        &#123;&#123; form.submit &#125;&#125;</span><br><span class="line">    <span class="tag">&lt;/<span class="name">form</span>&gt;</span></span><br><span class="line">&#123;% endblock %&#125;</span><br></pre></td></tr></table></figure>
+
+        </section>
+    </article>
+    
+        <!-- disqus 评论框 start -->
+        <div class="comment">
+            <div id="disqus_thread" class="disqus-thread">
+              <i>Loading comments box needs to over the wall</i>
+            </div>
+        </div>
+        <!-- disqus 评论框 end -->
+    
+    
+        <!-- livere 评论框 start -->
+        <div class="comment">
+            <div id="lv-container" data-id="city" data-uid="your_livere_uid"></div>
+        </div>
+        <!-- livere 评论框 end -->
+        
+  </div>
+  <aside>
+    
+    <div class="toc-container">
+        <h1>目录</h1>
+        <div class="content">
+            <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-使用flask-wtf实现表单验证"><span class="toc-number">1.</span> <span class="toc-text">2.使用flask-wtf实现表单验证</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-安装Flask-WTF"><span class="toc-number">1.1.</span> <span class="toc-text">1. 安装Flask-WTF</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-实现注册功能"><span class="toc-number">1.2.</span> <span class="toc-text">2. 实现注册功能</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#2-1-注册表单模型定义"><span class="toc-number">1.2.1.</span> <span class="toc-text">2.1 注册表单模型定义</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-2-定义注册视图函数"><span class="toc-number">1.2.2.</span> <span class="toc-text">2.2 定义注册视图函数</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-3-模板展示"><span class="toc-number">1.2.3.</span> <span class="toc-text">2.3 模板展示</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-常见字段类型"><span class="toc-number">1.3.</span> <span class="toc-text">3. 常见字段类型</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-验证器"><span class="toc-number">1.4.</span> <span class="toc-text">4. 验证器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-实现登录验证"><span class="toc-number">1.5.</span> <span class="toc-text">5.实现登录验证</span></a></li></ol></li></ol>
+        </div>
+    </div>
+    
+  </aside>
+</main>
+
+<!-- disqus 公共JS代码 -->
+<script type="text/javascript">
+  /* * * CONFIGURATION VARIABLES * * */
+  var disqus_shortname = "your_disqus_shortname";
+  var disqus_identifier = "http://yoursite.com/2018/11/15/flask实现表单验证/";
+  var disqus_url = "http://yoursite.com/2018/11/15/flask实现表单验证/";
+
+  isAgent(getDisqus)
+
+  // determine user agent in China
+  function isAgent(cb) {
+    var url = '//graph.facebook.com/feed?callback=h';
+    var xhr = new XMLHttpRequest();
+    var called = false;
+    xhr.open('GET', url);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+      called = true;
+      cb(true);
+      }
+    };
+    xhr.send();
+    // timeout 1s, this facebook API is very fast.
+    setTimeout(function() {
+      if (!called) {
+      xhr.abort();
+      cb(false)
+      }
+    }, 1000);
+  }
+
+  function getDisqus(isAgent) {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; 
+    dsq.async = true
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq)
+  }
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+<script type="text/javascript">
+  (function(d, s) {
+      var j, e = d.getElementsByTagName(s)[0];
+
+      if (typeof LivereTower === 'function') { return; }
+
+      j = d.createElement(s);
+      j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+      j.async = true;
+
+      e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+</script>
+
+
+  <footer>
+  <div class="copyright">
+    <div>
+      &copy; 2018 | Powered by <a href="https://hexo.io" target="_blank">Hexo</a>&nbsp
+    </div>
+    <div>
+      Theme by <a href="https://github.com/lewis-geek/hexo-theme-Aath" target="_blank">Aath</a>
+    </div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="/lib/in-view.min.js"></script>
+<script src="/lib/lodash.min.js"></script>
+<script>
+  var isDown = true
+  var oldY = 0
+  inView.offset(50)
+
+  document.body.addEventListener('touchstart', function(){});
+  
+  window.addEventListener('scroll', _.throttle(e => {
+    var currentY = window.scrollY
+    if((oldY - currentY) < 0) {
+      isDown = true
+    } else {
+      isDown = false
+    }
+    oldY = currentY
+  }, 250))
+
+  $("article img").each(function() {
+      var strA = "<a data-fancybox='gallery' href='" + this.src + "'></a>";
+      $(this).wrapAll(strA);
+  });
+
+  $('.toc-link').each(function() {
+      var href = $(this).attr("href");
+      
+      inView(href).on('exit', () => {
+        if (isDown) {
+          handleActive(href)
+        }
+      })
+
+      inView(href).on('enter', () => {
+        if (!isDown) {
+          handleActive(href)
+        }
+      })
+
+      this.onclick = function(e) {
+        var pos = $(href).offset().top - 10;
+        $("html,body").animate({scrollTop: pos}, 300);
+        setTimeout(() => {
+          handleActive(href)
+        }, 350)
+        return false
+      }
+  })
+
+  function handleActive(href) {
+    document.querySelectorAll('.toc-link').forEach(elm => {
+      elm.classList.remove('active')
+    })
+    document.querySelector(".toc [href='"+ href +"']").classList.add('active')
+  }
+</script>
+<script src="/lib/jquery.fancybox.min.js"></script>
+
+
+</body>
+</html>
