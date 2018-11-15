@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang=>
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  
+    <link rel="icon" href="/favicon.ico">
+  
+    
+  <title>flask实现邮箱验证 | tomxxkl的个人博客</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/lib/jquery.fancybox.min.css">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+  <header>
+  <div class="header-container">
+    <a class='logo' href="/">
+      <span>tomxxkl的个人博客</span>
+    </a>
+    <ul class="right-header">
+      
+        <li class="nav-item">
+          
+            <a href="/" class="item-link">首页</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/about" class="item-link">关于</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/archives" class="item-link">归档</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/tags" class="item-link">标签</a>
+          
+        </li>
+      
+    </ul>
+  </div>
+</header>
+
+  <main id='post'>
+  <div class="content">
+    <article>
+        <section class="content markdown-body">
+          <h1>flask实现邮箱验证</h1>
+          <div class='post-meta'>
+            <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/11/15</time>
+            
+            
+          </div>
+          <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在程序中经常使用到邮件发送功能，如何使用flask进行邮件发送呢？Flask是一个扩展性极强的框架，在Flask核心代码上可以自由的扩展功能。比如邮件发送功能，就有flask-mail库，使用该库可以简单的实现邮件发送功能。</p>
+<p>### </p>
+<h3 id="1-开启163发送邮件功能"><a href="#1-开启163发送邮件功能" class="headerlink" title="1. 开启163发送邮件功能"></a>1. 开启163发送邮件功能</h3><p>我们使用163的电子邮箱服务器作为发送邮件者，所以需要开启客户端授权码，并设置授权码。</p>
+<p>设置如下:</p>
+<p><a href="https://github.com/coco369/knowledge/blob/master/flask/images/flask_mail.png" target="_blank" rel="noopener"><img src="https://github.com/coco369/knowledge/raw/master/flask/images/flask_mail.png" alt="图"></a></p>
+<p>### </p>
+<h3 id="2-使用flask-mail库实现邮件发送功能"><a href="#2-使用flask-mail库实现邮件发送功能" class="headerlink" title="2. 使用flask-mail库实现邮件发送功能"></a>2. 使用flask-mail库实现邮件发送功能</h3><p>#### </p>
+<h4 id="2-1-安装"><a href="#2-1-安装" class="headerlink" title="2.1 安装"></a>2.1 安装</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">pip install flask-mail</span><br></pre></td></tr></table></figure>
+<p>#### </p>
+<h4 id="2-2-功能实现"><a href="#2-2-功能实现" class="headerlink" title="2.2 功能实现"></a>2.2 功能实现</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask</span><br><span class="line"><span class="keyword">from</span> flask_mail <span class="keyword">import</span> Mail, Message</span><br><span class="line"></span><br><span class="line">app = Flask(__name__)</span><br><span class="line"><span class="comment"># 配置邮箱信息</span></span><br><span class="line">app.config[<span class="string">"MAIL_SERVER"</span>] = <span class="string">"smtp.163.com"</span></span><br><span class="line">app.config[<span class="string">"MAIL_PORT"</span>] = <span class="number">465</span>  <span class="comment"># 设置邮箱端口为465</span></span><br><span class="line">app.config[<span class="string">"MAIL_USE_SSL"</span>] = <span class="keyword">True</span>  <span class="comment"># 163邮箱需要开启SSL</span></span><br><span class="line">app.config[<span class="string">"MAIL_USERNAME"</span>] = <span class="string">"yeluoguigeng@163.com"</span></span><br><span class="line">app.config[<span class="string">"MAIL_PASSWORD"</span>] = <span class="string">"qqwwxxzz123"</span></span><br><span class="line"></span><br><span class="line">mail = Mail(app)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route("/send_mail/")</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">send_mail</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="string">"""</span></span><br><span class="line"><span class="string">    发送邮件， sender为发送者邮箱， recipients为接受者邮箱</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line">    message = Message(<span class="string">"测试邮件标题122"</span>, sender=app.config[<span class="string">"MAIL_USERNAME"</span>], recipients=[<span class="string">"779598160@qq.com"</span>])</span><br><span class="line">    message.body = <span class="string">"测试邮件的内容122"</span></span><br><span class="line"></span><br><span class="line">    send_email(message)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="string">"发送成功"</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">send_email</span><span class="params">(msg)</span>:</span></span><br><span class="line">    <span class="keyword">with</span> app.app_context():</span><br><span class="line">        mail.send(msg)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">"__main__"</span>:</span><br><span class="line">    app.run()</span><br></pre></td></tr></table></figure>
+<p>设置的参数定义如下:</p>
+<p>MAIL_SERVER: 电子邮件服务器的主机名或IP地址， 默认为localhost</p>
+<p>MAIL_PORT: 电子邮件服务器的端口，默认为25</p>
+<p>MAIL_USE_TLS： 启用传输层安全协议，默认为False</p>
+<p>MAIL_USE_SSL： 启用安全套接层协议， 默认为False</p>
+<p>MAIL_USERNAME： 邮件账户的用户名</p>
+<p>MAIL_PASSWORD：邮件账户的密码，为在163中设置的授权码</p>
+<p>### </p>
+<h3 id="3-网易163免费邮箱相关服务器信息如下："><a href="#3-网易163免费邮箱相关服务器信息如下：" class="headerlink" title="3. 网易163免费邮箱相关服务器信息如下："></a>3. 网易163免费邮箱相关服务器信息如下：</h3><p><a href="https://github.com/coco369/knowledge/blob/master/flask/images/flask_163_mail.png" target="_blank" rel="noopener"><img src="https://github.com/coco369/knowledge/raw/master/flask/images/flask_163_mail.png" alt="图"></a></p>
+
+        </section>
+    </article>
+    
+        <!-- disqus 评论框 start -->
+        <div class="comment">
+            <div id="disqus_thread" class="disqus-thread">
+              <i>Loading comments box needs to over the wall</i>
+            </div>
+        </div>
+        <!-- disqus 评论框 end -->
+    
+    
+        <!-- livere 评论框 start -->
+        <div class="comment">
+            <div id="lv-container" data-id="city" data-uid="your_livere_uid"></div>
+        </div>
+        <!-- livere 评论框 end -->
+        
+  </div>
+  <aside>
+    
+    <div class="toc-container">
+        <h1>目录</h1>
+        <div class="content">
+            <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#前言"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-开启163发送邮件功能"><span class="toc-number">2.</span> <span class="toc-text">1. 开启163发送邮件功能</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-使用flask-mail库实现邮件发送功能"><span class="toc-number">3.</span> <span class="toc-text">2. 使用flask-mail库实现邮件发送功能</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-1-安装"><span class="toc-number">3.1.</span> <span class="toc-text">2.1 安装</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-功能实现"><span class="toc-number">3.2.</span> <span class="toc-text">2.2 功能实现</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-网易163免费邮箱相关服务器信息如下："><span class="toc-number">4.</span> <span class="toc-text">3. 网易163免费邮箱相关服务器信息如下：</span></a></li></ol>
+        </div>
+    </div>
+    
+  </aside>
+</main>
+
+<!-- disqus 公共JS代码 -->
+<script type="text/javascript">
+  /* * * CONFIGURATION VARIABLES * * */
+  var disqus_shortname = "your_disqus_shortname";
+  var disqus_identifier = "http://yoursite.com/2018/11/15/flask实现邮箱验证/";
+  var disqus_url = "http://yoursite.com/2018/11/15/flask实现邮箱验证/";
+
+  isAgent(getDisqus)
+
+  // determine user agent in China
+  function isAgent(cb) {
+    var url = '//graph.facebook.com/feed?callback=h';
+    var xhr = new XMLHttpRequest();
+    var called = false;
+    xhr.open('GET', url);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+      called = true;
+      cb(true);
+      }
+    };
+    xhr.send();
+    // timeout 1s, this facebook API is very fast.
+    setTimeout(function() {
+      if (!called) {
+      xhr.abort();
+      cb(false)
+      }
+    }, 1000);
+  }
+
+  function getDisqus(isAgent) {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; 
+    dsq.async = true
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq)
+  }
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+<script type="text/javascript">
+  (function(d, s) {
+      var j, e = d.getElementsByTagName(s)[0];
+
+      if (typeof LivereTower === 'function') { return; }
+
+      j = d.createElement(s);
+      j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+      j.async = true;
+
+      e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+</script>
+
+
+  <footer>
+  <div class="copyright">
+    <div>
+      &copy; 2018 | Powered by <a href="https://hexo.io" target="_blank">Hexo</a>&nbsp
+    </div>
+    <div>
+      Theme by <a href="https://github.com/lewis-geek/hexo-theme-Aath" target="_blank">Aath</a>
+    </div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="/lib/in-view.min.js"></script>
+<script src="/lib/lodash.min.js"></script>
+<script>
+  var isDown = true
+  var oldY = 0
+  inView.offset(50)
+
+  document.body.addEventListener('touchstart', function(){});
+  
+  window.addEventListener('scroll', _.throttle(e => {
+    var currentY = window.scrollY
+    if((oldY - currentY) < 0) {
+      isDown = true
+    } else {
+      isDown = false
+    }
+    oldY = currentY
+  }, 250))
+
+  $("article img").each(function() {
+      var strA = "<a data-fancybox='gallery' href='" + this.src + "'></a>";
+      $(this).wrapAll(strA);
+  });
+
+  $('.toc-link').each(function() {
+      var href = $(this).attr("href");
+      
+      inView(href).on('exit', () => {
+        if (isDown) {
+          handleActive(href)
+        }
+      })
+
+      inView(href).on('enter', () => {
+        if (!isDown) {
+          handleActive(href)
+        }
+      })
+
+      this.onclick = function(e) {
+        var pos = $(href).offset().top - 10;
+        $("html,body").animate({scrollTop: pos}, 300);
+        setTimeout(() => {
+          handleActive(href)
+        }, 350)
+        return false
+      }
+  })
+
+  function handleActive(href) {
+    document.querySelectorAll('.toc-link').forEach(elm => {
+      elm.classList.remove('active')
+    })
+    document.querySelector(".toc [href='"+ href +"']").classList.add('active')
+  }
+</script>
+<script src="/lib/jquery.fancybox.min.js"></script>
+
+
+</body>
+</html>
