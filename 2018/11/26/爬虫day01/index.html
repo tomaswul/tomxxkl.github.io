@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang=>
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  
+    <link rel="icon" href="/favicon.ico">
+  
+    
+  <title>爬虫day01 | tomxxkl的个人博客</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/lib/jquery.fancybox.min.css">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+  <header>
+  <div class="header-container">
+    <a class='logo' href="/">
+      <span>tomxxkl的个人博客</span>
+    </a>
+    <ul class="right-header">
+      
+        <li class="nav-item">
+          
+            <a href="/" class="item-link">首页</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/about" class="item-link">关于</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/archives" class="item-link">归档</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/tags" class="item-link">标签</a>
+          
+        </li>
+      
+    </ul>
+  </div>
+</header>
+
+  <main id='post'>
+  <div class="content">
+    <article>
+        <section class="content markdown-body">
+          <h1>爬虫day01</h1>
+          <div class='post-meta'>
+            <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/11/26</time>
+            
+            
+          </div>
+          <h3 id="请求"><a href="#请求" class="headerlink" title="请求:"></a>请求:</h3><p>GET请求的参数直接在URL里面，最多只有1024字节</p>
+<p>POST:新增，后台数据发生变化</p>
+<p>PUT:修改，后台数据不一定发生变化</p>
+<h4 id="请求头"><a href="#请求头" class="headerlink" title="请求头:"></a>请求头:</h4><p>Cache-Control:</p>
+<p>指定了服务器和客户端在交互时遵循的缓存机制，即是否要留下缓存页面数据。</p>
+<p>​    no-cache: 客户端告诉服务器，自己不读取缓存，要向服务器发起请求</p>
+<p>​    no-store:同时也是响应头的参数，请求和响应都禁止缓存，即不存储</p>
+<p>​    max-age=0:</p>
+<p>User-Agent:(最重要)，即客户端信息</p>
+<p>Accept:及客户端可以接收的数据类型</p>
+<p>Accept-Language: 客户端可以接受的语言类型</p>
+<p>Accept-Encoding:客户端接受的编码格式，一些网络压缩格式</p>
+<p>Accept-Charset:指的是规定的服务器处理表单数据所接受的字符集，gb2312,gbk,gb18030,utf-8;</p>
+<p>Referer:浏览器上次访问的网页url,uri.由于http协议的无记忆性，服务器可从这里了解到客户端访问的前后路径</p>
+<p>DNT:do not track,浏览器客户端禁止第三方网站追踪</p>
+<p>Connection:client:浏览器和server通信时长链接如何处理，keep0alive</p>
+<p>Proxy-connection:当使用代理服务器的时候，这个就明了代理服务器是否使用长链接。</p>
+<p>Pragma:防止页面被缓存，和cache-control类似的一个字段，一般爬虫都写成no-cache *</p>
+<p>Cookie:设置Cookie的值</p>
+<p>Host:访问的服务器主机名，比如百度<a href="http://www.baidu.com" target="_blank" rel="noopener">www.baidu.com</a></p>
+<p>If_Modified-Host:</p>
+<p>Authorization:</p>
+<h3 id="响应-两种方式"><a href="#响应-两种方式" class="headerlink" title="响应:两种方式"></a>响应:两种方式</h3><p>​    -二进制流(主要包括视频，音频，图片等)</p>
+<p>​    -文本流(主要是html,xml,css,js,json)</p>
+<h3 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h3><p>爬取猫眼电影排行前100</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="string">"""__author__=wuliang"""</span></span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">import</span> json</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_page</span><span class="params">(url)</span>:</span></span><br><span class="line">	headers = &#123;</span><br><span class="line">		<span class="string">'User-Agent'</span>: <span class="string">'User-Agent:Mozilla/5.0 (Windows NT 10.0; WOW64; rv:38.0) Gecko/20100101 Firefox/38.0'</span></span><br><span class="line">	&#125;</span><br><span class="line">	response = requests.get(url, headers=headers)</span><br><span class="line">	<span class="keyword">if</span> response.status_code == <span class="number">200</span>:</span><br><span class="line">		<span class="keyword">return</span> response.content.decode(<span class="string">'utf8'</span>)</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">None</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">parse_page</span><span class="params">(html)</span>:</span></span><br><span class="line">	result_list = []</span><br><span class="line">	<span class="comment"># 主演</span></span><br><span class="line">	pattern = re.compile(<span class="string">r'&lt;p class="star"&gt;(.*?)&lt;/p&gt;'</span>, re.S)</span><br><span class="line">	stars = re.findall(pattern, html)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	<span class="comment"># 标题</span></span><br><span class="line">	pattern = re.compile(<span class="string">r'movieId.*?&gt;.*?&lt;img.*?&lt;img.*?alt="(.*?)" class.*?'</span>, re.S)</span><br><span class="line">	titles = re.findall(pattern, html)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	<span class="comment"># 上映时间</span></span><br><span class="line">	pattern = re.compile(<span class="string">r'&lt;p class="releasetime"&gt;(.*?)&lt;/p&gt;'</span>, re.S)</span><br><span class="line">	times = re.findall(pattern,html)</span><br><span class="line"></span><br><span class="line">	<span class="comment"># 图片链接</span></span><br><span class="line">	pattern = re.compile(<span class="string">r'movieId.*?&gt;.*?&lt;img.*?&lt;img.*?src=(.*?) alt.*?'</span>,re.S)</span><br><span class="line">	links = re.findall(pattern, html)</span><br><span class="line"></span><br><span class="line">	<span class="comment"># 排名</span></span><br><span class="line">	pattern = re.compile(<span class="string">r'&lt;dd&gt;.*?board-index.*?&gt;(.*?)&lt;/i&gt;'</span>,re.S)</span><br><span class="line">	ranks = re.findall(pattern, html)</span><br><span class="line"></span><br><span class="line">	<span class="comment"># 评分</span></span><br><span class="line">	pattern = re.compile(<span class="string">r'&lt;p class="score".*?integer.*?&gt;(.*?)&lt;/i&gt;.*?fraction.*?&gt;(.*?)&lt;/i&gt;'</span>,re.S)</span><br><span class="line">	scores = re.findall(pattern, html)</span><br><span class="line">	<span class="keyword">for</span> i <span class="keyword">in</span> range(len(ranks)):</span><br><span class="line">		result_dict = &#123;</span><br><span class="line">			<span class="string">'star'</span>: stars[i].strip(),</span><br><span class="line">			<span class="string">'title'</span>: titles[i].strip(),</span><br><span class="line">			<span class="string">'time'</span>: times[i].strip(),</span><br><span class="line">			<span class="string">'link'</span>: links[i].strip(),</span><br><span class="line">			<span class="string">'rank'</span>: ranks[i].strip(),</span><br><span class="line">			<span class="string">'score'</span>: <span class="string">''</span>.join(scores[i]),</span><br><span class="line">		&#125;</span><br><span class="line">		result_list.append(result_dict)</span><br><span class="line">	<span class="keyword">return</span> result_list</span><br><span class="line"></span><br><span class="line">	<span class="comment"># for item in items:</span></span><br><span class="line">	<span class="comment"># 	print(''.join(item))</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_all_pages</span><span class="params">(url)</span>:</span></span><br><span class="line">	result_all_list = []</span><br><span class="line">	<span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">0</span>, <span class="number">100</span>, <span class="number">10</span>):</span><br><span class="line">		html = get_page(url+<span class="string">'?offset='</span> + str(i))</span><br><span class="line">		result_all_list.extend(parse_page(html))</span><br><span class="line">	<span class="keyword">return</span> result_all_list</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">save_img</span><span class="params">(result_all_list)</span>:</span></span><br><span class="line">	<span class="keyword">for</span> item <span class="keyword">in</span> result_all_list:</span><br><span class="line">		url = item[<span class="string">'link'</span>]</span><br><span class="line">		response = requests.get(url.replace(<span class="string">'\"'</span>,<span class="string">''</span>))</span><br><span class="line">		filename = url.split(<span class="string">'/'</span>)[<span class="number">-1</span>].split(<span class="string">'@'</span>)[<span class="number">0</span>]</span><br><span class="line">		<span class="keyword">with</span> open(<span class="string">'./images/'</span>+filename,<span class="string">'wb'</span>) <span class="keyword">as</span> f:</span><br><span class="line">			f.write(response.content)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">save_json</span><span class="params">(result_all_list)</span>:</span></span><br><span class="line">	json_text = json.dumps(result_all_list, ensure_ascii=<span class="keyword">False</span>)</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">with</span> open(<span class="string">'./maoyan.json'</span>, <span class="string">'w'</span>, encoding=<span class="string">'utf-8'</span>) <span class="keyword">as</span> f:</span><br><span class="line">		f.write(json_text)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span><span class="params">()</span>:</span></span><br><span class="line">	result_all_list = get_all_pages(<span class="string">'http://maoyan.com/board/4'</span>)</span><br><span class="line">	<span class="comment"># save_img(result_all_list)</span></span><br><span class="line">	save_json(result_all_list)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">	main()</span><br></pre></td></tr></table></figure>
+
+        </section>
+    </article>
+    
+        <!-- disqus 评论框 start -->
+        <div class="comment">
+            <div id="disqus_thread" class="disqus-thread">
+              <i>Loading comments box needs to over the wall</i>
+            </div>
+        </div>
+        <!-- disqus 评论框 end -->
+    
+    
+        <!-- livere 评论框 start -->
+        <div class="comment">
+            <div id="lv-container" data-id="city" data-uid="your_livere_uid"></div>
+        </div>
+        <!-- livere 评论框 end -->
+        
+  </div>
+  <aside>
+    
+    <div class="toc-container">
+        <h1>目录</h1>
+        <div class="content">
+            <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#请求"><span class="toc-number">1.</span> <span class="toc-text">请求:</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#请求头"><span class="toc-number">1.1.</span> <span class="toc-text">请求头:</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#响应-两种方式"><span class="toc-number">2.</span> <span class="toc-text">响应:两种方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#实例"><span class="toc-number">3.</span> <span class="toc-text">实例</span></a></li></ol>
+        </div>
+    </div>
+    
+  </aside>
+</main>
+
+<!-- disqus 公共JS代码 -->
+<script type="text/javascript">
+  /* * * CONFIGURATION VARIABLES * * */
+  var disqus_shortname = "your_disqus_shortname";
+  var disqus_identifier = "http://yoursite.com/2018/11/26/爬虫day01/";
+  var disqus_url = "http://yoursite.com/2018/11/26/爬虫day01/";
+
+  isAgent(getDisqus)
+
+  // determine user agent in China
+  function isAgent(cb) {
+    var url = '//graph.facebook.com/feed?callback=h';
+    var xhr = new XMLHttpRequest();
+    var called = false;
+    xhr.open('GET', url);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+      called = true;
+      cb(true);
+      }
+    };
+    xhr.send();
+    // timeout 1s, this facebook API is very fast.
+    setTimeout(function() {
+      if (!called) {
+      xhr.abort();
+      cb(false)
+      }
+    }, 1000);
+  }
+
+  function getDisqus(isAgent) {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; 
+    dsq.async = true
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq)
+  }
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+<script type="text/javascript">
+  (function(d, s) {
+      var j, e = d.getElementsByTagName(s)[0];
+
+      if (typeof LivereTower === 'function') { return; }
+
+      j = d.createElement(s);
+      j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+      j.async = true;
+
+      e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+</script>
+
+
+  <footer>
+  <div class="copyright">
+    <div>
+      &copy; 2018 | Powered by <a href="https://hexo.io" target="_blank">Hexo</a>&nbsp
+    </div>
+    <div>
+      Theme by <a href="https://github.com/lewis-geek/hexo-theme-Aath" target="_blank">Aath</a>
+    </div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="/lib/in-view.min.js"></script>
+<script src="/lib/lodash.min.js"></script>
+<script>
+  var isDown = true
+  var oldY = 0
+  inView.offset(50)
+
+  document.body.addEventListener('touchstart', function(){});
+  
+  window.addEventListener('scroll', _.throttle(e => {
+    var currentY = window.scrollY
+    if((oldY - currentY) < 0) {
+      isDown = true
+    } else {
+      isDown = false
+    }
+    oldY = currentY
+  }, 250))
+
+  $("article img").each(function() {
+      var strA = "<a data-fancybox='gallery' href='" + this.src + "'></a>";
+      $(this).wrapAll(strA);
+  });
+
+  $('.toc-link').each(function() {
+      var href = $(this).attr("href");
+      
+      inView(href).on('exit', () => {
+        if (isDown) {
+          handleActive(href)
+        }
+      })
+
+      inView(href).on('enter', () => {
+        if (!isDown) {
+          handleActive(href)
+        }
+      })
+
+      this.onclick = function(e) {
+        var pos = $(href).offset().top - 10;
+        $("html,body").animate({scrollTop: pos}, 300);
+        setTimeout(() => {
+          handleActive(href)
+        }, 350)
+        return false
+      }
+  })
+
+  function handleActive(href) {
+    document.querySelectorAll('.toc-link').forEach(elm => {
+      elm.classList.remove('active')
+    })
+    document.querySelector(".toc [href='"+ href +"']").classList.add('active')
+  }
+</script>
+<script src="/lib/jquery.fancybox.min.js"></script>
+
+
+</body>
+</html>
