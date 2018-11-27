@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang=>
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  
+    <link rel="icon" href="/favicon.ico">
+  
+    
+  <title>spider中lmxl库和beautifulsoup库的使用 | tomxxkl的个人博客</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/lib/jquery.fancybox.min.css">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+  <header>
+  <div class="header-container">
+    <a class='logo' href="/">
+      <span>tomxxkl的个人博客</span>
+    </a>
+    <ul class="right-header">
+      
+        <li class="nav-item">
+          
+            <a href="/" class="item-link">首页</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/about" class="item-link">关于</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/archives" class="item-link">归档</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/tags" class="item-link">标签</a>
+          
+        </li>
+      
+    </ul>
+  </div>
+</header>
+
+  <main id='post'>
+  <div class="content">
+    <article>
+        <section class="content markdown-body">
+          <h1>spider中lmxl库和beautifulsoup库的使用</h1>
+          <div class='post-meta'>
+            <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/11/27</time>
+            
+            
+          </div>
+          <h3 id="爬⾍-day2-解析库的使⽤"><a href="#爬⾍-day2-解析库的使⽤" class="headerlink" title="爬⾍ day2 解析库的使⽤"></a>爬⾍ day2 解析库的使⽤</h3><h4 id="1-XPath"><a href="#1-XPath" class="headerlink" title="1.XPath"></a>1.XPath</h4><p>XML Path Language      XML 路径语⾔ </p>
+<p>安装lxml库 (⽀持HTML和XML解析，⽀持XPath解析⽅式） </p>
+<p>pip3 install lxml </p>
+<p>XPath、XQuery 以及 XSLT 函数 </p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">from</span> lxml <span class="keyword">import</span> etree</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 取页面HTML</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_one_page</span><span class="params">()</span>:</span></span><br><span class="line">	url = <span class="string">"https://www.douban.com/group/explore"</span></span><br><span class="line">	headers = &#123;</span><br><span class="line">		<span class="string">"User-Agent"</span>: <span class="string">"Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; 360SE)"</span> </span><br><span class="line">	&#125;</span><br><span class="line">	response = requests.get(url, headers=headers)</span><br><span class="line">	<span class="keyword">if</span> response.status_code == <span class="number">200</span>:</span><br><span class="line">		text = response.content.decode(<span class="string">'utf-8'</span>)</span><br><span class="line">		<span class="keyword">return</span> text</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">None</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 解析页面</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">parse_with_xpath</span><span class="params">(html)</span>:</span></span><br><span class="line">	etree_html = etree.HTML(html)</span><br><span class="line">	print(etree_html)</span><br><span class="line"></span><br><span class="line">	<span class="comment"># /表示子节点</span></span><br><span class="line">	<span class="comment"># //表示子孙节点</span></span><br><span class="line">	<span class="comment"># 匹配所有节点 //*   表示所有节点</span></span><br><span class="line">	<span class="comment"># result = etree_html.xpath('//*')</span></span><br><span class="line">	<span class="comment"># print(result)</span></span><br><span class="line">	<span class="comment"># print(len(result))</span></span><br><span class="line"></span><br><span class="line">	<span class="comment"># 匹配所有子节点 //a     文本获取：text()，获取所有a标签里的文字</span></span><br><span class="line">	<span class="comment"># result = etree_html.xpath('//a/text()')</span></span><br><span class="line">	<span class="comment"># print(result)</span></span><br><span class="line"></span><br><span class="line">	<span class="comment"># 查找元素子节点 /</span></span><br><span class="line">	<span class="comment"># result = etree_html.xpath('//div/p/text()')</span></span><br><span class="line">	<span class="comment"># print(result)</span></span><br><span class="line"></span><br><span class="line">	<span class="comment"># 查找元素所有子孙节点 //</span></span><br><span class="line">	<span class="comment"># div[@class="channel-item"]取class是channel-item的div</span></span><br><span class="line">	<span class="comment"># xxx@属性="xxx" 获取指定属性的标签</span></span><br><span class="line">	<span class="comment"># | 表示或</span></span><br><span class="line">	<span class="comment"># result = etree_html.xpath('//div[@class="channel-item"] | //span[@class="pubtime"]/../span/a/text()')</span></span><br><span class="line">	<span class="comment">#</span></span><br><span class="line">	<span class="comment"># print(result)</span></span><br><span class="line"></span><br><span class="line">	<span class="comment"># 父节点 ..</span></span><br><span class="line">	<span class="comment"># result = etree_html.xpath('//span[@class="pubtime"]/../span/a/text()')</span></span><br><span class="line">	<span class="comment"># print(result)</span></span><br><span class="line"></span><br><span class="line">	<span class="comment"># 属性匹配 [@class="xxx"]</span></span><br><span class="line">	<span class="comment"># 文本匹配 text() 获取所有文本//text()</span></span><br><span class="line">	<span class="comment"># result = etree_html.xpath('//div[@class="article"]//text()')</span></span><br><span class="line">	<span class="comment"># print(result)</span></span><br><span class="line"></span><br><span class="line">	<span class="comment"># 属性获取 @href,获取属性</span></span><br><span class="line">	<span class="comment"># result = etree_html.xpath('//div[@class="article"]/div/div/@class')[0]</span></span><br><span class="line">	<span class="comment"># result = etree_html.xpath('//div[@class="bd"]/h3/a/@href')</span></span><br><span class="line">	<span class="comment"># print(result)</span></span><br><span class="line"></span><br><span class="line">	<span class="comment"># 属性多值匹配 contains(@class 'xx')    text()[1]表示取第一个，没有0</span></span><br><span class="line">	<span class="comment"># result = etree_html.xpath('//div[contains(@class, "grid-16-8")]//div[@class="likes"]/text()[2]')</span></span><br><span class="line">	<span class="comment"># print(result)</span></span><br><span class="line"></span><br><span class="line">	<span class="comment"># 多属性匹配 or, and, mod, //book | //cd, + - * div = != &lt; &gt; &lt;= &gt;=   div表示除</span></span><br><span class="line">	<span class="comment"># result = etree_html.xpath('//span[@class="pubtime" and contains(text(), "12:")]/text()')</span></span><br><span class="line">	<span class="comment"># print(result)</span></span><br><span class="line"></span><br><span class="line">	<span class="comment"># 按序选择 [1] [last()] [poistion() &lt; 3] [last() -2]</span></span><br><span class="line">	<span class="comment"># 节点轴</span></span><br><span class="line">	<span class="comment"># //li/ancestor::*  所有祖先节点</span></span><br><span class="line">	<span class="comment"># result = etree_html.xpath ('//li/ancestor::*')</span></span><br><span class="line">	<span class="comment"># print(result)</span></span><br><span class="line">	<span class="comment"># //li/ancestor::div div这个祖先节点</span></span><br><span class="line"></span><br><span class="line">	<span class="comment"># //li/attribute::* attribute轴，获取li节点所有属性值</span></span><br><span class="line">	<span class="comment"># result = etree_html.xpath ('//li/attribute::*')</span></span><br><span class="line">	<span class="comment"># print (result)</span></span><br><span class="line">	<span class="comment"># //li/child::a[@href="link1.html"]  child轴，获取直接子节点</span></span><br><span class="line">	result = etree_html.xpath (<span class="string">'//div/child::div[@class="likes"]/text()'</span>)</span><br><span class="line">	<span class="keyword">print</span> (result)</span><br><span class="line">	<span class="comment"># //li/descendant::span 获取所有span类型的子孙节点</span></span><br><span class="line">	<span class="comment"># //li/following::* 选取文档中当前节点的结束标记之后的所有节点</span></span><br><span class="line"></span><br><span class="line">	result = etree_html.xpath(<span class="string">'//div/child::div[@class="likes"]/following::*'</span>)[<span class="number">0</span>]</span><br><span class="line">	print(result)</span><br><span class="line">	<span class="comment"># //li/following-sibling::*     选取当前节点之后的所用同级节点</span></span><br><span class="line">	result = etree_html.xpath (<span class="string">'//div/child::div[@class="likes"]/following-sibling::*'</span>)</span><br><span class="line">	print(result)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	<span class="comment"># result = etree_html.xpath('//div[@class="channel-item"][1]/following-sibling::*')</span></span><br><span class="line">	<span class="comment"># print(result)</span></span><br><span class="line">	<span class="comment"># print(len(result))</span></span><br><span class="line"></span><br><span class="line">	</span><br><span class="line">	<span class="comment"># result = etree_html.xpath('//div[contains(@class, "channel-group-rec")]//div[@class="title"]/following::*[1]/text()')</span></span><br><span class="line">	<span class="comment"># print(result)</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span><span class="params">()</span>:</span></span><br><span class="line">	html = get_one_page()</span><br><span class="line">	<span class="comment"># print(html)</span></span><br><span class="line">	parse_with_xpath(html)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">	main()</span><br></pre></td></tr></table></figure>
+<h4 id="2-Beautiful-Soup"><a href="#2-Beautiful-Soup" class="headerlink" title="2.Beautiful Soup"></a>2.Beautiful Soup</h4><p>pip3 install beautifulsoup4 </p>
+<p>解析器 </p>
+<p>Python 标准库BeautifulSoup(html, “html.parser”) 速度⼀般，容错能⼒好 </p>
+<p>lxml HTML解析器 BeautifulSoup(html, “lxml”) 速度快，容错好 </p>
+<p>lxml xml解析器 BeautifulSoup(markup, “xml”) 速度快，唯⼀⽀持xml </p>
+<p>html5lib BeautifulSoup(markup, “html5lib”)  容错性⾼，速度慢 </p>
+<p>引⼊BeautifulSoup </p>
+<p>  from bs4 import BeautifulSoup </p>
+<p>获取⽅法<br><figure class="highlight python"><table><tr><td class="code"><pre><span class="line">soup = BeautifulSoup(html, <span class="string">"lxml"</span>) <span class="comment"># 试⽤lxml解析器构造beautifulsoup </span></span><br><span class="line">print(soup.prettify())      <span class="comment"># 取⽹⻚缩进格式化输出 </span></span><br><span class="line">print(soup.title.string) <span class="comment"># 取⽹⻚title内容 </span></span><br><span class="line">print(soup.head) </span><br><span class="line">print(soup.p) </span><br><span class="line"><span class="comment"># 获取节点的名字 </span></span><br><span class="line">print(soup.title.name) </span><br><span class="line"><span class="comment"># 获取节点属性 </span></span><br><span class="line">soup.img.attrs[<span class="string">"src"</span>] </span><br><span class="line"></span><br><span class="line">print(soup.p.attrs) </span><br><span class="line">print(soup.p.attrs[<span class="string">"name"</span>]) </span><br><span class="line">print(soup.p[<span class="string">"class"</span>]) </span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取节点包含的内容 </span></span><br><span class="line">print(soup.p.string)</span><br></pre></td></tr></table></figure></p>
+<p></p><p class="c1"><span>asdf<span>asdfasdfasdfasdfadsfad<p> </p>
+<p>嵌套选择<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;head&gt; </span><br><span class="line"></span><br><span class="line">  &lt;title&gt;this is title&lt;/title&gt; </span><br><span class="line"></span><br><span class="line">&lt;/head&gt; </span><br><span class="line"></span><br><span class="line">  # soup的节点都为 bs4.element.Tag类型,可以继续选择 </span><br><span class="line"></span><br><span class="line">  print(soup.head.title.string)</span><br></pre></td></tr></table></figure></p>
+<p>关联选择 </p>
+<p>有些元素没有特征定位，可以先选择有办法定位的，然后以这个节点为准选择它的⼦节点、⽗ </p>
+<p>节点、兄弟节点等 </p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">&lt;p class="p1"&gt;&lt;/p&gt; </span><br><span class="line">&lt;p&gt;&lt;/p&gt; </span><br><span class="line">&lt;p&gt;&lt;/p&gt; </span><br><span class="line">print(soup.p.contents) <span class="comment"># 取p节点下⾯所有⼦节点列表 </span></span><br><span class="line"></span><br><span class="line">print(soup.p.descendants) <span class="comment">#取p节点所有⼦孙节点 </span></span><br><span class="line"></span><br><span class="line">print(soup.a.parent) <span class="comment"># 取⽗节点 </span></span><br><span class="line"></span><br><span class="line">print(soup.a.parents) <span class="comment"># 取所有祖先节点 </span></span><br><span class="line"></span><br><span class="line">print(soup.a.next_sibling) <span class="comment"># 同级下⼀节点 </span></span><br><span class="line"></span><br><span class="line">print(soup.a.previous_sibling) <span class="comment"># 同级上⼀节点 </span></span><br><span class="line"></span><br><span class="line">print(soup.a.next_siblings) <span class="comment"># 同级所有后⾯节点 </span></span><br><span class="line"></span><br><span class="line">print(soup.a.previous_siblings) <span class="comment"># 同级所有前⾯节点 </span></span><br><span class="line"></span><br><span class="line">print(list(soup.a.parents)[<span class="number">0</span>].attrs[<span class="string">'class'</span>])</span><br></pre></td></tr></table></figure>
+<p>⽅法选择器 </p>
+<p>根据属性和⽂本进⾏查找 </p>
+<p><ul><li></li><li><ul> </ul></li></ul></p>
+<p><ul><li></li><li>jjj</li><li></li><li></li></ul><br><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">print(soup.find_all(name=<span class="string">"ul"</span>)) </span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> ul <span class="keyword">in</span> soup.find_all(name=<span class="string">"ul"</span>): </span><br><span class="line"></span><br><span class="line">    print(ul.find_all(name=<span class="string">"li"</span>)) </span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> li <span class="keyword">in</span> ul.find_all(name=<span class="string">"li"</span>): </span><br><span class="line"></span><br><span class="line">       print(li.string) </span><br><span class="line"></span><br><span class="line">soup.find_all(attrs=&#123;<span class="string">"id"</span>: <span class="string">"list-1"</span>&#125;)</span><br></pre></td></tr></table></figure></p>
+<p>css 选择器 </p>
+<p></p><p id="p1" class="panel"></p><p class=""></p><p></p><p><br><figure class="highlight python"><table><tr><td class="code"><pre><span class="line">soup.select(<span class="string">'.panel .panel_heading'</span>) </span><br><span class="line"></span><br><span class="line">soup.select(<span class="string">'ul li'</span>) </span><br><span class="line"></span><br><span class="line">soup.select(<span class="string">'#id1 .element'</span>)</span><br></pre></td></tr></table></figure></p>
+</span></span></p>
+        </section>
+    </article>
+    
+        <!-- disqus 评论框 start -->
+        <div class="comment">
+            <div id="disqus_thread" class="disqus-thread">
+              <i>Loading comments box needs to over the wall</i>
+            </div>
+        </div>
+        <!-- disqus 评论框 end -->
+    
+    
+        <!-- livere 评论框 start -->
+        <div class="comment">
+            <div id="lv-container" data-id="city" data-uid="your_livere_uid"></div>
+        </div>
+        <!-- livere 评论框 end -->
+        
+  </div>
+  <aside>
+    
+    <div class="toc-container">
+        <h1>目录</h1>
+        <div class="content">
+            <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#爬⾍-day2-解析库的使⽤"><span class="toc-number">1.</span> <span class="toc-text">爬⾍ day2 解析库的使⽤</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-XPath"><span class="toc-number">1.1.</span> <span class="toc-text">1.XPath</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-Beautiful-Soup"><span class="toc-number">1.2.</span> <span class="toc-text">2.Beautiful Soup</span></a></li></ol></li></ol>
+        </div>
+    </div>
+    
+  </aside>
+</main>
+
+<!-- disqus 公共JS代码 -->
+<script type="text/javascript">
+  /* * * CONFIGURATION VARIABLES * * */
+  var disqus_shortname = "your_disqus_shortname";
+  var disqus_identifier = "http://yoursite.com/2018/11/27/spider中lmxl库和beautifulsoup库的使用/";
+  var disqus_url = "http://yoursite.com/2018/11/27/spider中lmxl库和beautifulsoup库的使用/";
+
+  isAgent(getDisqus)
+
+  // determine user agent in China
+  function isAgent(cb) {
+    var url = '//graph.facebook.com/feed?callback=h';
+    var xhr = new XMLHttpRequest();
+    var called = false;
+    xhr.open('GET', url);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+      called = true;
+      cb(true);
+      }
+    };
+    xhr.send();
+    // timeout 1s, this facebook API is very fast.
+    setTimeout(function() {
+      if (!called) {
+      xhr.abort();
+      cb(false)
+      }
+    }, 1000);
+  }
+
+  function getDisqus(isAgent) {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; 
+    dsq.async = true
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq)
+  }
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+<script type="text/javascript">
+  (function(d, s) {
+      var j, e = d.getElementsByTagName(s)[0];
+
+      if (typeof LivereTower === 'function') { return; }
+
+      j = d.createElement(s);
+      j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+      j.async = true;
+
+      e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+</script>
+
+
+  <footer>
+  <div class="copyright">
+    <div>
+      &copy; 2018 | Powered by <a href="https://hexo.io" target="_blank">Hexo</a>&nbsp
+    </div>
+    <div>
+      Theme by <a href="https://github.com/lewis-geek/hexo-theme-Aath" target="_blank">Aath</a>
+    </div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="/lib/in-view.min.js"></script>
+<script src="/lib/lodash.min.js"></script>
+<script>
+  var isDown = true
+  var oldY = 0
+  inView.offset(50)
+
+  document.body.addEventListener('touchstart', function(){});
+  
+  window.addEventListener('scroll', _.throttle(e => {
+    var currentY = window.scrollY
+    if((oldY - currentY) < 0) {
+      isDown = true
+    } else {
+      isDown = false
+    }
+    oldY = currentY
+  }, 250))
+
+  $("article img").each(function() {
+      var strA = "<a data-fancybox='gallery' href='" + this.src + "'></a>";
+      $(this).wrapAll(strA);
+  });
+
+  $('.toc-link').each(function() {
+      var href = $(this).attr("href");
+      
+      inView(href).on('exit', () => {
+        if (isDown) {
+          handleActive(href)
+        }
+      })
+
+      inView(href).on('enter', () => {
+        if (!isDown) {
+          handleActive(href)
+        }
+      })
+
+      this.onclick = function(e) {
+        var pos = $(href).offset().top - 10;
+        $("html,body").animate({scrollTop: pos}, 300);
+        setTimeout(() => {
+          handleActive(href)
+        }, 350)
+        return false
+      }
+  })
+
+  function handleActive(href) {
+    document.querySelectorAll('.toc-link').forEach(elm => {
+      elm.classList.remove('active')
+    })
+    document.querySelector(".toc [href='"+ href +"']").classList.add('active')
+  }
+</script>
+<script src="/lib/jquery.fancybox.min.js"></script>
+
+
+</body>
+</html>
