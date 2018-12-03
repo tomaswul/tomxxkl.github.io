@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang=>
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  
+    <link rel="icon" href="/favicon.ico">
+  
+    
+  <title>使用代理进行爬虫 | tomxxkl的个人博客</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/lib/jquery.fancybox.min.css">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+  <header>
+  <div class="header-container">
+    <a class='logo' href="/">
+      <span>tomxxkl的个人博客</span>
+    </a>
+    <ul class="right-header">
+      
+        <li class="nav-item">
+          
+            <a href="/" class="item-link">首页</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/about" class="item-link">关于</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/archives" class="item-link">归档</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/tags" class="item-link">标签</a>
+          
+        </li>
+      
+    </ul>
+  </div>
+</header>
+
+  <main id='post'>
+  <div class="content">
+    <article>
+        <section class="content markdown-body">
+          <h1>使用代理进行爬虫</h1>
+          <div class='post-meta'>
+            <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/12/03</time>
+            
+            
+          </div>
+          <p>为什么要使用代理?</p>
+<p>同⼀ip单位时间访问次数过多，被封ip，需要借助代理伪装ip进⾏爬取<br>urllib, requests, selenium都可设置代理 </p>
+<h4 id="1-urllib使用代理"><a href="#1-urllib使用代理" class="headerlink" title="1. urllib使用代理"></a>1. urllib使用代理</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> urllib.error <span class="keyword">import</span> URLError</span><br><span class="line"><span class="keyword">from</span> urllib.request <span class="keyword">import</span> ProxyHandler, build_opener</span><br><span class="line"></span><br><span class="line">proxy = <span class="string">'58.53.128.83:3128'</span></span><br><span class="line">proxy_handler = ProxyHandler (&#123;</span><br><span class="line">	<span class="string">'http'</span>: <span class="string">'http://'</span> + proxy, </span><br><span class="line">	<span class="string">'https'</span>: <span class="string">'https://'</span> + proxy	</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">opener = build_opener(proxy_handler)</span><br><span class="line">opener.addheaders = [(<span class="string">'User-Agent'</span>, <span class="string">'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/11.1.2 Safari/605.1.15'</span>), </span><br><span class="line">					(<span class="string">'Accept-Encoding'</span>, <span class="string">'gzip, deflate'</span>)]</span><br><span class="line"></span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">	response = opener.open(<span class="string">'http://httpbin.org/get'</span>)</span><br><span class="line">	</span><br><span class="line">	print(response.read().decode(<span class="string">'utf-8'</span>))</span><br><span class="line"><span class="keyword">except</span> URLError <span class="keyword">as</span> e:</span><br><span class="line">	print(e.reason)</span><br></pre></td></tr></table></figure>
+<h4 id="2-requests使用代理"><a href="#2-requests使用代理" class="headerlink" title="2.requests使用代理"></a>2.requests使用代理</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"></span><br><span class="line">proxy = <span class="string">'58.53.128.83:3128'</span></span><br><span class="line">proxies = &#123;</span><br><span class="line">	<span class="string">'http'</span>: <span class="string">'http://'</span> + proxy, </span><br><span class="line">	<span class="string">'https'</span>: <span class="string">'https://'</span> + proxy	</span><br><span class="line">&#125;</span><br><span class="line">headers = &#123;</span><br><span class="line">	<span class="string">'User-Agent'</span>: <span class="string">'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/11.1.2 Safari/605.1.15'</span>	</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">	response = requests.get(<span class="string">'http://httpbin.org/get'</span>, headers=headers, proxies=proxies)</span><br><span class="line">	print(response.text)</span><br><span class="line"><span class="keyword">except</span> requests.exceptions.ConnectionError <span class="keyword">as</span> e:</span><br><span class="line">	print(<span class="string">'Error'</span>, e.args)</span><br></pre></td></tr></table></figure>
+<h4 id="3-selenium使用代理"><a href="#3-selenium使用代理" class="headerlink" title="3.selenium使用代理"></a>3.selenium使用代理</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> selenium <span class="keyword">import</span> webdriver</span><br><span class="line"><span class="keyword">from</span> proxy_pool_helper <span class="keyword">import</span> get_proxy</span><br><span class="line"></span><br><span class="line"><span class="comment"># proxy = get_proxy()</span></span><br><span class="line"></span><br><span class="line">proxy = <span class="string">'58.53.128.83:3128'</span></span><br><span class="line">chrome_options = webdriver.ChromeOptions()</span><br><span class="line">chrome_options.add_argument(<span class="string">'--proxy-server=http://'</span> + proxy)</span><br><span class="line">browser = webdriver.Chrome(chrome_options=chrome_options)</span><br><span class="line">browser.get(<span class="string">'http://httpbin.org/get'</span>)</span><br></pre></td></tr></table></figure>
+<h4 id="4-代理池"><a href="#4-代理池" class="headerlink" title="4.代理池"></a>4.代理池</h4><p>代理池 </p>
+<p>提前筛选，保留可⽤的代理放在代理池中备⽤<br>存储模块、获取模块、检测模块、接⼝模块 </p>
+<p>存储模块：<br>存储抓取下来的代理，不重复，使⽤redis sorted set，有序集合 </p>
+<p>获取模块：<br>定时抓取各代理⽹站代理 </p>
+<p>检测模块：<br>检测代理是否有效并设置分数，检测链接设为⽬标⽹站链接 </p>
+<p>接⼝模块：<br>可提供代理接⼝ </p>
+<p>分数规则：<br>分数100为可⽤，定时循环检测每个代理使⽤情况，⼀旦检测到可⽤代理设置为100，不可⽤<br>时分数减1，分数减为0后移除新获取的代理分数为10，如测试可⾏，分数设为100，不可⾏分数减1，分数减为0后代理移除 </p>
+<p>除了免费的代理池还可以使用付费的代理<br>付费代理<br><a href="http://piping.mogumiao.com/proxy/" target="_blank" rel="noopener">蘑菇代理</a> - 企业级⾼品质HTTP代理IP技术平台|提供HTTP代理IP池租⽤与定制服务 </p>
+
+        </section>
+    </article>
+    
+        <!-- disqus 评论框 start -->
+        <div class="comment">
+            <div id="disqus_thread" class="disqus-thread">
+              <i>Loading comments box needs to over the wall</i>
+            </div>
+        </div>
+        <!-- disqus 评论框 end -->
+    
+    
+        <!-- livere 评论框 start -->
+        <div class="comment">
+            <div id="lv-container" data-id="city" data-uid="your_livere_uid"></div>
+        </div>
+        <!-- livere 评论框 end -->
+        
+  </div>
+  <aside>
+    
+    <div class="toc-container">
+        <h1>目录</h1>
+        <div class="content">
+            <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-urllib使用代理"><span class="toc-number">1.</span> <span class="toc-text">1. urllib使用代理</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-requests使用代理"><span class="toc-number">2.</span> <span class="toc-text">2.requests使用代理</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-selenium使用代理"><span class="toc-number">3.</span> <span class="toc-text">3.selenium使用代理</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-代理池"><span class="toc-number">4.</span> <span class="toc-text">4.代理池</span></a></li></ol>
+        </div>
+    </div>
+    
+  </aside>
+</main>
+
+<!-- disqus 公共JS代码 -->
+<script type="text/javascript">
+  /* * * CONFIGURATION VARIABLES * * */
+  var disqus_shortname = "your_disqus_shortname";
+  var disqus_identifier = "http://yoursite.com/2018/12/03/使用代理进行爬虫/";
+  var disqus_url = "http://yoursite.com/2018/12/03/使用代理进行爬虫/";
+
+  isAgent(getDisqus)
+
+  // determine user agent in China
+  function isAgent(cb) {
+    var url = '//graph.facebook.com/feed?callback=h';
+    var xhr = new XMLHttpRequest();
+    var called = false;
+    xhr.open('GET', url);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+      called = true;
+      cb(true);
+      }
+    };
+    xhr.send();
+    // timeout 1s, this facebook API is very fast.
+    setTimeout(function() {
+      if (!called) {
+      xhr.abort();
+      cb(false)
+      }
+    }, 1000);
+  }
+
+  function getDisqus(isAgent) {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; 
+    dsq.async = true
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq)
+  }
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+<script type="text/javascript">
+  (function(d, s) {
+      var j, e = d.getElementsByTagName(s)[0];
+
+      if (typeof LivereTower === 'function') { return; }
+
+      j = d.createElement(s);
+      j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+      j.async = true;
+
+      e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+</script>
+
+
+  <footer>
+  <div class="copyright">
+    <div>
+      &copy; 2018 | Powered by <a href="https://hexo.io" target="_blank">Hexo</a>&nbsp
+    </div>
+    <div>
+      Theme by <a href="https://github.com/lewis-geek/hexo-theme-Aath" target="_blank">Aath</a>
+    </div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="/lib/in-view.min.js"></script>
+<script src="/lib/lodash.min.js"></script>
+<script>
+  var isDown = true
+  var oldY = 0
+  inView.offset(50)
+
+  document.body.addEventListener('touchstart', function(){});
+  
+  window.addEventListener('scroll', _.throttle(e => {
+    var currentY = window.scrollY
+    if((oldY - currentY) < 0) {
+      isDown = true
+    } else {
+      isDown = false
+    }
+    oldY = currentY
+  }, 250))
+
+  $("article img").each(function() {
+      var strA = "<a data-fancybox='gallery' href='" + this.src + "'></a>";
+      $(this).wrapAll(strA);
+  });
+
+  $('.toc-link').each(function() {
+      var href = $(this).attr("href");
+      
+      inView(href).on('exit', () => {
+        if (isDown) {
+          handleActive(href)
+        }
+      })
+
+      inView(href).on('enter', () => {
+        if (!isDown) {
+          handleActive(href)
+        }
+      })
+
+      this.onclick = function(e) {
+        var pos = $(href).offset().top - 10;
+        $("html,body").animate({scrollTop: pos}, 300);
+        setTimeout(() => {
+          handleActive(href)
+        }, 350)
+        return false
+      }
+  })
+
+  function handleActive(href) {
+    document.querySelectorAll('.toc-link').forEach(elm => {
+      elm.classList.remove('active')
+    })
+    document.querySelector(".toc [href='"+ href +"']").classList.add('active')
+  }
+</script>
+<script src="/lib/jquery.fancybox.min.js"></script>
+
+
+</body>
+</html>
