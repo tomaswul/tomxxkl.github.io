@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang=>
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  
+    <link rel="icon" href="/favicon.ico">
+  
+    
+  <title>Mongodb的初次使用 | tomxxkl的个人博客</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/lib/jquery.fancybox.min.css">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+  <header>
+  <div class="header-container">
+    <a class='logo' href="/">
+      <span>tomxxkl的个人博客</span>
+    </a>
+    <ul class="right-header">
+      
+        <li class="nav-item">
+          
+            <a href="/" class="item-link">首页</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/about" class="item-link">关于</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/archives" class="item-link">归档</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/tags" class="item-link">标签</a>
+          
+        </li>
+      
+    </ul>
+  </div>
+</header>
+
+  <main id='post'>
+  <div class="content">
+    <article>
+        <section class="content markdown-body">
+          <h1>Mongodb的初次使用</h1>
+          <div class='post-meta'>
+            <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/12/04</time>
+            
+            
+          </div>
+          <h3 id="NoSQL-简介"><a href="#NoSQL-简介" class="headerlink" title="NoSQL 简介"></a>NoSQL 简介</h3><p>NoSQL(NoSQL = Not Only SQL )，意即”不仅仅是SQL”。</p>
+<p>在现代的计算系统上每天网络上都会产生庞大的数据量。</p>
+<p>这些数据有很大一部分是由关系数据库管理系统（RDBMS）来处理。 1970年 E.F.Codd’s提出的关系模型的论文 “A relational model of data for large shared data banks”，这使得数据建模和应用程序编程更加简单。</p>
+<p>通过应用实践证明，关系模型是非常适合于客户服务器编程，远远超出预期的利益，今天它是结构化数据存储在网络和商务应用的主导技术。</p>
+<p>NoSQL 是一项全新的数据库革命性运动，早期就有人提出，发展至2009年趋势越发高涨。NoSQL的拥护者们提倡运用非关系型的数据存储，相对于铺天盖地的关系型数据库运用，这一概念无疑是一种全新的思维的注入。</p>
+<h3 id="为什么使用NoSQL"><a href="#为什么使用NoSQL" class="headerlink" title="为什么使用NoSQL"></a>为什么使用NoSQL</h3><p>今天我们可以通过第三方平台（如：Google,Facebook等）可以很容易的访问和抓取数据。用户的个人信息，社交网络，地理位置，用户生成的数据和用户操作日志已经成倍的增加。我们如果要对这些用户数据进行挖掘，那SQL数据库已经不适合这些应用了,<br> NoSQL数据库的发展也却能很好的处理这些大的数据。</p>
+<h3 id="什么是MongoDB"><a href="#什么是MongoDB" class="headerlink" title="什么是MongoDB"></a>什么是MongoDB</h3><p>MongoDB 是由C++语言编写的，是一个基于分布式文件存储的开源数据库系统。<br>在高负载的情况下，添加更多的节点，可以保证服务器性能。<br>MongoDB 旨在为WEB应用提供可扩展的高性能数据存储解决方案。<br>MongoDB 将数据存储为一个文档，数据结构由键值(key=&gt;value)对组成。MongoDB 文档类似于 JSON 对象(BSON(Binary json))。字段值可以包含其他文档，数组及文档数组。</p>
+<h3 id="数据库"><a href="#数据库" class="headerlink" title="数据库"></a>数据库</h3><p>一个mongodb中可以建立多个数据库。<br>MongoDB的默认数据库为”db”，该数据库存储在data目录中。<br>MongoDB的单个实例可以容纳多个独立的数据库，每一个都有自己的集合和权限，不同的数据库也放置在不同的文件中。<br><strong>“show dbs”</strong> 命令可以显示所有数据的列表。<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">show dbs;</span><br></pre></td></tr></table></figure></p>
+<p>执行 <strong>“db”</strong> 命令可以显示当前数据库对象或集合。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">db</span><br></pre></td></tr></table></figure>
+<p>运行”use”命令，可以连接到一个指定的数据库。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">use &lt;数据库名&gt;</span><br><span class="line"># 数据库名可以没有，没有的话是创建，但是在有数据真到添加到数据库才会真正生成这个数据库</span><br></pre></td></tr></table></figure>
+<p>Mongodb常用命令一:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">db.removeUser(&quot;userName&quot;);         #删除用户</span><br><span class="line">show users;                        #显示当前所有用户</span><br><span class="line"></span><br><span class="line">show dbs;                  #查看全部数据库</span><br><span class="line"></span><br><span class="line">show collections;          #显示当前数据库中的集合（类似关系数据库中的表）</span><br><span class="line"></span><br><span class="line">show users;                #查看当前数据库的用户信息</span><br><span class="line"></span><br><span class="line">use &lt;db name&gt;;             #切换数据库跟mysql一样</span><br><span class="line"></span><br><span class="line">db;或者db.getName();        #查看当前所在数据库</span><br><span class="line"></span><br><span class="line">db.help();                 #显示数据库操作命令，里面有很多的命令 </span><br><span class="line">db.foo.help();             #显示集合操作命令，同样有很多的命令，foo指的是当前数据库下，一个叫foo的集合，并非真正意义上的命令 </span><br><span class="line">db.foo.find();             #对于当前数据库中的foo集合进行数据查找（由于没有条件，会列出所有数据） </span><br><span class="line">db.foo.find( &#123; a : 1 &#125; );  #对于当前数据库中的foo集合进行查找，条件是数据中有一个属性叫a，且a的值为1</span><br><span class="line"></span><br><span class="line">db.dropDatabase();   #删除当前使用数据库</span><br><span class="line"></span><br><span class="line">db.stats();             #显示当前db状态</span><br><span class="line"></span><br><span class="line">db.version();         #当前db版本</span><br><span class="line">db.getMongo();     #查看当前db的链接机器地址</span><br></pre></td></tr></table></figure>
+<p>创建一个test数据库例子：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&gt; use test;             #创建数据库</span><br><span class="line">switched to db test</span><br><span class="line">&gt; db;               </span><br><span class="line">test</span><br><span class="line">&gt; show dbs;           #检查数据库</span><br><span class="line">admin 0.000GB</span><br><span class="line">local 0.000GB</span><br><span class="line"></span><br><span class="line">&gt; db.test.insert(&#123;&quot;_id&quot;:&quot;520&quot;,&quot;name&quot;:&quot;xiaoming&quot;&#125;)         #创建表</span><br><span class="line"></span><br><span class="line">WriteResult(&#123; &quot;nInserted&quot; : 1 &#125;)</span><br><span class="line"></span><br><span class="line">&gt; db.createUser(&#123;user:&quot;xiaoming&quot;,pwd:&quot;123456&quot;,roles:[&#123;role:&quot;userAdmin&quot;,db:&quot;test&quot;&#125;]&#125;)        #创建用户</span><br><span class="line">Successfully added user: &#123;</span><br><span class="line">&quot;user&quot; : &quot;xiaoming&quot;,</span><br><span class="line">&quot;roles&quot; : [</span><br><span class="line">&#123;</span><br><span class="line">&quot;role&quot; : &quot;userAdmin&quot;,</span><br><span class="line">&quot;db&quot; : &quot;test&quot;</span><br><span class="line">&#125;</span><br><span class="line">]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Mongodb开启远程连接(Linux)</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">编辑配置文件：vi /etc/mongod.conf</span><br><span class="line">bindIp: 172.16.40.205      #数据库所在服务器IP地址</span><br><span class="line">保存重启数据库！</span><br><span class="line">本地登录：mongo 172.16.40.205/admin -uadmin -p123456</span><br><span class="line">远程登录：</span><br><span class="line">1. 下载mongodb压缩包</span><br><span class="line">mongodb-linux-x86_64-3.4.10.tgz</span><br><span class="line">2. 解压</span><br><span class="line">&gt; tar zxvf mongodb-linux-x86_64-3.4.10.tgz</span><br><span class="line">3. 进入bin目录</span><br><span class="line">&gt; cd mongodb-linux-x86_64-3.4.10/bin</span><br><span class="line">4. 连接远程数据库</span><br><span class="line">&gt; ./mongo 172.16.40.205:27017/admin  -u user  -p  password</span><br></pre></td></tr></table></figure>
+<h3 id="pymongo的使用"><a href="#pymongo的使用" class="headerlink" title="pymongo的使用"></a>pymongo的使用</h3><h5 id="1-pymongo初始化"><a href="#1-pymongo初始化" class="headerlink" title="1.pymongo初始化"></a>1.pymongo初始化</h5><p>首先是安装pymongo包</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">pip install pymongo</span><br></pre></td></tr></table></figure>
+<p>要使⽤pymongo最先应该做的事就是先连上运⾏中的 mongod 。 </p>
+<p>导⼊ pymongo: </p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">from pymongo import MongoClient</span><br></pre></td></tr></table></figure>
+<p>创建⼀个连接到 mongod 到客户端： </p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">client = MongoClient()</span><br></pre></td></tr></table></figure>
+<p>或者：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">client = MongoClient(“mongodb://127.0.0.1:27019”)</span><br></pre></td></tr></table></figure>
+<p>连接数据库: </p>
+<p>假设要连接的数据库名为 primer </p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">db = client.primer</span><br></pre></td></tr></table></figure>
+<p>或者： </p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">db = client[‘primer’]</span><br></pre></td></tr></table></figure>
+<p>连接到对应的数据集： </p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">coll = db.dataset </span><br><span class="line"></span><br><span class="line">coll = db[‘dataset’]</span><br></pre></td></tr></table></figure>
+<p>⾄此，已经完整对连接了数据库和数据集，完成了初识化的操作。</p>
+<h5 id="2-插入数据"><a href="#2-插入数据" class="headerlink" title="2.插入数据"></a>2.插入数据</h5><figure class="highlight python"><table><tr><td class="code"><pre><span class="line">insert_one(document) </span><br><span class="line">insert_many(documents, ordered=<span class="keyword">True</span>) </span><br><span class="line">insert_one(document) </span><br><span class="line"><span class="keyword">from</span> datetime <span class="keyword">import</span> datetime </span><br><span class="line">result = db.restaurants.insert_one( </span><br><span class="line">  &#123; </span><br><span class="line">     <span class="string">"address"</span>: &#123; </span><br><span class="line">       <span class="string">"street"</span>: <span class="string">"2 Avenue"</span>, </span><br><span class="line">       <span class="string">"zipcode"</span>: <span class="string">"10075"</span>, </span><br><span class="line">       <span class="string">"building"</span>: <span class="string">"1480"</span>, </span><br><span class="line">       <span class="string">"coord"</span>: [<span class="number">-73.9557413</span>, <span class="number">40.7720266</span>] </span><br><span class="line">     &#125;, </span><br><span class="line">     <span class="string">"borough"</span>: <span class="string">"Manhattan"</span>, </span><br><span class="line">      <span class="string">"cuisine"</span>: <span class="string">"Italian"</span>, </span><br><span class="line">      <span class="string">"grades"</span>: [ </span><br><span class="line">        &#123; </span><br><span class="line">           <span class="string">"date"</span>: datetime.strptime(<span class="string">"2014-10-01"</span>, <span class="string">"%Y-%m-%d"</span>), </span><br><span class="line">           <span class="string">"grade"</span>: <span class="string">"A"</span>, </span><br><span class="line">           <span class="string">"score"</span>: <span class="number">11</span> </span><br><span class="line">        &#125;, </span><br><span class="line">        &#123; </span><br><span class="line">           <span class="string">"date"</span>: datetime.strptime(<span class="string">"2014-01-16"</span>, <span class="string">"%Y-%m-%d"</span>), </span><br><span class="line">           <span class="string">"grade"</span>: <span class="string">"B"</span>, </span><br><span class="line">           <span class="string">"score"</span>: <span class="number">17</span> </span><br><span class="line">        &#125; </span><br><span class="line">      ], </span><br><span class="line">      <span class="string">"name"</span>: <span class="string">"Vella"</span>, </span><br><span class="line">      <span class="string">"restaurant_id"</span>: <span class="string">"41704620"</span> </span><br><span class="line">   &#125; </span><br><span class="line">) </span><br><span class="line"></span><br><span class="line"><span class="comment">#其中inserted_id### 是插⼊的元素多_id### 值。 </span></span><br><span class="line"></span><br><span class="line">insert_many(documents, ordered=<span class="keyword">True</span>) </span><br><span class="line">result = db.test.insert_many([&#123;<span class="string">'x'</span>: i&#125; <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">2</span>)]) </span><br><span class="line"></span><br><span class="line"><span class="comment">#查询数据 </span></span><br><span class="line"></span><br><span class="line">find(filter=<span class="keyword">None</span>, projection=<span class="keyword">None</span>, skip=<span class="number">0</span>, limit=<span class="number">0</span>, </span><br><span class="line">no_cursor_timeout=<span class="keyword">False</span>, cursor_type=CursorType.NON_TAILABLE, </span><br><span class="line">sort=<span class="keyword">None</span>, allow_partial_results=<span class="keyword">False</span>, oplog_replay=<span class="keyword">False</span>, </span><br><span class="line">modifiers=<span class="keyword">None</span>, manipulate=<span class="keyword">True</span>) </span><br><span class="line">find_one(filter_or_id=<span class="keyword">None</span>, *args, **kwargs) </span><br><span class="line">find </span><br><span class="line"></span><br><span class="line"><span class="comment">### find 查询出来的是⼀个列表集合。 </span></span><br><span class="line">cursor = db.restaurants.find() </span><br><span class="line"><span class="keyword">for</span> document <span class="keyword">in</span> cursor: </span><br><span class="line">   print(document)</span><br></pre></td></tr></table></figure>
+<p>常用操作</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment">#查询字段是最上层的 </span></span><br><span class="line">cursor = db.restaurants.find(&#123;<span class="string">"borough"</span>: <span class="string">"Manhattan"</span>&#125;) </span><br><span class="line"><span class="comment">#查询字段在内层嵌套中 </span></span><br><span class="line">cursor = db.restaurants.find(&#123;<span class="string">"address.zipcode"</span>: <span class="string">"10075"</span>&#125;) </span><br><span class="line"><span class="comment">### 操作符查询 </span></span><br><span class="line">cursor = db.restaurants.find(&#123;<span class="string">"grades.score"</span>: &#123;<span class="string">"$gt"</span>: <span class="number">30</span>&#125;&#125;) </span><br><span class="line">cursor = db.restaurants.find(&#123;<span class="string">"grades.score"</span>: &#123;<span class="string">"$lt"</span>: <span class="number">10</span>&#125;&#125;) </span><br><span class="line">AND </span><br><span class="line">cursor = db.restaurants.find(&#123;<span class="string">"cuisine"</span>: <span class="string">"Italian"</span>, <span class="string">"address.zipcode"</span>: <span class="string">"10075"</span>&#125;) </span><br><span class="line">cursor = db.restaurants.find( </span><br><span class="line">  &#123;<span class="string">"$or"</span>: [&#123;<span class="string">"cuisine"</span>: <span class="string">"Italian"</span>&#125;, &#123;<span class="string">"address.zipcode"</span>: <span class="string">"10075"</span>&#125;]&#125;) </span><br><span class="line">find_one </span><br><span class="line"><span class="comment">#返回的是⼀个JSON式⽂档，所以可以直接使⽤！ </span></span><br><span class="line">sort </span><br><span class="line"><span class="comment">### 排序时要特别注意，使⽤的并不是和mongo shell的⼀样，⽽是使⽤了列表， </span></span><br><span class="line"><span class="comment">### 当排序的标准只有⼀个，且是递增时，可以直接写在函数参数中： </span></span><br><span class="line">pymongo.ASCENDING = <span class="number">1</span> </span><br><span class="line">pymongo.DESCENDING = <span class="number">-1</span> </span><br><span class="line">cursor = db.restaurants.find().sort(“borough”) </span><br><span class="line">cursor = db.restaurants.find().sort([ </span><br><span class="line">  (<span class="string">"borough"</span>, pymongo.ASCENDING), </span><br><span class="line">  (<span class="string">"address.zipcode"</span>, pymongo.DESCENDING) </span><br><span class="line">]) </span><br><span class="line"></span><br><span class="line"><span class="comment">#更新⽂档 </span></span><br><span class="line"><span class="comment">#更新⽂档的函数有三个(不能更新_id字段) </span></span><br><span class="line"></span><br><span class="line">update_one(filter, update, upsert=<span class="keyword">False</span>) </span><br><span class="line">update_many(filter, update, upsert=<span class="keyword">False</span>) </span><br><span class="line">replace_one(filter, replacement, upsert=<span class="keyword">False</span>) </span><br><span class="line">find_one_and_update(filter, update, projection=<span class="keyword">None</span>, sort=<span class="keyword">None</span>, </span><br><span class="line"></span><br><span class="line">                    </span><br><span class="line">return_document=ReturnDocument.BEFORE, **kwargs) </span><br><span class="line">update_one </span><br><span class="line"><span class="comment">#返回结果是⼀个：UpdateResult ，如果查找到多个匹配，则只更新第⼀个！ </span></span><br><span class="line">result = db.restaurants.update_one( </span><br><span class="line">  &#123;<span class="string">"name"</span>: <span class="string">"Juni"</span>&#125;, </span><br><span class="line">  &#123; </span><br><span class="line">     <span class="string">"$set"</span>: &#123; </span><br><span class="line">        <span class="string">"cuisine"</span>: <span class="string">"American (New)"</span><span class="string">" </span></span><br><span class="line"><span class="string">     &#125;, </span></span><br><span class="line"><span class="string">     "</span>$currentDate<span class="string">": &#123;"</span>lastModified<span class="string">": True&#125; </span></span><br><span class="line"><span class="string">  &#125; </span></span><br><span class="line"><span class="string">) </span></span><br><span class="line"><span class="string">update_many </span></span><br><span class="line"><span class="string">#查找到多少匹配，就更新多少。 </span></span><br><span class="line"><span class="string">result = db.restaurants.update_many( </span></span><br><span class="line"><span class="string">  &#123;"</span>address.zipcode<span class="string">": "</span><span class="number">10016</span><span class="string">", "</span>cuisine<span class="string">": "</span>Othe<span class="string">r"&#125;, </span></span><br><span class="line"><span class="string">  &#123; </span></span><br><span class="line"><span class="string">     "</span>$set<span class="string">": &#123;"</span>cuisine<span class="string">": "</span>Category To Be Determined<span class="string">"&#125;, </span></span><br><span class="line"><span class="string">     "</span>$currentDate<span class="string">": &#123;"</span>lastModified<span class="string">": True&#125; </span></span><br><span class="line"><span class="string">  &#125; </span></span><br><span class="line"><span class="string">) </span></span><br><span class="line"><span class="string">#删除⽂档 </span></span><br><span class="line"><span class="string">#删除⼀个 </span></span><br><span class="line"><span class="string">result = db.test.delete_one(&#123;'x': 1&#125;) </span></span><br><span class="line"><span class="string">#删除多个 </span></span><br><span class="line"><span class="string">result = db.restaurants.delete_many(&#123;"</span>borough<span class="string">": "</span>Manhattan<span class="string">"&#125;) </span></span><br><span class="line"><span class="string">#删除全部 </span></span><br><span class="line"><span class="string">result = db.restaurants.delete_many(&#123;&#125;) </span></span><br><span class="line"><span class="string">#删除整个集合，是drop_collection()的别名 </span></span><br><span class="line"><span class="string">db.restaurants.drop() </span></span><br><span class="line"><span class="string">#</span></span><br></pre></td></tr></table></figure>
+
+        </section>
+    </article>
+    
+        <!-- disqus 评论框 start -->
+        <div class="comment">
+            <div id="disqus_thread" class="disqus-thread">
+              <i>Loading comments box needs to over the wall</i>
+            </div>
+        </div>
+        <!-- disqus 评论框 end -->
+    
+    
+        <!-- livere 评论框 start -->
+        <div class="comment">
+            <div id="lv-container" data-id="city" data-uid="your_livere_uid"></div>
+        </div>
+        <!-- livere 评论框 end -->
+        
+  </div>
+  <aside>
+    
+    <div class="toc-container">
+        <h1>目录</h1>
+        <div class="content">
+            <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#NoSQL-简介"><span class="toc-number">1.</span> <span class="toc-text">NoSQL 简介</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#为什么使用NoSQL"><span class="toc-number">2.</span> <span class="toc-text">为什么使用NoSQL</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#什么是MongoDB"><span class="toc-number">3.</span> <span class="toc-text">什么是MongoDB</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#数据库"><span class="toc-number">4.</span> <span class="toc-text">数据库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#pymongo的使用"><span class="toc-number">5.</span> <span class="toc-text">pymongo的使用</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-pymongo初始化"><span class="toc-number">5.0.1.</span> <span class="toc-text">1.pymongo初始化</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-插入数据"><span class="toc-number">5.0.2.</span> <span class="toc-text">2.插入数据</span></a></li></ol></li></ol></li></ol>
+        </div>
+    </div>
+    
+  </aside>
+</main>
+
+<!-- disqus 公共JS代码 -->
+<script type="text/javascript">
+  /* * * CONFIGURATION VARIABLES * * */
+  var disqus_shortname = "your_disqus_shortname";
+  var disqus_identifier = "http://yoursite.com/2018/12/04/Mongodb的初次使用/";
+  var disqus_url = "http://yoursite.com/2018/12/04/Mongodb的初次使用/";
+
+  isAgent(getDisqus)
+
+  // determine user agent in China
+  function isAgent(cb) {
+    var url = '//graph.facebook.com/feed?callback=h';
+    var xhr = new XMLHttpRequest();
+    var called = false;
+    xhr.open('GET', url);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+      called = true;
+      cb(true);
+      }
+    };
+    xhr.send();
+    // timeout 1s, this facebook API is very fast.
+    setTimeout(function() {
+      if (!called) {
+      xhr.abort();
+      cb(false)
+      }
+    }, 1000);
+  }
+
+  function getDisqus(isAgent) {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; 
+    dsq.async = true
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq)
+  }
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+<script type="text/javascript">
+  (function(d, s) {
+      var j, e = d.getElementsByTagName(s)[0];
+
+      if (typeof LivereTower === 'function') { return; }
+
+      j = d.createElement(s);
+      j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+      j.async = true;
+
+      e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+</script>
+
+
+  <footer>
+  <div class="copyright">
+    <div>
+      &copy; 2018 | Powered by <a href="https://hexo.io" target="_blank">Hexo</a>&nbsp
+    </div>
+    <div>
+      Theme by <a href="https://github.com/lewis-geek/hexo-theme-Aath" target="_blank">Aath</a>
+    </div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="/lib/in-view.min.js"></script>
+<script src="/lib/lodash.min.js"></script>
+<script>
+  var isDown = true
+  var oldY = 0
+  inView.offset(50)
+
+  document.body.addEventListener('touchstart', function(){});
+  
+  window.addEventListener('scroll', _.throttle(e => {
+    var currentY = window.scrollY
+    if((oldY - currentY) < 0) {
+      isDown = true
+    } else {
+      isDown = false
+    }
+    oldY = currentY
+  }, 250))
+
+  $("article img").each(function() {
+      var strA = "<a data-fancybox='gallery' href='" + this.src + "'></a>";
+      $(this).wrapAll(strA);
+  });
+
+  $('.toc-link').each(function() {
+      var href = $(this).attr("href");
+      
+      inView(href).on('exit', () => {
+        if (isDown) {
+          handleActive(href)
+        }
+      })
+
+      inView(href).on('enter', () => {
+        if (!isDown) {
+          handleActive(href)
+        }
+      })
+
+      this.onclick = function(e) {
+        var pos = $(href).offset().top - 10;
+        $("html,body").animate({scrollTop: pos}, 300);
+        setTimeout(() => {
+          handleActive(href)
+        }, 350)
+        return false
+      }
+  })
+
+  function handleActive(href) {
+    document.querySelectorAll('.toc-link').forEach(elm => {
+      elm.classList.remove('active')
+    })
+    document.querySelector(".toc [href='"+ href +"']").classList.add('active')
+  }
+</script>
+<script src="/lib/jquery.fancybox.min.js"></script>
+
+
+</body>
+</html>

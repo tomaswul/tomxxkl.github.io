@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang=>
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  
+    <link rel="icon" href="/favicon.ico">
+  
+    
+  <title>session爬取数据 | tomxxkl的个人博客</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/lib/jquery.fancybox.min.css">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+  <header>
+  <div class="header-container">
+    <a class='logo' href="/">
+      <span>tomxxkl的个人博客</span>
+    </a>
+    <ul class="right-header">
+      
+        <li class="nav-item">
+          
+            <a href="/" class="item-link">首页</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/about" class="item-link">关于</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/archives" class="item-link">归档</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/tags" class="item-link">标签</a>
+          
+        </li>
+      
+    </ul>
+  </div>
+</header>
+
+  <main id='post'>
+  <div class="content">
+    <article>
+        <section class="content markdown-body">
+          <h1>session爬取数据</h1>
+          <div class='post-meta'>
+            <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/12/04</time>
+            
+            
+          </div>
+          <p>某些网站的数据是通过ajax使用post方式去后台获取数据，并且这个post还必须加上相应的参数，这个时候使用requests.get方法就无效了，需要先通过requests.Session()创建session对象，再通过session对象的post方法去获取response对象，最后获取当整个页面的内容</p>
+<p>例子:爬取u17漫画网排行榜</p>
+<p>1.批量生产页数，并在异常时切换ip</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span><span class="params">()</span>:</span></span><br><span class="line">	ipv4 = <span class="keyword">None</span></span><br><span class="line">	i = <span class="number">1</span></span><br><span class="line">	<span class="keyword">while</span> i &lt; <span class="number">411</span>:</span><br><span class="line">		<span class="keyword">try</span>:</span><br><span class="line">			result_json = get_page(<span class="number">2</span>, i, ipv4)</span><br><span class="line">			print(<span class="string">'正在进行第'</span>+str(i)+<span class="string">'页数据解析'</span>)</span><br><span class="line">			parse_json (result_json)</span><br><span class="line">			<span class="keyword">print</span> (<span class="string">'第'</span> + str (i) + <span class="string">'页数据存储完毕'</span>)</span><br><span class="line">		<span class="keyword">except</span>:</span><br><span class="line">			print(<span class="string">'切换ip'</span>)</span><br><span class="line">			ipv4 = get_ipv4()</span><br><span class="line">			i -= <span class="number">1</span></span><br><span class="line">		i += <span class="number">1</span></span><br></pre></td></tr></table></figure>
+<p>2.获取页面内容</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_page</span><span class="params">(mode,page,ipv4)</span>:</span></span><br><span class="line">	url = <span class="string">'http://www.u17.com/comic/ajax.php?mod=comic_list&amp;act=comic_list_new_fun&amp;a=get_comic_list'</span></span><br><span class="line">	post_data = &#123;</span><br><span class="line">		<span class="string">'data[accredit]'</span>:<span class="string">'no'</span>,</span><br><span class="line">		<span class="string">'data[color]'</span>:<span class="string">'no'</span>,</span><br><span class="line">		<span class="string">'data[comic_type]'</span>: <span class="string">'no'</span>,</span><br><span class="line">		<span class="string">'data[group_id]'</span>: <span class="string">'no'</span>,</span><br><span class="line">		<span class="string">'data[is_vip]'</span>: <span class="string">'no'</span>,</span><br><span class="line">		<span class="string">'data[order]'</span>: mode,</span><br><span class="line">		<span class="string">'data[page_num]'</span>: page,</span><br><span class="line">		<span class="string">'data[read_mode]'</span>: <span class="string">'no'</span>,</span><br><span class="line">		<span class="string">'data[series_status]'</span>: <span class="string">'no'</span>,</span><br><span class="line">		<span class="string">'data[theme_id]'</span>: <span class="string">'no'</span>,</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> ipv4:</span><br><span class="line">		proxies = &#123;</span><br><span class="line">			<span class="string">'http'</span>: <span class="string">'http://'</span> + ipv4,</span><br><span class="line">			<span class="string">'https'</span>: <span class="string">'https://'</span> + ipv4,</span><br><span class="line">		&#125;</span><br><span class="line">	<span class="keyword">else</span>:</span><br><span class="line">		proxies = <span class="keyword">None</span></span><br><span class="line"></span><br><span class="line">	print(<span class="string">'正在获取第'</span>+str(page)+<span class="string">'页数据...'</span>)</span><br><span class="line">	session = requests.Session()</span><br><span class="line">	response =session.post(url=url, data=post_data,headers=headers,proxies=proxies)</span><br><span class="line">	print(<span class="string">'当前页状态码:'</span>+ str(response.status_code))</span><br><span class="line">	<span class="keyword">if</span> response.status_code == <span class="number">200</span>:</span><br><span class="line">		print(<span class="string">'第'</span>+str(page)+<span class="string">'数据获取完毕'</span>)</span><br><span class="line">		<span class="keyword">return</span> response.json()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">None</span></span><br></pre></td></tr></table></figure>
+<p>3.解析页面内容</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">parse_json</span><span class="params">(result_json)</span>:</span></span><br><span class="line">	result = result_json.get(<span class="string">'comic_list'</span>)</span><br><span class="line">	<span class="keyword">for</span> item <span class="keyword">in</span> result:</span><br><span class="line">		t_dict = &#123;</span><br><span class="line">			<span class="string">'comic_id'</span>: item.get(<span class="string">'comic_id'</span>, <span class="string">''</span>),</span><br><span class="line">			<span class="string">'name'</span>: item.get(<span class="string">'name'</span>, <span class="string">''</span>),</span><br><span class="line">			<span class="string">'cover'</span>: <span class="string">'/image/'</span>+save_img(item.get(<span class="string">'cover'</span>, <span class="string">''</span>)),</span><br><span class="line">			<span class="string">'update_type'</span>: item.get(<span class="string">'update_type'</span>),</span><br><span class="line">			<span class="string">'type'</span>: item.get(<span class="string">'line2'</span>, <span class="string">''</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">		&#125;</span><br><span class="line">		insert_u17(t_dict)</span><br></pre></td></tr></table></figure>
+<p>4.将图片保存到本地</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">save_img</span><span class="params">(img_url)</span>:</span></span><br><span class="line">	response = requests.get(img_url)</span><br><span class="line">	<span class="keyword">if</span> response.status_code == <span class="number">200</span>:</span><br><span class="line">		filename = str(uuid.uuid4())+<span class="string">'.jpg'</span></span><br><span class="line">		<span class="keyword">with</span> open(<span class="string">'./images/'</span>+filename, <span class="string">'wb'</span>) <span class="keyword">as</span> f:</span><br><span class="line">			f.write(response.content)</span><br><span class="line">		<span class="keyword">return</span> filename</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">None</span></span><br></pre></td></tr></table></figure>
+<p>5.将页面内容存储到Mongodb</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> pymongo <span class="keyword">import</span> MongoClient</span><br><span class="line"></span><br><span class="line">client = MongoClient()</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">insert_u17</span><span class="params">(u17_dict)</span>:</span></span><br><span class="line">	db = client.maohua</span><br><span class="line">	db.u17.insert_one(u17_dict)</span><br></pre></td></tr></table></figure>
+<p>6.获取可用ip</p>
+<p>这儿的可用ip来源是网络上的免费ip,通过ip池工具获取免费的ip并将免费的ip存储到redis中，在需要用到代理ip的时候通过下列的get_ipv4()方法从redis里面获取一个可用的免费代理ip。并在步骤1执行切换ip的代码</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> redis</span><br><span class="line"><span class="keyword">from</span> random <span class="keyword">import</span> choice</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">random</span><span class="params">(conn)</span>:</span></span><br><span class="line">	<span class="string">"""</span></span><br><span class="line"><span class="string">	随机获取有效代理，首先尝试获取最高分数代理，如果不存在，按照排名获取，否则异常</span></span><br><span class="line"><span class="string">	:return: 随机代理</span></span><br><span class="line"><span class="string">	"""</span></span><br><span class="line">	result = conn.zrangebyscore (<span class="string">'proxies'</span>,<span class="number">100</span>, <span class="number">100</span>)</span><br><span class="line">	<span class="keyword">if</span> len (result):</span><br><span class="line">		<span class="keyword">return</span> choice (result)</span><br><span class="line">	<span class="keyword">else</span>:</span><br><span class="line">		result = conn.zrevrange (<span class="string">'proxies'</span>, <span class="number">0</span>, <span class="number">100</span>)</span><br><span class="line">		<span class="keyword">if</span> len (result):</span><br><span class="line">			<span class="keyword">return</span> choice (result)</span><br><span class="line">		<span class="keyword">else</span>:</span><br><span class="line">			<span class="keyword">raise</span> Exception</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_ipv4</span><span class="params">()</span>:</span></span><br><span class="line">	host = <span class="string">'127.0.0.1'</span></span><br><span class="line">	port = <span class="string">'6379'</span></span><br><span class="line">	password = <span class="keyword">None</span></span><br><span class="line">	conn = redis.StrictRedis (host=host, port=port, password=password, decode_responses=<span class="keyword">True</span>)</span><br><span class="line">	ipv4 = random(conn)</span><br><span class="line">	<span class="keyword">return</span> ipv4</span><br></pre></td></tr></table></figure>
+
+        </section>
+    </article>
+    
+        <!-- disqus 评论框 start -->
+        <div class="comment">
+            <div id="disqus_thread" class="disqus-thread">
+              <i>Loading comments box needs to over the wall</i>
+            </div>
+        </div>
+        <!-- disqus 评论框 end -->
+    
+    
+        <!-- livere 评论框 start -->
+        <div class="comment">
+            <div id="lv-container" data-id="city" data-uid="your_livere_uid"></div>
+        </div>
+        <!-- livere 评论框 end -->
+        
+  </div>
+  <aside>
+    
+  </aside>
+</main>
+
+<!-- disqus 公共JS代码 -->
+<script type="text/javascript">
+  /* * * CONFIGURATION VARIABLES * * */
+  var disqus_shortname = "your_disqus_shortname";
+  var disqus_identifier = "http://yoursite.com/2018/12/04/session爬取数据/";
+  var disqus_url = "http://yoursite.com/2018/12/04/session爬取数据/";
+
+  isAgent(getDisqus)
+
+  // determine user agent in China
+  function isAgent(cb) {
+    var url = '//graph.facebook.com/feed?callback=h';
+    var xhr = new XMLHttpRequest();
+    var called = false;
+    xhr.open('GET', url);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+      called = true;
+      cb(true);
+      }
+    };
+    xhr.send();
+    // timeout 1s, this facebook API is very fast.
+    setTimeout(function() {
+      if (!called) {
+      xhr.abort();
+      cb(false)
+      }
+    }, 1000);
+  }
+
+  function getDisqus(isAgent) {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; 
+    dsq.async = true
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq)
+  }
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+<script type="text/javascript">
+  (function(d, s) {
+      var j, e = d.getElementsByTagName(s)[0];
+
+      if (typeof LivereTower === 'function') { return; }
+
+      j = d.createElement(s);
+      j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+      j.async = true;
+
+      e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+</script>
+
+
+  <footer>
+  <div class="copyright">
+    <div>
+      &copy; 2018 | Powered by <a href="https://hexo.io" target="_blank">Hexo</a>&nbsp
+    </div>
+    <div>
+      Theme by <a href="https://github.com/lewis-geek/hexo-theme-Aath" target="_blank">Aath</a>
+    </div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="/lib/in-view.min.js"></script>
+<script src="/lib/lodash.min.js"></script>
+<script>
+  var isDown = true
+  var oldY = 0
+  inView.offset(50)
+
+  document.body.addEventListener('touchstart', function(){});
+  
+  window.addEventListener('scroll', _.throttle(e => {
+    var currentY = window.scrollY
+    if((oldY - currentY) < 0) {
+      isDown = true
+    } else {
+      isDown = false
+    }
+    oldY = currentY
+  }, 250))
+
+  $("article img").each(function() {
+      var strA = "<a data-fancybox='gallery' href='" + this.src + "'></a>";
+      $(this).wrapAll(strA);
+  });
+
+  $('.toc-link').each(function() {
+      var href = $(this).attr("href");
+      
+      inView(href).on('exit', () => {
+        if (isDown) {
+          handleActive(href)
+        }
+      })
+
+      inView(href).on('enter', () => {
+        if (!isDown) {
+          handleActive(href)
+        }
+      })
+
+      this.onclick = function(e) {
+        var pos = $(href).offset().top - 10;
+        $("html,body").animate({scrollTop: pos}, 300);
+        setTimeout(() => {
+          handleActive(href)
+        }, 350)
+        return false
+      }
+  })
+
+  function handleActive(href) {
+    document.querySelectorAll('.toc-link').forEach(elm => {
+      elm.classList.remove('active')
+    })
+    document.querySelector(".toc [href='"+ href +"']").classList.add('active')
+  }
+</script>
+<script src="/lib/jquery.fancybox.min.js"></script>
+
+
+</body>
+</html>
