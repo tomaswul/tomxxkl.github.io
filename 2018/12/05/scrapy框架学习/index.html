@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang=>
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  
+    <link rel="icon" href="/favicon.ico">
+  
+    
+  <title>scrapy框架学习  | tomxxkl的个人博客</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/lib/jquery.fancybox.min.css">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+  <header>
+  <div class="header-container">
+    <a class='logo' href="/">
+      <span>tomxxkl的个人博客</span>
+    </a>
+    <ul class="right-header">
+      
+        <li class="nav-item">
+          
+            <a href="/" class="item-link">首页</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/about" class="item-link">关于</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/archives" class="item-link">归档</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/tags" class="item-link">标签</a>
+          
+        </li>
+      
+    </ul>
+  </div>
+</header>
+
+  <main id='post'>
+  <div class="content">
+    <article>
+        <section class="content markdown-body">
+          <h1>scrapy框架学习 </h1>
+          <div class='post-meta'>
+            <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/12/05</time>
+            
+            
+          </div>
+          <h3 id="Scrapy-框架"><a href="#Scrapy-框架" class="headerlink" title="Scrapy 框架"></a>Scrapy 框架</h3><ul>
+<li><p>Scrapy是用纯Python实现一个为了爬取网站数据、提取结构性数据而编写的应用框架，用途非常广泛。</p>
+</li>
+<li><p>框架的力量，用户只需要定制开发几个模块就可以轻松的实现一个爬虫，用来抓取网页内容以及各种图片，非常之方便。</p>
+</li>
+<li><p>Scrapy 使用了 Twisted<code>[&#39;twɪstɪd]</code>(其主要对手是Tornado)异步网络框架来处理网络通讯，可以加快我们的下载速度，不用自己去实现异步框架，并且包含了各种中间件接口，可以灵活的完成各种需求</p>
+</li>
+</ul>
+<h3 id="1-scrapy框架安装"><a href="#1-scrapy框架安装" class="headerlink" title="1.scrapy框架安装"></a>1.scrapy框架安装</h3><h4 id="1-1windows版本安装"><a href="#1-1windows版本安装" class="headerlink" title="1.1windows版本安装"></a>1.1windows版本安装</h4><p>1.下载scrapy依赖库(Twisted)，并安装</p>
+<p><a href="http://www.lfd.uci.edu/~gohlke/pythonlibs/" target="_blank" rel="noopener">地址</a>找到适合当前版本的wheel</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">pip install Twisted-18.9.0-cp37-cp37m-win_amd64.whl</span><br></pre></td></tr></table></figure>
+<p>2.安装pypiwin32,lxml</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">pip install pypiwin32</span><br><span class="line">pip install lxml</span><br></pre></td></tr></table></figure>
+<p>3.安装scrapy</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">pip install scrapy</span><br></pre></td></tr></table></figure>
+<h4 id="1-1linux版本安装"><a href="#1-1linux版本安装" class="headerlink" title="1.1linux版本安装"></a>1.1linux版本安装</h4><p>linux本身对python支持度更高因此直接安装就可以了</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">pip install scrapy</span><br></pre></td></tr></table></figure>
+<h3 id="2-scrapy执行流程"><a href="#2-scrapy执行流程" class="headerlink" title="2.scrapy执行流程"></a>2.scrapy执行流程</h3><p><img src="https://github.com/tomxxkl/tomxxkl.github.io/tree/master/images/liucheng.jpg" alt="!数据流程"></p>
+<p>Scrapy中的数据流由执⾏行行引擎控制，其过程如下:</p>
+<p>1、引擎打开⼀个网站(open a domain)，找到处理该网站的Spider并向该spider请求第一个要爬取的URL(s)。</p>
+<p>2、引擎从Spider中获取到第⼀个要爬取的URL并在调度器(Scheduler)以Request调度。</p>
+<p>3、引擎向调度器请求下⼀个要爬取的URL。</p>
+<p>4、调度器返回下⼀个要爬取的URL给引擎，引擎将URL通过下载中间件(请求(request)方向)转发给下载器(Downloader)。</p>
+<p>5、一旦页面下载完毕，下载器生成一个该页面的Response，并将其通过下载中间件(返回(response)方向)</p>
+<p>发送给引擎。</p>
+<p>6、引擎从下载器中接收到Response并通过Spider中间件(输入方向)发送给Spider处理。</p>
+<p>7、Spider处理Response并返回爬取到的Item及(跟进的)新的Request给引擎。</p>
+<p>8、引擎将(Spider返回的)爬取到的Item给Item Pipeline，将(Spider返回的)Request给调度器。</p>
+<p>9、(从第⼆步)重复直到调度器中没有更更多地request，引擎关闭该网站。</p>
+<h4 id="3-例子-scrapy爬取猫眼排行榜"><a href="#3-例子-scrapy爬取猫眼排行榜" class="headerlink" title="3.例子:scrapy爬取猫眼排行榜"></a>3.例子:scrapy爬取猫眼排行榜</h4><h5 id="3-1-创建scrapy项目"><a href="#3-1-创建scrapy项目" class="headerlink" title="3.1 创建scrapy项目"></a>3.1 创建scrapy项目</h5><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">scrapy startproject maoyan</span><br></pre></td></tr></table></figure>
+<h5 id="3-2-创建爬取器"><a href="#3-2-创建爬取器" class="headerlink" title="3.2 创建爬取器"></a>3.2 创建爬取器</h5><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">scrapy genspider cat maoyan.com</span><br></pre></td></tr></table></figure>
+<h5 id="3-3-进行项目配置文件修改"><a href="#3-3-进行项目配置文件修改" class="headerlink" title="3.3 进行项目配置文件修改"></a>3.3 进行项目配置文件修改</h5><p>修改项目的settings.py</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">FEED_EXPORT_ENCODING = &apos;utf-8&apos;</span><br><span class="line"># 表示爬取的数据在json中显示以utf8编码(可以显示汉字)</span><br><span class="line">ROBOTSTXT_OBEY = False</span><br><span class="line">#这个参数的作用是本爬虫是否遵守网站的roboot.txt协议，遵守的话就是True,意味着基本拿不到数据，因此改为False</span><br></pre></td></tr></table></figure>
+<p>修改爬取器里的cat.py</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># allow_domains表示本爬取器可爬取的网站列表</span><br><span class="line">allowed_domains = [&apos;maoyan.com&apos;]</span><br><span class="line"># start_urls表示爬虫的种子url</span><br><span class="line">start_urls = [&apos;http://maoyan.com/board/4&apos;]</span><br></pre></td></tr></table></figure>
+<h5 id="3-4-创建Item类"><a href="#3-4-创建Item类" class="headerlink" title="3.4 创建Item类"></a>3.4 创建Item类</h5><p>items.py</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> scrapy</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Maoyan2Item</span><span class="params">(scrapy.Item)</span>:</span></span><br><span class="line">    <span class="comment"># define the fields for your item here like:</span></span><br><span class="line">    score = scrapy.Field()</span><br><span class="line">    name = scrapy.Field()</span><br><span class="line">    rank = scrapy.Field()</span><br><span class="line">    star = scrapy.Field()</span><br><span class="line">    releasetime = scrapy.Field()</span><br></pre></td></tr></table></figure>
+<h5 id="3-5-开始进行具体爬虫的编写"><a href="#3-5-开始进行具体爬虫的编写" class="headerlink" title="3.5 开始进行具体爬虫的编写"></a>3.5 开始进行具体爬虫的编写</h5><p>cat.py</p>
+<ol>
+<li>start_requests方法是CatSpider类继承的方法，也是这个爬取器的入口，负责返回每一页的数据</li>
+</ol>
+<p>其中scrapy.Request()则是返回response对象的方法，callback=self.parse表示这个函数执行的结果调用parse方法</p>
+<p>   2.parse则是对获取到的数据进行解析，并生成item对象，可以通过cresponse.selector.css(),response.selector().xpath()等方式解析.</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CatSpider</span><span class="params">(scrapy.Spider)</span>:</span></span><br><span class="line">    name = <span class="string">'cat'</span></span><br><span class="line">    allowed_domains = [<span class="string">'maoyan.com'</span>]</span><br><span class="line">    start_urls = [<span class="string">'http://maoyan.com/board/4'</span>]</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">start_requests</span><span class="params">(self)</span>:</span></span><br><span class="line">        headers = &#123;</span><br><span class="line">			<span class="string">'User-Agent'</span>: <span class="string">'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; 360SE)'</span>,</span><br><span class="line">			<span class="string">'Accept'</span>: <span class="string">'application/json, text/plain, */*'</span>,</span><br><span class="line">			<span class="string">'Accept-Encoding'</span>: <span class="string">'gzip, deflate, sdch'</span>,</span><br><span class="line">			<span class="string">'Accept-Language'</span>: <span class="string">'zh-CN,zh;q=0.8,en;q=0.6,ja;q=0.4,zh-TW;q=0.2,mt;q=0.2'</span>,</span><br><span class="line">			<span class="string">'Connection'</span>: <span class="string">'keep-alive'</span>,</span><br><span class="line">			<span class="string">'X-Requested-With'</span>: <span class="string">'XMLHttpRequest'</span>,</span><br><span class="line">			<span class="string">'Content-Type'</span>: <span class="string">'application/x-www-form-urlencoded; charset=UTF-8'</span>,</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">0</span>,<span class="number">100</span>,<span class="number">10</span>):</span><br><span class="line">            <span class="keyword">yield</span> scrapy.Request(url=<span class="string">'http://maoyan.com/board/4?offset=%s'</span>%(i),</span><br><span class="line">								 headers=headers,</span><br><span class="line">								 method=<span class="string">'GET'</span>,</span><br><span class="line">								 callback=self.parse,</span><br><span class="line">							 )</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">parse</span><span class="params">(self, response)</span>:</span></span><br><span class="line">        ranks = response.selector.css(<span class="string">'.board-wrapper .board-index::text'</span>).extract()</span><br><span class="line">        names = response.selector.css(<span class="string">'.board-wrapper .name a::text'</span>).extract()</span><br><span class="line">        stars = response.selector.css(<span class="string">'.board-wrapper .star::text'</span>).extract()</span><br><span class="line">        releasetimes = response.selector.css(<span class="string">'.board-wrapper .releasetime::text'</span>).extract()</span><br><span class="line">        score_int = response.selector.css(<span class="string">'.board-wrapper .score .integer::text'</span>).extract()</span><br><span class="line">        score_frac = response.selector.css(<span class="string">'.board-wrapper .score .fraction::text'</span>).extract()</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> range(len(ranks)):</span><br><span class="line">            item = Maoyan2Item()</span><br><span class="line">            item[<span class="string">'rank'</span>] = ranks[i].strip()</span><br><span class="line">            item[<span class="string">'name'</span>] = names[i].strip()</span><br><span class="line">            item[<span class="string">'star'</span>] = stars[i].strip()</span><br><span class="line">            item[<span class="string">'releasetime'</span>] = releasetimes[i].strip()</span><br><span class="line">            item[<span class="string">'score'</span>] = (score_int[i]+score_frac[i]).strip()</span><br><span class="line">            <span class="keyword">yield</span> item</span><br></pre></td></tr></table></figure>
+<h5 id="3-6将获取到的数据保存到数据库"><a href="#3-6将获取到的数据保存到数据库" class="headerlink" title="3.6将获取到的数据保存到数据库"></a>3.6将获取到的数据保存到数据库</h5><h6 id="3-6-1-pymysql保存到mysql"><a href="#3-6-1-pymysql保存到mysql" class="headerlink" title="3.6.1 pymysql保存到mysql"></a>3.6.1 pymysql保存到mysql</h6><p>这里面需要在settings.py添加mysql相应的配置</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">ITEM_PIPELINES = &#123;</span><br><span class="line">   <span class="string">'maoyan.pipelines.MaoyanMysqlPipeline'</span>: <span class="number">300</span>,</span><br><span class="line">   <span class="comment">#这儿是mysql对应的pipline,后面的值是优先级，优先级越高数值越小，数值不能重复</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment"># MYSQL settings</span></span><br><span class="line">MYSQL_HOST = <span class="string">'127.0.0.1'</span></span><br><span class="line">MYSQL_PORT = <span class="number">3306</span></span><br><span class="line">MYSQL_USER = <span class="string">'root'</span></span><br><span class="line">MYSQL_PASSWORD = <span class="string">'19950523'</span></span><br><span class="line">MYSQL_DATABASE = <span class="string">'maoyan'</span></span><br></pre></td></tr></table></figure>
+<p>piplines.py</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> pymysql</span><br><span class="line"><span class="keyword">import</span> maoyan.settings <span class="keyword">as</span> settings</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MaoyanMysqlPipeline</span><span class="params">(object)</span>:</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, host, port, password, user, database)</span>:</span></span><br><span class="line">        self.host = host</span><br><span class="line">        self.port = port</span><br><span class="line">        self.database = database</span><br><span class="line">        self.user = user</span><br><span class="line">        self.password = password</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">    @classmethod</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">from_crawler</span><span class="params">(cls, crawler)</span>:</span></span><br><span class="line">        <span class="comment"># scrapy默认方法，创建这个类的对象的时候就会默认调用这个方法</span></span><br><span class="line">        <span class="keyword">return</span> cls(</span><br><span class="line">            host=crawler.settings.get(<span class="string">'MYSQL_HOST'</span>),</span><br><span class="line">            port=crawler.settings.get(<span class="string">'MYSQL_PORT'</span>),</span><br><span class="line">            user=crawler.settings.get(<span class="string">'MYSQL_USER'</span>),</span><br><span class="line">            database=crawler.settings.get(<span class="string">'MYSQL_DATABASE'</span>),</span><br><span class="line">            password=crawler.settings.get(<span class="string">'MYSQL_PASSWORD'</span>)</span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">open_spider</span><span class="params">(self, spider)</span>:</span></span><br><span class="line">        <span class="comment"># 在爬虫启动的时候执行，可以用来做一些初始化工作，方法名也是固定的</span></span><br><span class="line">        self.db = pymysql.connect(</span><br><span class="line">            host=self.host,</span><br><span class="line">            port=self.port,</span><br><span class="line">            password=self.password,</span><br><span class="line">            user=self.user,</span><br><span class="line">            db=self.database,</span><br><span class="line">            charset=<span class="string">'utf8'</span></span><br><span class="line">        )</span><br><span class="line">        self.cursor = self.db.cursor()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">close_spider</span><span class="params">(self, spider)</span>:</span></span><br><span class="line">        <span class="comment"># 在爬虫结束的时候执行此方法，可以用来做一些守卫工作，比如关闭资源，方法名也是固定的</span></span><br><span class="line">        self.db.close()</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">process_item</span><span class="params">(self, item, spider)</span>:</span></span><br><span class="line">        <span class="comment"># 这个是执行插入数据到数据的方法，item就是之前封装的item对象，方法名也是固定的</span></span><br><span class="line">        sql = <span class="string">'insert into movie(m_name,star,rank,release_time,score) values '</span> \</span><br><span class="line">              <span class="string">'("%s","%s","%s","%s","%s")'</span> %\</span><br><span class="line">              (item[<span class="string">'name'</span>],item[<span class="string">'star'</span>],item[<span class="string">'rank'</span>],item[<span class="string">'releasetime'</span>],item[<span class="string">'score'</span>])</span><br><span class="line">        print(sql)</span><br><span class="line"></span><br><span class="line">        self.cursor.execute(sql)</span><br><span class="line">        self.db.commit()</span><br><span class="line">        <span class="comment"># 这个函数必须要将item返回回去，之后的pipline才能使用item,否则就不会形成管道链</span></span><br><span class="line">        <span class="keyword">return</span> item</span><br></pre></td></tr></table></figure>
+<h6 id="3-6-2-pymongo保存到mongodb"><a href="#3-6-2-pymongo保存到mongodb" class="headerlink" title="3.6.2 pymongo保存到mongodb"></a>3.6.2 pymongo保存到mongodb</h6><p>在settings.py添加mongodb的配置</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">ITEM_PIPELINES = &#123;</span><br><span class="line">    <span class="comment"># 'maoyan.pipelines.MaoyanMysqlPipeline': 300,</span></span><br><span class="line">   <span class="string">'maoyan.pipelines.MaoyanPymongoPipeline'</span>: <span class="number">280</span>,</span><br><span class="line">   <span class="comment">#这儿是mysql对应的pipline,后面的值是优先级，优先级越高数值越小，数值不能重复</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">#mongo setting</span></span><br><span class="line">MONGO_DB = <span class="string">'maoyan'</span></span><br></pre></td></tr></table></figure>
+<p>piplines.py</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MaoyanPyMongoPipeline</span><span class="params">(object)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, mongo_db)</span>:</span></span><br><span class="line">        self.mongo_db = mongo_db</span><br><span class="line"></span><br><span class="line"><span class="meta">    @classmethod</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">from_crawler</span><span class="params">(cls, crawler)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> cls(</span><br><span class="line">            mongo_db = crawler.settings.get(<span class="string">'MONGO_DB'</span>)</span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">open_spider</span><span class="params">(self, spider)</span>:</span></span><br><span class="line">        self.client = pymongo.MongoClient()</span><br><span class="line">        self.db = self.client[self.mongo_db]</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">close_spider</span><span class="params">(self, spider)</span>:</span></span><br><span class="line">        self.db.close()</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">process_item</span><span class="params">(self, item, spider)</span>:</span></span><br><span class="line">        <span class="comment"># 因为字典的数据才能在mongodb中存在，因此这儿将item对象转换为字典再存储</span></span><br><span class="line">        movie = &#123;&#125;</span><br><span class="line">        movie[<span class="string">'name'</span>] = item[<span class="string">'name'</span>]</span><br><span class="line">        movie[<span class="string">'rank'</span>] = item[<span class="string">'rank'</span>]</span><br><span class="line">        movie[<span class="string">'score'</span>] = item[<span class="string">'score'</span>]</span><br><span class="line">        movie[<span class="string">'star'</span>] = item[<span class="string">'star'</span>]</span><br><span class="line">        movie[<span class="string">'releasetime'</span>] = item[<span class="string">'releasetime'</span>]</span><br><span class="line">        self.db.movies.insert(movie)</span><br><span class="line">        <span class="keyword">return</span> item</span><br></pre></td></tr></table></figure>
+<h6 id="3-6-3-mongoengine保存到mongodb"><a href="#3-6-3-mongoengine保存到mongodb" class="headerlink" title="3.6.3 mongoengine保存到mongodb"></a>3.6.3 mongoengine保存到mongodb</h6><p>1.修改配置文件settings.py</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">ITEM_PIPELINES = &#123;</span><br><span class="line">   <span class="comment"># 'maoyan2.pipelines.Maoyan2MysqlPipeline': 300,</span></span><br><span class="line">	<span class="comment"># 'maoyan2.pipelines.Maoyan2PyMongoPipeline': 350,#数字表示优先级，要不一样，越小的优先级越高</span></span><br><span class="line">	<span class="string">'maoyan2.pipelines.Maoyan2MongoenginePipeline'</span>: <span class="number">360</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>2.安装mongoengine</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">pip install mongoengine</span><br></pre></td></tr></table></figure>
+<p>3.创建模型类</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> mongoengine <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Movie</span><span class="params">(Document)</span>:</span></span><br><span class="line">	name = StringField(max_length=<span class="number">256</span>)</span><br><span class="line">	rank = StringField(max_length=<span class="number">10</span>)</span><br><span class="line">	score = StringField(max_length=<span class="number">10</span>)</span><br><span class="line">	star = StringField(max_length=<span class="number">256</span>)</span><br><span class="line">	releasetime = StringField(max_length=<span class="number">100</span>)</span><br></pre></td></tr></table></figure>
+<p>4.编写相应MaoyanMongoenginePipeline类</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Maoyan2MongoenginePipeline</span><span class="params">(object)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, mongo_db)</span>:</span></span><br><span class="line">        self.mongo_db = mongo_db</span><br><span class="line"></span><br><span class="line"><span class="meta">    @classmethod</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">from_crawler</span><span class="params">(cls, crawler)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> cls(</span><br><span class="line">            mongo_db = crawler.settings.get(<span class="string">'MONGO_DB'</span>)</span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">open_spider</span><span class="params">(self, spider)</span>:</span></span><br><span class="line">		<span class="comment"># mongoengine自带的方法，连接mongodb</span></span><br><span class="line">        connect(self.mongo_db)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">close_spider</span><span class="params">(self, spider)</span>:</span></span><br><span class="line">        <span class="keyword">pass</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">process_item</span><span class="params">(self, item, spider)</span>:</span></span><br><span class="line">        movie = Movie()</span><br><span class="line">        movie.name = item[<span class="string">'name'</span>]</span><br><span class="line">        movie.rank = item[<span class="string">'rank'</span>]</span><br><span class="line">        movie.score = item[<span class="string">'score'</span>]</span><br><span class="line">        movie.star = item[<span class="string">'star'</span>]</span><br><span class="line">        moviereleasetime = item[<span class="string">'releasetime'</span>]</span><br><span class="line">        <span class="comment"># 作为对象直接save就保存到数据中了</span></span><br><span class="line">        movie.save()</span><br><span class="line">        <span class="keyword">return</span> item</span><br></pre></td></tr></table></figure>
+
+        </section>
+    </article>
+    
+        <!-- disqus 评论框 start -->
+        <div class="comment">
+            <div id="disqus_thread" class="disqus-thread">
+              <i>Loading comments box needs to over the wall</i>
+            </div>
+        </div>
+        <!-- disqus 评论框 end -->
+    
+    
+        <!-- livere 评论框 start -->
+        <div class="comment">
+            <div id="lv-container" data-id="city" data-uid="your_livere_uid"></div>
+        </div>
+        <!-- livere 评论框 end -->
+        
+  </div>
+  <aside>
+    
+    <div class="toc-container">
+        <h1>目录</h1>
+        <div class="content">
+            <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#Scrapy-框架"><span class="toc-number">1.</span> <span class="toc-text">Scrapy 框架</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-scrapy框架安装"><span class="toc-number">2.</span> <span class="toc-text">1.scrapy框架安装</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-1windows版本安装"><span class="toc-number">2.1.</span> <span class="toc-text">1.1windows版本安装</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-1linux版本安装"><span class="toc-number">2.2.</span> <span class="toc-text">1.1linux版本安装</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-scrapy执行流程"><span class="toc-number">3.</span> <span class="toc-text">2.scrapy执行流程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#3-例子-scrapy爬取猫眼排行榜"><span class="toc-number">3.1.</span> <span class="toc-text">3.例子:scrapy爬取猫眼排行榜</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#3-1-创建scrapy项目"><span class="toc-number">3.1.1.</span> <span class="toc-text">3.1 创建scrapy项目</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-2-创建爬取器"><span class="toc-number">3.1.2.</span> <span class="toc-text">3.2 创建爬取器</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-3-进行项目配置文件修改"><span class="toc-number">3.1.3.</span> <span class="toc-text">3.3 进行项目配置文件修改</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-4-创建Item类"><span class="toc-number">3.1.4.</span> <span class="toc-text">3.4 创建Item类</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-5-开始进行具体爬虫的编写"><span class="toc-number">3.1.5.</span> <span class="toc-text">3.5 开始进行具体爬虫的编写</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-6将获取到的数据保存到数据库"><span class="toc-number">3.1.6.</span> <span class="toc-text">3.6将获取到的数据保存到数据库</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#3-6-1-pymysql保存到mysql"><span class="toc-number">3.1.6.1.</span> <span class="toc-text">3.6.1 pymysql保存到mysql</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#3-6-2-pymongo保存到mongodb"><span class="toc-number">3.1.6.2.</span> <span class="toc-text">3.6.2 pymongo保存到mongodb</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#3-6-3-mongoengine保存到mongodb"><span class="toc-number">3.1.6.3.</span> <span class="toc-text">3.6.3 mongoengine保存到mongodb</span></a></li></ol></li></ol></li></ol></li></ol>
+        </div>
+    </div>
+    
+  </aside>
+</main>
+
+<!-- disqus 公共JS代码 -->
+<script type="text/javascript">
+  /* * * CONFIGURATION VARIABLES * * */
+  var disqus_shortname = "your_disqus_shortname";
+  var disqus_identifier = "http://yoursite.com/2018/12/05/scrapy框架学习/";
+  var disqus_url = "http://yoursite.com/2018/12/05/scrapy框架学习/";
+
+  isAgent(getDisqus)
+
+  // determine user agent in China
+  function isAgent(cb) {
+    var url = '//graph.facebook.com/feed?callback=h';
+    var xhr = new XMLHttpRequest();
+    var called = false;
+    xhr.open('GET', url);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+      called = true;
+      cb(true);
+      }
+    };
+    xhr.send();
+    // timeout 1s, this facebook API is very fast.
+    setTimeout(function() {
+      if (!called) {
+      xhr.abort();
+      cb(false)
+      }
+    }, 1000);
+  }
+
+  function getDisqus(isAgent) {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; 
+    dsq.async = true
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq)
+  }
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+<script type="text/javascript">
+  (function(d, s) {
+      var j, e = d.getElementsByTagName(s)[0];
+
+      if (typeof LivereTower === 'function') { return; }
+
+      j = d.createElement(s);
+      j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+      j.async = true;
+
+      e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+</script>
+
+
+  <footer>
+  <div class="copyright">
+    <div>
+      &copy; 2018 | Powered by <a href="https://hexo.io" target="_blank">Hexo</a>&nbsp
+    </div>
+    <div>
+      Theme by <a href="https://github.com/lewis-geek/hexo-theme-Aath" target="_blank">Aath</a>
+    </div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="/lib/in-view.min.js"></script>
+<script src="/lib/lodash.min.js"></script>
+<script>
+  var isDown = true
+  var oldY = 0
+  inView.offset(50)
+
+  document.body.addEventListener('touchstart', function(){});
+  
+  window.addEventListener('scroll', _.throttle(e => {
+    var currentY = window.scrollY
+    if((oldY - currentY) < 0) {
+      isDown = true
+    } else {
+      isDown = false
+    }
+    oldY = currentY
+  }, 250))
+
+  $("article img").each(function() {
+      var strA = "<a data-fancybox='gallery' href='" + this.src + "'></a>";
+      $(this).wrapAll(strA);
+  });
+
+  $('.toc-link').each(function() {
+      var href = $(this).attr("href");
+      
+      inView(href).on('exit', () => {
+        if (isDown) {
+          handleActive(href)
+        }
+      })
+
+      inView(href).on('enter', () => {
+        if (!isDown) {
+          handleActive(href)
+        }
+      })
+
+      this.onclick = function(e) {
+        var pos = $(href).offset().top - 10;
+        $("html,body").animate({scrollTop: pos}, 300);
+        setTimeout(() => {
+          handleActive(href)
+        }, 350)
+        return false
+      }
+  })
+
+  function handleActive(href) {
+    document.querySelectorAll('.toc-link').forEach(elm => {
+      elm.classList.remove('active')
+    })
+    document.querySelector(".toc [href='"+ href +"']").classList.add('active')
+  }
+</script>
+<script src="/lib/jquery.fancybox.min.js"></script>
+
+
+</body>
+</html>
