@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang=>
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  
+    <link rel="icon" href="/favicon.ico">
+  
+    
+  <title>scrapy和selenium结合使用 | tomxxkl的个人博客</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/lib/jquery.fancybox.min.css">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+  <header>
+  <div class="header-container">
+    <a class='logo' href="/">
+      <span>tomxxkl的个人博客</span>
+    </a>
+    <ul class="right-header">
+      
+        <li class="nav-item">
+          
+            <a href="/" class="item-link">首页</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/about" class="item-link">关于</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/archives" class="item-link">归档</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/tags" class="item-link">标签</a>
+          
+        </li>
+      
+    </ul>
+  </div>
+</header>
+
+  <main id='post'>
+  <div class="content">
+    <article>
+        <section class="content markdown-body">
+          <h1>scrapy和selenium结合使用</h1>
+          <div class='post-meta'>
+            <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/12/06</time>
+            
+            
+          </div>
+          <p>scrapy是一个分布式爬虫框架，selenium是一个自动化测试库，二者结合可以模拟用户分布式爬取动态刷新的网站。selenium的使用一般是在engine和downloader之间的下载器中间件之间使用。</p>
+<p>例子:爬取京东指定商品信息</p>
+<p>1.item.py创建商品信息item类</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> scrapy <span class="keyword">import</span> Item, Field</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">JdItem</span><span class="params">(Item)</span>:</span></span><br><span class="line">    <span class="comment"># define the fields for your item here like:</span></span><br><span class="line">    collection = <span class="string">'products'</span></span><br><span class="line">    image = Field()</span><br><span class="line">    price = Field()</span><br><span class="line">    deal = Field()</span><br><span class="line">    title = Field()</span><br><span class="line">    shop = Field()</span><br><span class="line">    location = Field()</span><br></pre></td></tr></table></figure>
+<p>2.创建爬取蜘蛛dongzi.py</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> scrapy <span class="keyword">import</span> Request, Spider</span><br><span class="line"><span class="keyword">from</span> urllib.parse <span class="keyword">import</span> quote</span><br><span class="line"><span class="keyword">from</span> jd.items <span class="keyword">import</span> JdItem</span><br><span class="line"><span class="keyword">from</span> urllib.parse <span class="keyword">import</span> urlencode</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DongziSpider</span><span class="params">(Spider)</span>:</span></span><br><span class="line">    name = <span class="string">'dongzi'</span></span><br><span class="line">    allowed_domains = [<span class="string">'search.jd.com'</span>]</span><br><span class="line">    start_urls = <span class="string">'https://search.jd.com/Search?'</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">start_requests</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="comment"># 这儿是通过对象获取settings下的配置信息</span></span><br><span class="line">        <span class="comment"># MAX_PAGE = 110</span></span><br><span class="line">        <span class="comment"># KEYWORDS = 月饼</span></span><br><span class="line">        <span class="comment"># SELENIUM_TIMEOUT = 10</span></span><br><span class="line">      </span><br><span class="line">        <span class="keyword">for</span> keyword <span class="keyword">in</span> self.settings.get(<span class="string">'KEYWORDS'</span>):</span><br><span class="line">            data = &#123;<span class="string">'keyword'</span>: keyword, <span class="string">'enc'</span>: <span class="string">'utf-8'</span>, <span class="string">'wq'</span>: keyword&#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">for</span> page <span class="keyword">in</span> range(<span class="number">1</span>, self.settings.get(<span class="string">'MAX_PAGE'</span>) + <span class="number">1</span>):</span><br><span class="line">                <span class="comment"># 这儿是把data进行url编码，主要是编码data里面的中文字符</span></span><br><span class="line">                params = urlencode(data)</span><br><span class="line">                <span class="comment"># 创建url连接</span></span><br><span class="line">                url = self.start_urls + params</span><br><span class="line">       </span><br><span class="line">                print(<span class="string">'*'</span> * <span class="number">20</span>)</span><br><span class="line">                print(url)</span><br><span class="line">            	<span class="comment"># 返回Request请求对象，其中meta是一个字典数据表示当前页数</span></span><br><span class="line">                <span class="keyword">yield</span> Request(url=url, callback=self.parse, meta=&#123;<span class="string">'page'</span>: page&#125;, dont_filter=<span class="keyword">True</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">parse</span><span class="params">(self, response)</span>:</span></span><br><span class="line">        <span class="comment"># 对获取到的数据进行解析</span></span><br><span class="line">        products = response.xpath(</span><br><span class="line">            <span class="string">'//div[@id="J_goodsList"]//li[@class="gl-item"]/div[contains(@class, "gl-i-wrap")]'</span>)</span><br><span class="line">        </span><br><span class="line">        print(<span class="string">'-'</span> * <span class="number">20</span>)</span><br><span class="line">        print(len(products))</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> product <span class="keyword">in</span> products:</span><br><span class="line">            item = JdItem()</span><br><span class="line">            item[<span class="string">'price'</span>] = <span class="string">''</span>.join(product.xpath(<span class="string">'.//div[contains(@class, "p-price")]//i[1]/text()'</span>).extract()).strip()</span><br><span class="line">            item[<span class="string">'title'</span>] = <span class="string">''</span>.join(product.xpath(<span class="string">'.//div[contains(@class, "p-name")]//text()'</span>).extract()).strip()</span><br><span class="line">            <span class="comment"># item['shop'] = ''.join(product.xpath('.//div[contains(@class, "shop")]//text()').extract()).strip()</span></span><br><span class="line">            <span class="comment"># item['image'] = ''.join(product.xpath('.//div[@class="pic"]//img[contains(@class, "img")]/@data-src').extract()).strip()</span></span><br><span class="line">            <span class="comment"># item['deal'] = product.xpath('.//div[contains(@class, "deal-cnt")]//text()').extract_first()</span></span><br><span class="line">            <span class="comment"># item['location'] = product.xpath('.//div[contains(@class, "location")]//text()').extract_first()</span></span><br><span class="line">            <span class="keyword">yield</span> item</span><br></pre></td></tr></table></figure>
+<p>3.创建SeleniumMiddleware以调用selenium</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> selenium <span class="keyword">import</span> webdriver</span><br><span class="line"><span class="keyword">from</span> selenium.common.exceptions <span class="keyword">import</span> TimeoutException</span><br><span class="line"><span class="keyword">from</span> selenium.webdriver.common.by <span class="keyword">import</span> By</span><br><span class="line"><span class="keyword">from</span> selenium.webdriver.support.ui <span class="keyword">import</span> WebDriverWait</span><br><span class="line"><span class="keyword">from</span> selenium.webdriver.support <span class="keyword">import</span> expected_conditions <span class="keyword">as</span> EC</span><br><span class="line"><span class="keyword">from</span> scrapy.http <span class="keyword">import</span> HtmlResponse</span><br><span class="line"><span class="keyword">from</span> logging <span class="keyword">import</span> getLogger</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">import</span> random</span><br><span class="line"><span class="keyword">from</span> jd.settings <span class="keyword">import</span> IPPOOL</span><br><span class="line"><span class="keyword">from</span> scrapy <span class="keyword">import</span> signals</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SeleniumMiddleware</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, timeout=None, service_args=[])</span>:</span></span><br><span class="line">        <span class="comment"># SeleniumMiddleware类的构造方法，在这儿进行了selenium的初始化</span></span><br><span class="line">        self.timeout = timeout</span><br><span class="line">        chromeOptions = webdriver.ChromeOptions()</span><br><span class="line">        <span class="comment"># chromeOptions.add_argument("--proxy-server=%s" % request.meta["proxy"])</span></span><br><span class="line"></span><br><span class="line">        self.browser = webdriver.Chrome(chrome_options = chromeOptions)            </span><br><span class="line">        self.browser.set_window_size(<span class="number">1400</span>, <span class="number">700</span>)</span><br><span class="line">        self.wait = WebDriverWait(self.browser, self.timeout)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__del__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="comment"># 这个方法是这个中间执行的生命周期结束之后执行此方法关闭浏览器</span></span><br><span class="line">        self.browser.close()</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">process_request</span><span class="params">(self, request, spider)</span>:</span></span><br><span class="line">        <span class="string">"""</span></span><br><span class="line"><span class="string">        抓取页面</span></span><br><span class="line"><span class="string">        :param request: Request对象</span></span><br><span class="line"><span class="string">        :param spider: Spider对象</span></span><br><span class="line"><span class="string">        :return: HtmlResponse</span></span><br><span class="line"><span class="string">        """</span></span><br><span class="line">        page = request.meta.get(<span class="string">'page'</span>, <span class="number">1</span>)</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            <span class="comment"># print(request.meta["proxy"])</span></span><br><span class="line">			<span class="comment"># 页面每隔两秒向下面滚动，总共滚动八次</span></span><br><span class="line">            self.browser.get(request.url)</span><br><span class="line">            self.browser.execute_script(<span class="string">'window.scrollTo(0, document.body.scrollHeight / 8)'</span>)</span><br><span class="line">            time.sleep(<span class="number">2</span>)</span><br><span class="line">            self.browser.execute_script(<span class="string">'window.scrollTo(0, 2 * document.body.scrollHeight / 8)'</span>)</span><br><span class="line">            time.sleep(<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">            self.browser.execute_script(<span class="string">'window.scrollTo(0, 3 * document.body.scrollHeight / 8)'</span>)</span><br><span class="line">            time.sleep(<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">            self.browser.execute_script(<span class="string">'window.scrollTo(0, 4 * document.body.scrollHeight / 8)'</span>)</span><br><span class="line">            time.sleep(<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">            self.browser.execute_script(<span class="string">'window.scrollTo(0, 5 * document.body.scrollHeight / 8)'</span>)</span><br><span class="line">            time.sleep(<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">            self.browser.execute_script(<span class="string">'window.scrollTo(0, 6 * document.body.scrollHeight / 8)'</span>)</span><br><span class="line">            time.sleep(<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">            self.browser.execute_script(<span class="string">'window.scrollTo(0, 7 * document.body.scrollHeight / 8)'</span>)</span><br><span class="line">            time.sleep(<span class="number">2</span>)</span><br><span class="line">            self.browser.execute_script(<span class="string">'window.scrollTo(0, 8 * document.body.scrollHeight / 8)'</span>)</span><br><span class="line"></span><br><span class="line">            <span class="comment"># 判断当前页是第几页</span></span><br><span class="line">            <span class="keyword">if</span> page &gt; <span class="number">1</span>:</span><br><span class="line">                <span class="comment"># 如果当前页大于第一页，那么获取页面输入框，和提交框，并将参数页码输出并点击提交以翻页</span></span><br><span class="line">                input = self.wait.until(</span><br><span class="line">                    EC.presence_of_element_located((By.CSS_SELECTOR, <span class="string">'#J_bottomPage .input-txt'</span>)))</span><br><span class="line">                submit = self.wait.until(</span><br><span class="line">                    EC.element_to_be_clickable((By.CSS_SELECTOR, <span class="string">'#J_bottomPage a.btn-default'</span>)))</span><br><span class="line">                input.clear()</span><br><span class="line">                input.send_keys(page)</span><br><span class="line">                submit.click()</span><br><span class="line">            <span class="comment"># 获取当前页数</span></span><br><span class="line">            self.wait.until(</span><br><span class="line">                EC.text_to_be_present_in_element((By.CSS_SELECTOR, <span class="string">'#J_topPage b'</span>), str(page)))</span><br><span class="line">			<span class="comment"># 获取当前页码输入框</span></span><br><span class="line">            self.wait.until(</span><br><span class="line">                    EC.presence_of_element_located((By.CSS_SELECTOR, <span class="string">'#J_bottomPage .input-txt'</span>)))</span><br><span class="line">            <span class="comment"># self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.m-itemlist .items .item')))</span></span><br><span class="line">            </span><br><span class="line">            <span class="comment"># 返回请求到的静态资源</span></span><br><span class="line">            <span class="keyword">return</span> HtmlResponse(url=request.url, body=self.browser.page_source, request=request, encoding=<span class="string">'utf-8'</span>,</span><br><span class="line">                                status=<span class="number">200</span>)</span><br><span class="line">        <span class="keyword">except</span> TimeoutException:</span><br><span class="line">            <span class="keyword">return</span> HtmlResponse(url=request.url, status=<span class="number">500</span>, request=request)</span><br><span class="line">    </span><br><span class="line"><span class="meta">    @classmethod</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">from_crawler</span><span class="params">(cls, crawler)</span>:</span></span><br><span class="line">        <span class="comment"># 默认的类方法，创建对象的时候默认会调用这个方法</span></span><br><span class="line">        <span class="keyword">return</span> cls(timeout=crawler.settings.get(<span class="string">'SELENIUM_TIMEOUT'</span>))</span><br></pre></td></tr></table></figure>
+
+        </section>
+    </article>
+    
+        <!-- disqus 评论框 start -->
+        <div class="comment">
+            <div id="disqus_thread" class="disqus-thread">
+              <i>Loading comments box needs to over the wall</i>
+            </div>
+        </div>
+        <!-- disqus 评论框 end -->
+    
+    
+        <!-- livere 评论框 start -->
+        <div class="comment">
+            <div id="lv-container" data-id="city" data-uid="your_livere_uid"></div>
+        </div>
+        <!-- livere 评论框 end -->
+        
+  </div>
+  <aside>
+    
+  </aside>
+</main>
+
+<!-- disqus 公共JS代码 -->
+<script type="text/javascript">
+  /* * * CONFIGURATION VARIABLES * * */
+  var disqus_shortname = "your_disqus_shortname";
+  var disqus_identifier = "http://yoursite.com/2018/12/06/scrapy和selenium结合使用/";
+  var disqus_url = "http://yoursite.com/2018/12/06/scrapy和selenium结合使用/";
+
+  isAgent(getDisqus)
+
+  // determine user agent in China
+  function isAgent(cb) {
+    var url = '//graph.facebook.com/feed?callback=h';
+    var xhr = new XMLHttpRequest();
+    var called = false;
+    xhr.open('GET', url);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+      called = true;
+      cb(true);
+      }
+    };
+    xhr.send();
+    // timeout 1s, this facebook API is very fast.
+    setTimeout(function() {
+      if (!called) {
+      xhr.abort();
+      cb(false)
+      }
+    }, 1000);
+  }
+
+  function getDisqus(isAgent) {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; 
+    dsq.async = true
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq)
+  }
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+<script type="text/javascript">
+  (function(d, s) {
+      var j, e = d.getElementsByTagName(s)[0];
+
+      if (typeof LivereTower === 'function') { return; }
+
+      j = d.createElement(s);
+      j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+      j.async = true;
+
+      e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+</script>
+
+
+  <footer>
+  <div class="copyright">
+    <div>
+      &copy; 2018 | Powered by <a href="https://hexo.io" target="_blank">Hexo</a>&nbsp
+    </div>
+    <div>
+      Theme by <a href="https://github.com/lewis-geek/hexo-theme-Aath" target="_blank">Aath</a>
+    </div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="/lib/in-view.min.js"></script>
+<script src="/lib/lodash.min.js"></script>
+<script>
+  var isDown = true
+  var oldY = 0
+  inView.offset(50)
+
+  document.body.addEventListener('touchstart', function(){});
+  
+  window.addEventListener('scroll', _.throttle(e => {
+    var currentY = window.scrollY
+    if((oldY - currentY) < 0) {
+      isDown = true
+    } else {
+      isDown = false
+    }
+    oldY = currentY
+  }, 250))
+
+  $("article img").each(function() {
+      var strA = "<a data-fancybox='gallery' href='" + this.src + "'></a>";
+      $(this).wrapAll(strA);
+  });
+
+  $('.toc-link').each(function() {
+      var href = $(this).attr("href");
+      
+      inView(href).on('exit', () => {
+        if (isDown) {
+          handleActive(href)
+        }
+      })
+
+      inView(href).on('enter', () => {
+        if (!isDown) {
+          handleActive(href)
+        }
+      })
+
+      this.onclick = function(e) {
+        var pos = $(href).offset().top - 10;
+        $("html,body").animate({scrollTop: pos}, 300);
+        setTimeout(() => {
+          handleActive(href)
+        }, 350)
+        return false
+      }
+  })
+
+  function handleActive(href) {
+    document.querySelectorAll('.toc-link').forEach(elm => {
+      elm.classList.remove('active')
+    })
+    document.querySelector(".toc [href='"+ href +"']").classList.add('active')
+  }
+</script>
+<script src="/lib/jquery.fancybox.min.js"></script>
+
+
+</body>
+</html>
