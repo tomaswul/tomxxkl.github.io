@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang=>
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  
+    <link rel="icon" href="/favicon.ico">
+  
+    
+  <title>Django文件下载和动态pdf生成 | tomxxkl的个人博客</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/lib/jquery.fancybox.min.css">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+  <header>
+  <div class="header-container">
+    <a class='logo' href="/">
+      <span>tomxxkl的个人博客</span>
+    </a>
+    <ul class="right-header">
+      
+        <li class="nav-item">
+          
+            <a href="/" class="item-link">首页</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/about" class="item-link">关于</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/archives" class="item-link">归档</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/tags" class="item-link">标签</a>
+          
+        </li>
+      
+    </ul>
+  </div>
+</header>
+
+  <main id='post'>
+  <div class="content">
+    <article>
+        <section class="content markdown-body">
+          <h1>Django文件下载和动态pdf生成</h1>
+          <div class='post-meta'>
+            <i class="fa fa-calendar" aria-hidden="true"></i> <time>2019/01/11</time>
+            
+            
+          </div>
+          <h3 id="Django文件下载"><a href="#Django文件下载" class="headerlink" title="Django文件下载"></a>Django文件下载</h3><p>Django进行文件下载之前需要指定文件的MIME(Multi-Purepose Internet Mail Exception)常用的MIME类型有如下这些</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">appliaction/pdf</span><br><span class="line">imgae/jpeg, image/png, image/gif, image/wehq</span><br><span class="line">audio/wav, video/mp4</span><br><span class="line">appliaction/msword appliaction/msexcel</span><br></pre></td></tr></table></figure>
+<p>,之后再用StreamHttpResponse对象来封装文件流并设置浏览器的文件的处理方式content_disposition</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">content_disposition = attachment / inline</span><br><span class="line">	attachment:附件形式(下载)</span><br><span class="line">	inline:内联形式(浏览器打开)</span><br></pre></td></tr></table></figure>
+<p>，最后返回流对象。具体的代码如下</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">download</span><span class="params">(request)</span>:</span></span><br><span class="line"></span><br><span class="line">    path = os.path.dirname(__file__)</span><br><span class="line">    file_stream = open(<span class="string">f'<span class="subst">&#123;path&#125;</span>/resources/Python魔法方法指南.pdf'</span>, <span class="string">'rb'</span>)</span><br><span class="line">    <span class="comment"># 生成迭代器对象</span></span><br><span class="line">    file_iter = iter(<span class="keyword">lambda</span> :file_stream.read(<span class="number">4096</span>), <span class="string">b''</span>)</span><br><span class="line">    <span class="comment"># 建立流响应对象</span></span><br><span class="line">    response = StreamingHttpResponse(file_iter)</span><br><span class="line">    response[<span class="string">'content-type'</span>] = <span class="string">'application/pdf'</span></span><br><span class="line">    <span class="comment"># 告诉浏览器怎么处理</span></span><br><span class="line">    <span class="comment"># inline 浏览器内联打开</span></span><br><span class="line">    <span class="comment"># attachment 附件的形式下载</span></span><br><span class="line">    filename = quote(<span class="string">'Python魔法方法指南.pdf'</span>)</span><br><span class="line"></span><br><span class="line">    response[<span class="string">'content-disposition'</span>] = <span class="string">f'attachment;filename="<span class="subst">&#123;filename&#125;</span>"'</span></span><br><span class="line">    <span class="keyword">return</span> response</span><br></pre></td></tr></table></figure>
+<p>通过iter()生成跌代器对象,每次读取4096个字节,然后通过StreamHttpResponse创建响应流对象，并给这个对象指定特定的MIME类型和文件处理方式,如果文件名中有中文还需要对文件名进行百分号编码，最后返回响应流对象。</p>
+<h3 id="Django动态生成pdf文件"><a href="#Django动态生成pdf文件" class="headerlink" title="Django动态生成pdf文件"></a>Django动态生成pdf文件</h3><p>如果需要Django动态生成pdf文件需要导入一个三方库ReportLab,然后通过三方库里提供的方法动态生成pdf文件</p>
+<p>具体代码如下</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> reportlab.graphics.shapes <span class="keyword">import</span> Drawing, String</span><br><span class="line"><span class="keyword">from</span> reportlab.graphics <span class="keyword">import</span> renderPDF</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">download</span><span class="params">(request)</span>:</span></span><br><span class="line">    <span class="comment"># 动态生成pdf文件</span></span><br><span class="line">    <span class="comment"># 先是创建一个指定宽高的画笔对象</span></span><br><span class="line">    d = Drawing(<span class="number">1000</span>, <span class="number">800</span>)</span><br><span class="line">    <span class="comment"># 指定文件位置和内容，以及文件的锚信息</span></span><br><span class="line">    s = String(<span class="number">500</span>, <span class="number">500</span>, <span class="string">'Hello world Python!!!!'</span>, textAnchor=<span class="string">'middle'</span>)</span><br><span class="line">    <span class="comment"># 向这个画笔里面添加内容</span></span><br><span class="line">    d.add(s)</span><br><span class="line">    <span class="comment"># 在指定的位置生成pdf文件</span></span><br><span class="line">    renderPDF.drawToFile (d, <span class="string">'backend/resources/hello.pdf'</span>, <span class="string">'A simple PDF file'</span>)</span><br><span class="line">    file_stream = open(<span class="string">f'<span class="subst">&#123;path&#125;</span>/resources/hello.pdf'</span>, <span class="string">'rb'</span>)</span><br><span class="line">    filename = quote(<span class="string">'你好.pdf'</span>)</span><br><span class="line">    file_iter = iter(<span class="keyword">lambda</span> :file_stream.read(<span class="number">4096</span>), <span class="string">b''</span>)</span><br><span class="line">    response = StreamingHttpResponse(file_iter, <span class="string">'content_type="application/pdf"'</span>)</span><br><span class="line">    response[<span class="string">'content-disposition'</span>] = <span class="string">f'attachment;filename="<span class="subst">&#123;filename&#125;</span>"'</span></span><br><span class="line">    <span class="keyword">return</span> response</span><br></pre></td></tr></table></figure>
+
+        </section>
+    </article>
+    
+        <!-- disqus 评论框 start -->
+        <div class="comment">
+            <div id="disqus_thread" class="disqus-thread">
+              <i>Loading comments box needs to over the wall</i>
+            </div>
+        </div>
+        <!-- disqus 评论框 end -->
+    
+    
+        <!-- livere 评论框 start -->
+        <div class="comment">
+            <div id="lv-container" data-id="city" data-uid="your_livere_uid"></div>
+        </div>
+        <!-- livere 评论框 end -->
+        
+  </div>
+  <aside>
+    
+    <div class="toc-container">
+        <h1>目录</h1>
+        <div class="content">
+            <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#Django文件下载"><span class="toc-number">1.</span> <span class="toc-text">Django文件下载</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Django动态生成pdf文件"><span class="toc-number">2.</span> <span class="toc-text">Django动态生成pdf文件</span></a></li></ol>
+        </div>
+    </div>
+    
+  </aside>
+</main>
+
+<!-- disqus 公共JS代码 -->
+<script type="text/javascript">
+  /* * * CONFIGURATION VARIABLES * * */
+  var disqus_shortname = "your_disqus_shortname";
+  var disqus_identifier = "http://yoursite.com/2019/01/11/Django文件下载和动态pdf生成/";
+  var disqus_url = "http://yoursite.com/2019/01/11/Django文件下载和动态pdf生成/";
+
+  isAgent(getDisqus)
+
+  // determine user agent in China
+  function isAgent(cb) {
+    var url = '//graph.facebook.com/feed?callback=h';
+    var xhr = new XMLHttpRequest();
+    var called = false;
+    xhr.open('GET', url);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+      called = true;
+      cb(true);
+      }
+    };
+    xhr.send();
+    // timeout 1s, this facebook API is very fast.
+    setTimeout(function() {
+      if (!called) {
+      xhr.abort();
+      cb(false)
+      }
+    }, 1000);
+  }
+
+  function getDisqus(isAgent) {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; 
+    dsq.async = true
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq)
+  }
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+<script type="text/javascript">
+  (function(d, s) {
+      var j, e = d.getElementsByTagName(s)[0];
+
+      if (typeof LivereTower === 'function') { return; }
+
+      j = d.createElement(s);
+      j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+      j.async = true;
+
+      e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+</script>
+
+
+  <footer>
+  <div class="copyright">
+    <div>
+      &copy; 2019 | Powered by <a href="https://hexo.io" target="_blank">Hexo</a>&nbsp
+    </div>
+    <div>
+      Theme by <a href="https://github.com/lewis-geek/hexo-theme-Aath" target="_blank">Aath</a>
+    </div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="/lib/in-view.min.js"></script>
+<script src="/lib/lodash.min.js"></script>
+<script>
+  var isDown = true
+  var oldY = 0
+  inView.offset(50)
+
+  document.body.addEventListener('touchstart', function(){});
+  
+  window.addEventListener('scroll', _.throttle(e => {
+    var currentY = window.scrollY
+    if((oldY - currentY) < 0) {
+      isDown = true
+    } else {
+      isDown = false
+    }
+    oldY = currentY
+  }, 250))
+
+  $("article img").each(function() {
+      var strA = "<a data-fancybox='gallery' href='" + this.src + "'></a>";
+      $(this).wrapAll(strA);
+  });
+
+  $('.toc-link').each(function() {
+      var href = $(this).attr("href");
+      
+      inView(href).on('exit', () => {
+        if (isDown) {
+          handleActive(href)
+        }
+      })
+
+      inView(href).on('enter', () => {
+        if (!isDown) {
+          handleActive(href)
+        }
+      })
+
+      this.onclick = function(e) {
+        var pos = $(href).offset().top - 10;
+        $("html,body").animate({scrollTop: pos}, 300);
+        setTimeout(() => {
+          handleActive(href)
+        }, 350)
+        return false
+      }
+  })
+
+  function handleActive(href) {
+    document.querySelectorAll('.toc-link').forEach(elm => {
+      elm.classList.remove('active')
+    })
+    document.querySelector(".toc [href='"+ href +"']").classList.add('active')
+  }
+</script>
+<script src="/lib/jquery.fancybox.min.js"></script>
+
+
+</body>
+</html>
