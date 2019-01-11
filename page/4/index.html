@@ -56,6 +56,72 @@
   <div class="posts-list">
     
       <section>
+        <a href="/2018/10/29/Django的登录验证以及自带的session生成和注销/">
+          <h3 class='post-head'>
+            Django的登录验证以及自带的session生成和注销
+          </h3>
+        </a>
+        
+        <div class="post-content">
+          
+            
+              
+                <h3 id="1-Form表单验证"><a href="#1-Form表单验证" class="headerlink" title="1.Form表单验证"></a>1.Form表单验证</h3><p>之所以会有form表单验证，是因为不可能每张表单每个输入项都要一个一个if结构去验证，这样效率太低，并且错误信息不够具体。表单验证的主体思想是为每一个form表单创建一个基类是forms.Form类的form表单类，这个类的字段就是form表单里每个输入项的name值(这个一定要一致)。这样就可以把form表单提交的数据通过对象进行封装，并且封装的同时还要对每个字段的要求进行验证。并且设置特定的错误提示信息，同时在封装对象之后的返回值是一个form表单对象，通过这个对象的is_vaild()方法，可以判断form表单除格式外是否满足要求，该方法默认会调用form表单类的clean(self)方法，而这个方法是forms.Form类的方法，是通过继承的方法。在这个方法里需要返回的是表单数据self.clean_data。并且可以在这个方法里通过raise.ValidationError(字典)抛出错误信息。注册和登录的form表单类设计:</p>
+              
+          
+        </div>
+        <div class='post-meta'>
+          <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/10/29</time>
+          
+          
+        </div>
+      </section>
+    
+      <section>
+        <a href="/2018/10/26/Cookie和Session/">
+          <h3 class='post-head'>
+            Cookie和Session
+          </h3>
+        </a>
+        
+        <div class="post-content">
+          
+            
+              
+                <p>HTTP无状态协议:HTTP协议本身是没有状态的，要保持状态需要使用Cookie+Session</p>
+              
+          
+        </div>
+        <div class='post-meta'>
+          <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/10/26</time>
+          
+          
+        </div>
+      </section>
+    
+      <section>
+        <a href="/2018/10/25/Django的Templates/">
+          <h3 class='post-head'>
+            Django的Templates
+          </h3>
+        </a>
+        
+        <div class="post-content">
+          
+            
+              
+                <p>templates是MVT模式中的T，负责展示数据，相当于MVC中的V,但是templates里的html有一些独有的特性，可以实现继承。例如:index.html继承base_main.html。那么index.html就是base_main.html的子模板,而base_main.html则继承base.html,这样base.html是根模板，只需要设置大体框架,而base_main.html则是二级根模板作为对根模板的补充，而index.html则是具体的显示页面。这样就可以建立模板的继承体系，实现模板的体系化管理</p>
+              
+          
+        </div>
+        <div class='post-meta'>
+          <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/10/25</time>
+          
+          
+        </div>
+      </section>
+    
+      <section>
         <a href="/2018/10/23/Django的模型-Model/">
           <h3 class='post-head'>
             Django的模型(Model)
@@ -209,69 +275,6 @@
         </div>
       </section>
     
-      <section>
-        <a href="/2018/10/10/递归的优化/">
-          <h3 class='post-head'>
-            递归的优化
-          </h3>
-        </a>
-        
-        <div class="post-content">
-          
-            
-              
-                <p>递归的优化</p>
-              
-          
-        </div>
-        <div class='post-meta'>
-          <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/10/10</time>
-          
-          
-        </div>
-      </section>
-    
-      <section>
-        <a href="/2018/10/08/Linux学习总结/">
-          <h3 class='post-head'>
-            Linux学习总结
-          </h3>
-        </a>
-        
-        <div class="post-content">
-          
-            <p>Linux学习总结<br>
-          
-        </div>
-        <div class='post-meta'>
-          <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/10/08</time>
-          
-          
-        </div>
-      </section>
-    
-      <section>
-        <a href="/2018/10/08/hello-world/">
-          <h3 class='post-head'>
-            Hello World
-          </h3>
-        </a>
-        
-        <div class="post-content">
-          
-            
-              
-                <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
-              
-          
-        </div>
-        <div class='post-meta'>
-          <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/10/08</time>
-          
-          
-        </div>
-      </section>
-    
   </div>
   <aside>
     
@@ -322,6 +325,10 @@
     </div>
     
     
+    <div class='page-next'>
+      <a href="/page/5/">Next</a>
+    </div>
+    
   </div>
 </div>
 
@@ -330,7 +337,7 @@
   <footer>
   <div class="copyright">
     <div>
-      &copy; 2018 | Powered by <a href="https://hexo.io" target="_blank">Hexo</a>&nbsp
+      &copy; 2019 | Powered by <a href="https://hexo.io" target="_blank">Hexo</a>&nbsp
     </div>
     <div>
       Theme by <a href="https://github.com/lewis-geek/hexo-theme-Aath" target="_blank">Aath</a>
