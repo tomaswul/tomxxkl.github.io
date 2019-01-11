@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang=>
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  
+    <link rel="icon" href="/favicon.ico">
+  
+    
+  <title>Django实现excel文件的报表功能和echarts图表展示功能 | tomxxkl的个人博客</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/lib/jquery.fancybox.min.css">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+  <header>
+  <div class="header-container">
+    <a class='logo' href="/">
+      <span>tomxxkl的个人博客</span>
+    </a>
+    <ul class="right-header">
+      
+        <li class="nav-item">
+          
+            <a href="/" class="item-link">首页</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/about" class="item-link">关于</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/archives" class="item-link">归档</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/tags" class="item-link">标签</a>
+          
+        </li>
+      
+    </ul>
+  </div>
+</header>
+
+  <main id='post'>
+  <div class="content">
+    <article>
+        <section class="content markdown-body">
+          <h1>Django实现excel文件的报表功能和echarts图表展示功能</h1>
+          <div class='post-meta'>
+            <i class="fa fa-calendar" aria-hidden="true"></i> <time>2019/01/11</time>
+            
+            
+          </div>
+          <h3 id="excel文件的生成"><a href="#excel文件的生成" class="headerlink" title="excel文件的生成"></a>excel文件的生成</h3><p>如果需要生成excel文件，那么就需要导入xlwt这个库，而要解析文件则需要导入xlrd。xlwt生成excel文件的代码如下。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">export_emp_excel</span><span class="params">(request, page)</span>:</span></span><br><span class="line">    <span class="string">'''</span></span><br><span class="line"><span class="string">    :param request: request</span></span><br><span class="line"><span class="string">    :param page: 页码</span></span><br><span class="line"><span class="string">    :return:</span></span><br><span class="line"><span class="string">    '''</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 创建excel工作薄</span></span><br><span class="line">    workbook = xlwt.Workbook()</span><br><span class="line">    <span class="comment"># 创建工作表</span></span><br><span class="line">    sheet = workbook.add_sheet(<span class="string">'员工详细信息'</span>)</span><br><span class="line">    titles =[<span class="string">'编号'</span>, <span class="string">'姓名'</span>, <span class="string">'职位'</span>, <span class="string">'主管'</span>, <span class="string">'部门'</span>, <span class="string">'工资'</span>]</span><br><span class="line">    <span class="keyword">for</span> col, title <span class="keyword">in</span> enumerate(titles):</span><br><span class="line">        sheet.write(<span class="number">0</span>, col, title, get_style(<span class="string">'微软雅黑'</span>, color=<span class="number">2</span>, bold=<span class="keyword">True</span>))</span><br><span class="line">    <span class="comment"># 可以通过only()或者defer()方法来进行SQL投影操作</span></span><br><span class="line">    props = (<span class="string">'no'</span>, <span class="string">'name'</span>, <span class="string">'job'</span>, <span class="string">'mgr'</span>, <span class="string">'dept'</span>, <span class="string">'sal'</span>)</span><br><span class="line">    start, end= (page - <span class="number">1</span>) * PAGE_SIZE, page * PAGE_SIZE</span><br><span class="line">    <span class="comment"># 如果要查询对象的同时还要查询它的关联对象,那么必须对自动生成的SQL语句进行优化,否则会引发1+N查询问题</span></span><br><span class="line">    <span class="comment"># (程序的性能会下降得非常明显而且数据库压力山大)</span></span><br><span class="line">    <span class="comment"># 1.如果有多对一关联，需要用连接查询来关联对象那么可以用select_related()来加载</span></span><br><span class="line">    <span class="comment"># 2.如果有多对多关联，需要用连接查询来加载关联对象那么可以用prefetch_relate()来加载</span></span><br><span class="line">    emps = Emp.objects.all().only(*props).select_related(<span class="string">'dept'</span>).select_related(<span class="string">'mgr'</span>).order_by(<span class="string">'-sal'</span>)[start:end]</span><br><span class="line">    <span class="keyword">for</span> row, emp <span class="keyword">in</span> enumerate(emps):</span><br><span class="line">        <span class="keyword">for</span> col, prop <span class="keyword">in</span> enumerate(props):</span><br><span class="line">            <span class="comment"># 获取每个对象的指定的属性值,并把这个值写到对应的单元格内</span></span><br><span class="line">            val = getattr(emp, prop, <span class="string">''</span>)</span><br><span class="line">            <span class="keyword">if</span> isinstance(val, (Dept, Emp)):</span><br><span class="line">                val = val.name</span><br><span class="line">            sheet.write(row + <span class="number">1</span>, col, val)</span><br><span class="line">    <span class="comment"># 提取excel数据</span></span><br><span class="line">    buffer = BytesIO()</span><br><span class="line">    workbook.save(buffer)</span><br><span class="line">    <span class="comment"># 生成响应对象传输数据给浏览器</span></span><br><span class="line">    resp = HttpResponse(buffer.getvalue(), content_type=<span class="string">'application/msexcel'</span>)</span><br><span class="line">    filename = quote(<span class="string">'员工信息表.xls'</span>)</span><br><span class="line">    resp[<span class="string">'content-disposition'</span>] = <span class="string">f'attachment;filename="<span class="subst">&#123;filename&#125;</span>"'</span></span><br><span class="line">    <span class="keyword">return</span> resp</span><br></pre></td></tr></table></figure>
+<p>这里面是先生成工作薄，再通过工作薄工作表，最后从数据库里读取的数据添加到这个工作表里面,再把这个表转换成二进制流最后返回给浏览器一个excel文件，这里要注意数据库调优的方式</p>
+<p>主要有如下方式:</p>
+<p>1.如果要想要优化数据库性能，就要减少不必要的数据库外键约束(外键是导致数据库效率低下的重要原因)，可以通过代码层面的约束来保证参照完整性<br>使用正向工程时，可以给ForeignKey添加一个db_constraint=False的设定来取消外键约束</p>
+<p>2.使用orm框架的时候查找可以通过only()或者defer()方法来进行SQL投影操作以提升性能<br>Emp.objects.all().only(‘列名1’,’列名2’)，only方法可以在查询的时候只查询想要查询的数据不会导致全部数据都被查询一遍。</p>
+<p>3.如果要查询对象的同时还要查询它的关联对象,那么必须对自动生成的SQL语句进行优化,否则会引发1+N查询问题<br>(程序的性能会下降得非常明显而且数据库压力山大)<br>使用select_related()进行连接查询<br>emps = Emp.objects.all().only(*props).select_related(‘dept’).select_relate(‘mgr’).order_by(‘-sal’)[start:end]<br>    1.如果有多对一关联，需要用连接查询来关联对象那么可以用select_related()来加载<br>    2.如果有多对多关联，需要用连接查询来加载关联对象那么可以用prefetch_relate()来加载<br>以上的代码通过select_related()方法生成的代码由21条锐减到1条本质上实现了连接查询，查询代码如下</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="string">`tb_emp`</span>.<span class="string">`eno`</span>, <span class="string">`tb_emp`</span>.<span class="string">`ename`</span>, <span class="string">`tb_emp`</span>.<span class="string">`job`</span>, <span class="string">`tb_emp`</span>.<span class="string">`mgr`</span>, <span class="string">`tb_emp`</span>.<span class="string">`sal`</span>, <span class="string">`tb_emp`</span>.<span class="string">`dno`</span>, T2.<span class="string">`eno`</span>, T2.<span class="string">`ename`</span>, T2.<span class="string">`job`</span>, T2.<span class="string">`mgr`</span>, T2.<span class="string">`sal`</span>, T2.<span class="string">`dno`</span>, <span class="string">`tb_dept`</span>.<span class="string">`dno`</span>, <span class="string">`tb_dept`</span>.<span class="string">`dname`</span>, <span class="string">`tb_dept`</span>.<span class="string">`dloc`</span> <span class="keyword">FROM</span> <span class="string">`tb_emp`</span> <span class="keyword">LEFT</span> <span class="keyword">OUTER</span> <span class="keyword">JOIN</span> <span class="string">`tb_emp`</span> T2 <span class="keyword">ON</span> (<span class="string">`tb_emp`</span>.<span class="string">`mgr`</span> = T2.<span class="string">`eno`</span>) <span class="keyword">LEFT</span> <span class="keyword">OUTER</span> <span class="keyword">JOIN</span> <span class="string">`tb_dept`</span> <span class="keyword">ON</span> (<span class="string">`tb_emp`</span>.<span class="string">`dno`</span> = <span class="string">`tb_dept`</span>.<span class="string">`dno`</span>) <span class="keyword">ORDER</span> <span class="keyword">BY</span> <span class="string">`tb_emp`</span>.<span class="string">`sal`</span> <span class="keyword">DESC</span>  <span class="keyword">LIMIT</span> <span class="number">10</span>; args=()</span><br></pre></td></tr></table></figure>
+<h3 id="Django常用属性和方法与ORM框架"><a href="#Django常用属性和方法与ORM框架" class="headerlink" title="Django常用属性和方法与ORM框架"></a>Django常用属性和方法与ORM框架</h3><h5 id="1-request对象和response对象常用属性和方法"><a href="#1-request对象和response对象常用属性和方法" class="headerlink" title="1.request对象和response对象常用属性和方法"></a>1.request对象和response对象常用属性和方法</h5><pre><code>HttpRequest
+    - method / path
+    - META[&apos;...&apos;]
+    - COOKIES[&apos;...&apos;]
+    - FILES[&apos;...&apos;]
+    - POST[&apos;...&apos;]
+    - GET[&apos;...&apos;]
+    - get_singed_cookie()
+    - body:直接取消息体的二进制数据
+HttpResonse
+    - [&apos;...&apos;]
+    - status / charset
+    - body
+    - set_cookie()/set_signed_cookie()
+</code></pre><h5 id="2-orm框架"><a href="#2-orm框架" class="headerlink" title="2.orm框架"></a>2.orm框架</h5><p>ORM - Object Relational Mapping(对象关系映射)<br>完成对象模型和关系模型的双向转换<br>写数据:对象 —&gt; 关系<br>读数据:关系 —&gt; 对象</p>
+<h3 id="echarts图表展示功能"><a href="#echarts图表展示功能" class="headerlink" title="echarts图表展示功能"></a>echarts图表展示功能</h3><h5 id="1-echart介绍"><a href="#1-echart介绍" class="headerlink" title="1.echart介绍"></a>1.echart介绍</h5><p>Echarts (<a href="http://echarts.baidu.com/)是百度公司出品的，算是百度不可多得的良心之作。要彻底掌握Echarts，你需要掌握一点前端开发的知识，这些知识也是你花几周的时间就可以学会的（这里需要你掌握一点html、css、javascript的知识）" target="_blank" rel="noopener">http://echarts.baidu.com/)是百度公司出品的，算是百度不可多得的良心之作。要彻底掌握Echarts，你需要掌握一点前端开发的知识，这些知识也是你花几周的时间就可以学会的（这里需要你掌握一点html、css、javascript的知识）</a></p>
+<h5 id="2-创建echarts动态图表"><a href="#2-创建echarts动态图表" class="headerlink" title="2.创建echarts动态图表"></a>2.创建echarts动态图表</h5><h6 id="创建html并引入echarts"><a href="#创建html并引入echarts" class="headerlink" title="创建html并引入echarts"></a>创建html并引入echarts</h6><figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE html&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">"en"</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">"UTF-8"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>echart图表<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">style</span>&gt;</span><span class="undefined"></span></span><br><span class="line"><span class="undefined">        #main &#123;</span></span><br><span class="line"><span class="undefined">            width: 600px;</span></span><br><span class="line"><span class="undefined">            height: 400px;</span></span><br><span class="line"><span class="undefined">        &#125;</span></span><br><span class="line"><span class="undefined">    </span><span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"main"</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"</span>&gt;</span><span class="undefined"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"https://cdn.bootcss.com/echarts/4.2.0-rc.2/echarts.simple.min.js"</span>&gt;</span><span class="undefined"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="undefined"></span></span><br><span class="line"><span class="xml">        <span class="comment">&lt;!--获取绘图区域并初始化--&gt;</span></span></span><br><span class="line"><span class="undefined">        // 基于准备好的dom，初始化echarts实例</span></span><br><span class="line"><span class="undefined">        $(function () &#123;</span></span><br><span class="line"><span class="undefined">            $.ajax(&#123;</span></span><br><span class="line"><span class="undefined">                url: '/backend/agent_total/',</span></span><br><span class="line"><span class="undefined">                dataType: 'json',</span></span><br><span class="line"><span class="undefined">                type: 'get',</span></span><br><span class="line"><span class="undefined">                data: &#123;&#125;,</span></span><br><span class="line"><span class="undefined">                success: function (data) &#123;</span></span><br><span class="line"><span class="undefined">                    var myChart = echarts.init(document.getElementById('main'));</span></span><br><span class="line"><span class="undefined">                    //获取数据,通过ajax获取数据</span></span><br><span class="line"><span class="undefined">                    // 指定图表的配置项和数据</span></span><br><span class="line"><span class="undefined">                    var option = &#123;</span></span><br><span class="line"><span class="undefined">                        title: &#123;</span></span><br><span class="line"><span class="undefined">                            text: 'ECharts 入门示例'</span></span><br><span class="line"><span class="undefined">                        &#125;,</span></span><br><span class="line"><span class="undefined">                        tooltip: &#123;&#125;,</span></span><br><span class="line"><span class="undefined">                        legend: &#123;</span></span><br><span class="line"><span class="undefined">                            data:['房产经理人']</span></span><br><span class="line"><span class="undefined">                        &#125;,</span></span><br><span class="line"><span class="undefined">                        xAxis: &#123;</span></span><br><span class="line"><span class="undefined">                            data: data.names</span></span><br><span class="line"><span class="undefined">                        &#125;,</span></span><br><span class="line"><span class="undefined">                        yAxis: &#123;&#125;,</span></span><br><span class="line"><span class="undefined">                        series: [&#123;</span></span><br><span class="line"><span class="undefined">                            name: '楼盘数量',</span></span><br><span class="line"><span class="undefined">                            type: 'bar',</span></span><br><span class="line"><span class="undefined">                            data: data.totals</span></span><br><span class="line"><span class="undefined">                        &#125;]</span></span><br><span class="line"><span class="undefined">                    &#125;;</span></span><br><span class="line"><span class="undefined">                    // 使用刚指定的配置项和数据显示图表。</span></span><br><span class="line"><span class="undefined">                    myChart.setOption(option);</span></span><br><span class="line"><span class="undefined">                &#125;,</span></span><br><span class="line"><span class="undefined">                error: function (data) &#123;</span></span><br><span class="line"><span class="undefined">                &#125;</span></span><br><span class="line"><span class="undefined">            &#125;);</span></span><br><span class="line"><span class="undefined">        &#125;);</span></span><br><span class="line"><span class="undefined">    </span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h5 id="3-Django原生SQL获取数据"><a href="#3-Django原生SQL获取数据" class="headerlink" title="3.Django原生SQL获取数据"></a>3.Django原生SQL获取数据</h5><p>Django不仅可以通过ORM框架进行数据库的CRUD操作，同样可以通过执行原生的SQL语句进行数据的CRUD,并且原生SQL方式往往性能要好与ORM框架。Django执行原生的SQL需要导入Django.db下的connections或者connection属性，然后通过这两个中的任意一个创建游标对象，执行想要执行的SQL语句，并通过游标对象抓取查询结果。具体代码如下</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> django.db <span class="keyword">import</span> connections</span><br><span class="line"><span class="comment"># 原生SQL</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">agent_bar_data</span><span class="params">(request)</span>:</span></span><br><span class="line">    <span class="comment"># 可以通过django封装的connection和connections来获取数据库连接</span></span><br><span class="line">    <span class="comment"># 然后通过创建游标对象来发出原生SQL实现CRUD操作(性能更好)</span></span><br><span class="line">    <span class="keyword">with</span> connections[<span class="string">'default'</span>].cursor() <span class="keyword">as</span> cursor:</span><br><span class="line">        cursor.execute(<span class="string">' select name, total from(select agentid, count(agentid) '</span></span><br><span class="line">                      <span class="string">' as total from tb_agent_estate group by agentid) t1 '</span></span><br><span class="line">                      <span class="string">' inner join tb_agent t2 on t1.agentid=t2.agentid '</span>)</span><br><span class="line">        names, totals= [], []</span><br><span class="line">        <span class="keyword">for</span> row <span class="keyword">in</span> cursor.fetchall():</span><br><span class="line">            names.append(row[<span class="number">0</span>])</span><br><span class="line">            totals.append(row[<span class="number">1</span>])</span><br><span class="line">    <span class="comment"># local()把局部变量收集起来生成字典</span></span><br><span class="line">    <span class="comment"># a=1</span></span><br><span class="line">    <span class="comment"># b=2</span></span><br><span class="line">    <span class="comment"># locals() ==&gt; &#123;'a': 1, 'b': 2&#125;</span></span><br><span class="line">    <span class="comment"># 将数据定制成JSON格式传递给浏览器</span></span><br><span class="line">    <span class="comment"># 如果data参数不是字典而是列表，还要加上safe=True</span></span><br><span class="line">    <span class="comment"># 如果字典或列中有自定义对象，那么还需要通过encoder参数指定自定义对象如何进行json序列化</span></span><br><span class="line">    <span class="keyword">return</span> JsonResponse(&#123;<span class="string">'names'</span>: names, <span class="string">'totals'</span>: totals&#125;)</span><br></pre></td></tr></table></figure>
+
+        </section>
+    </article>
+    
+        <!-- disqus 评论框 start -->
+        <div class="comment">
+            <div id="disqus_thread" class="disqus-thread">
+              <i>Loading comments box needs to over the wall</i>
+            </div>
+        </div>
+        <!-- disqus 评论框 end -->
+    
+    
+        <!-- livere 评论框 start -->
+        <div class="comment">
+            <div id="lv-container" data-id="city" data-uid="your_livere_uid"></div>
+        </div>
+        <!-- livere 评论框 end -->
+        
+  </div>
+  <aside>
+    
+    <div class="toc-container">
+        <h1>目录</h1>
+        <div class="content">
+            <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#excel文件的生成"><span class="toc-number">1.</span> <span class="toc-text">excel文件的生成</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Django常用属性和方法与ORM框架"><span class="toc-number">2.</span> <span class="toc-text">Django常用属性和方法与ORM框架</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-request对象和response对象常用属性和方法"><span class="toc-number">2.0.1.</span> <span class="toc-text">1.request对象和response对象常用属性和方法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-orm框架"><span class="toc-number">2.0.2.</span> <span class="toc-text">2.orm框架</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#echarts图表展示功能"><span class="toc-number">3.</span> <span class="toc-text">echarts图表展示功能</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-echart介绍"><span class="toc-number">3.0.1.</span> <span class="toc-text">1.echart介绍</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-创建echarts动态图表"><span class="toc-number">3.0.2.</span> <span class="toc-text">2.创建echarts动态图表</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#创建html并引入echarts"><span class="toc-number">3.0.2.1.</span> <span class="toc-text">创建html并引入echarts</span></a></li></ol></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-Django原生SQL获取数据"><span class="toc-number">3.0.3.</span> <span class="toc-text">3.Django原生SQL获取数据</span></a></li></ol></li></ol></li></ol>
+        </div>
+    </div>
+    
+  </aside>
+</main>
+
+<!-- disqus 公共JS代码 -->
+<script type="text/javascript">
+  /* * * CONFIGURATION VARIABLES * * */
+  var disqus_shortname = "your_disqus_shortname";
+  var disqus_identifier = "http://yoursite.com/2019/01/11/Django实现excel文件的报表功能和echarts图表展示功能/";
+  var disqus_url = "http://yoursite.com/2019/01/11/Django实现excel文件的报表功能和echarts图表展示功能/";
+
+  isAgent(getDisqus)
+
+  // determine user agent in China
+  function isAgent(cb) {
+    var url = '//graph.facebook.com/feed?callback=h';
+    var xhr = new XMLHttpRequest();
+    var called = false;
+    xhr.open('GET', url);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+      called = true;
+      cb(true);
+      }
+    };
+    xhr.send();
+    // timeout 1s, this facebook API is very fast.
+    setTimeout(function() {
+      if (!called) {
+      xhr.abort();
+      cb(false)
+      }
+    }, 1000);
+  }
+
+  function getDisqus(isAgent) {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; 
+    dsq.async = true
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq)
+  }
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+<script type="text/javascript">
+  (function(d, s) {
+      var j, e = d.getElementsByTagName(s)[0];
+
+      if (typeof LivereTower === 'function') { return; }
+
+      j = d.createElement(s);
+      j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+      j.async = true;
+
+      e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+</script>
+
+
+  <footer>
+  <div class="copyright">
+    <div>
+      &copy; 2019 | Powered by <a href="https://hexo.io" target="_blank">Hexo</a>&nbsp
+    </div>
+    <div>
+      Theme by <a href="https://github.com/lewis-geek/hexo-theme-Aath" target="_blank">Aath</a>
+    </div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="/lib/in-view.min.js"></script>
+<script src="/lib/lodash.min.js"></script>
+<script>
+  var isDown = true
+  var oldY = 0
+  inView.offset(50)
+
+  document.body.addEventListener('touchstart', function(){});
+  
+  window.addEventListener('scroll', _.throttle(e => {
+    var currentY = window.scrollY
+    if((oldY - currentY) < 0) {
+      isDown = true
+    } else {
+      isDown = false
+    }
+    oldY = currentY
+  }, 250))
+
+  $("article img").each(function() {
+      var strA = "<a data-fancybox='gallery' href='" + this.src + "'></a>";
+      $(this).wrapAll(strA);
+  });
+
+  $('.toc-link').each(function() {
+      var href = $(this).attr("href");
+      
+      inView(href).on('exit', () => {
+        if (isDown) {
+          handleActive(href)
+        }
+      })
+
+      inView(href).on('enter', () => {
+        if (!isDown) {
+          handleActive(href)
+        }
+      })
+
+      this.onclick = function(e) {
+        var pos = $(href).offset().top - 10;
+        $("html,body").animate({scrollTop: pos}, 300);
+        setTimeout(() => {
+          handleActive(href)
+        }, 350)
+        return false
+      }
+  })
+
+  function handleActive(href) {
+    document.querySelectorAll('.toc-link').forEach(elm => {
+      elm.classList.remove('active')
+    })
+    document.querySelector(".toc [href='"+ href +"']").classList.add('active')
+  }
+</script>
+<script src="/lib/jquery.fancybox.min.js"></script>
+
+
+</body>
+</html>
