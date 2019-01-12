@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang=>
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  
+    <link rel="icon" href="/favicon.ico">
+  
+    
+  <title>Python多线程总结 | tomxxkl的个人博客</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/lib/jquery.fancybox.min.css">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+  <header>
+  <div class="header-container">
+    <a class='logo' href="/">
+      <span>tomxxkl的个人博客</span>
+    </a>
+    <ul class="right-header">
+      
+        <li class="nav-item">
+          
+            <a href="/" class="item-link">首页</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/about" class="item-link">关于</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/archives" class="item-link">归档</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/tags" class="item-link">标签</a>
+          
+        </li>
+      
+    </ul>
+  </div>
+</header>
+
+  <main id='post'>
+  <div class="content">
+    <article>
+        <section class="content markdown-body">
+          <h1>Python多线程总结</h1>
+          <div class='post-meta'>
+            <i class="fa fa-calendar" aria-hidden="true"></i> <time>2019/01/12</time>
+            
+            
+          </div>
+          <h3 id="进程、线程、协程理解"><a href="#进程、线程、协程理解" class="headerlink" title="进程、线程、协程理解"></a>进程、线程、协程理解</h3><p>进程是计算机分配资源的最小单元，线程是计算机分配cpu的最小单元，协程是线程里面执行具体某个功能的程序，一个进程里面至少包含一个线程, 一个线程可以包含多个协程。协程之间的cpu切换是线程内部的cpu切换基本是不耗时的。线程之间的切换是耗时的。在Python由于全局解释器锁的存在，多线程不能发挥多核特性，但是多线程可以提高cpu的使用率，多线程程序对其他程序是很不友好的。多进程可以执行计算密集型任务。如算大数是否是素数。多进程可以发挥计算机的多核特性。单线程多协程的程序往往性能更优于多线程程序,因为没有cpu切换时间的开销。</p>
+<h3 id="多进程程序实现"><a href="#多进程程序实现" class="headerlink" title="多进程程序实现"></a>多进程程序实现</h3><p>多进程和进程池的使用<br>多线程因为GIL的存在不能够发挥CPU的多核特性<br>对于计算密集型任务应该考虑使用多进程</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="string">time python3 example22.py</span></span><br><span class="line"><span class="string">real    0m11.512s</span></span><br><span class="line"><span class="string">user    0m39.319s</span></span><br><span class="line"><span class="string">sys     0m0.169s</span></span><br><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="keyword">import</span> concurrent.futures</span><br><span class="line"><span class="keyword">import</span> math</span><br><span class="line"></span><br><span class="line">PRIMES = [</span><br><span class="line">    <span class="number">1116281</span>,</span><br><span class="line">    <span class="number">1297337</span>,</span><br><span class="line">    <span class="number">104395303</span>,</span><br><span class="line">    <span class="number">472882027</span>,</span><br><span class="line">    <span class="number">533000389</span>,</span><br><span class="line">    <span class="number">817504243</span>,</span><br><span class="line">    <span class="number">982451653</span>,</span><br><span class="line">    <span class="number">112272535095293</span>,</span><br><span class="line">    <span class="number">112582705942171</span>,</span><br><span class="line">    <span class="number">112272535095293</span>,</span><br><span class="line">    <span class="number">115280095190773</span>,</span><br><span class="line">    <span class="number">115797848077099</span>,</span><br><span class="line">    <span class="number">1099726899285419</span></span><br><span class="line">] * <span class="number">5</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">is_prime</span><span class="params">(n)</span>:</span></span><br><span class="line">    <span class="string">"""判断素数"""</span></span><br><span class="line">    <span class="keyword">if</span> n % <span class="number">2</span> == <span class="number">0</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">False</span></span><br><span class="line">    sqrt_n = int(math.floor(math.sqrt(n)))</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">3</span>, sqrt_n + <span class="number">1</span>, <span class="number">2</span>):</span><br><span class="line">        <span class="keyword">if</span> n % i == <span class="number">0</span>:</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">False</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">True</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="string">"""主函数"""</span></span><br><span class="line">    <span class="comment"># concurrent.futures.ProcessPoolExecutor()创建进程池对象</span></span><br><span class="line">    <span class="keyword">with</span> concurrent.futures.ProcessPoolExecutor() <span class="keyword">as</span> executor:</span><br><span class="line">        <span class="comment">#executor.map()映射数据到判断素数的函数上并开启该进程</span></span><br><span class="line">        <span class="keyword">for</span> number, prime <span class="keyword">in</span> zip(PRIMES, executor.map(is_prime, PRIMES)):</span><br><span class="line">            print(<span class="string">'%d is prime: %s'</span> % (number, prime))</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    main()</span><br></pre></td></tr></table></figure>
+<h3 id="多线程程序实现"><a href="#多线程程序实现" class="headerlink" title="多线程程序实现"></a>多线程程序实现</h3><h5 id="实现多线程的方式"><a href="#实现多线程的方式" class="headerlink" title="实现多线程的方式"></a>实现多线程的方式</h5><p>方式一:创建线程类继承Threading.Thread类重写run方法</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> pillow <span class="keyword">import</span> Image</span><br><span class="line"><span class="keyword">from</span> threading <span class="keyword">import</span> Thread</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ThumbnailThread</span><span class="params">(Thread)</span>:</span></span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, infile)</span>:</span></span><br><span class="line">        self.infile = infile</span><br><span class="line">        super().__init__()</span><br><span class="line">        </span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">run</span><span class="params">(self)</span>:</span></span><br><span class="line">        file, ext = os.path.splittext(self.infile)</span><br><span class="line">        <span class="keyword">if</span> os.name == <span class="string">'posix'</span>:</span><br><span class="line">            filename = file[file.rfind(<span class="string">'/'</span>) + <span class="number">1</span>: ]</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            filename = file[file.rfind(<span class="string">'\\'</span>) + <span class="number">1</span>: ]</span><br><span class="line">        <span class="keyword">for</span> size <span class="keyword">in</span> (<span class="number">32</span>, <span class="number">64</span>, <span class="number">128</span>):</span><br><span class="line">            outfile = <span class="string">f'thumnails/<span class="subst">&#123;filename&#125;</span>_<span class="subst">&#123;size&#125;</span>_<span class="subst">&#123;size&#125;</span>.png'</span></span><br><span class="line">            image = Image.open(infile)</span><br><span class="line">            image.thumbnail((size, size))</span><br><span class="line">            image.save(outfile, format=<span class="string">'PNG'</span>)</span><br><span class="line">            </span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_all_files</span><span class="params">(path)</span>:</span></span><br><span class="line"> 	<span class="keyword">if</span> os.path.exists(path):</span><br><span class="line">		<span class="keyword">for</span> file <span class="keyword">in</span> os.listdir(path):</span><br><span class="line">			<span class="keyword">yield</span> os.path.join(path, file)</span><br><span class="line">		     </span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    start = time.time()</span><br><span class="line">    threads = []</span><br><span class="line">    <span class="keyword">for</span> infile <span class="keyword">in</span> get_all_files(<span class="string">'images'</span>):</span><br><span class="line">        thread = ThumbnailThread(infile)</span><br><span class="line">        threads.append(thread)</span><br><span class="line">        thread.start()</span><br><span class="line">    <span class="keyword">for</span> thread <span class="keyword">in</span> threads:</span><br><span class="line">        <span class="comment"># 让主线程等每个线程都结束,其他线程没有结束，主线程就阻塞</span></span><br><span class="line">        thread.join()</span><br><span class="line">    end = time.time()</span><br><span class="line">    print(<span class="string">f'共执行了<span class="subst">&#123;end - start&#125;</span>秒'</span>)</span><br></pre></td></tr></table></figure>
+<p>方式二:直接使用系统自带的Thread类,通过指定target字段来实现多线程序</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> time</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> pillow <span class="keyword">import</span> Image</span><br><span class="line"><span class="keyword">from</span> threading <span class="keyword">import</span> Thread</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">gen_thumnail</span><span class="params">(infile)</span>:</span></span><br><span class="line">	file, ext = os.path.splitext(infile)</span><br><span class="line">	<span class="keyword">if</span> os.name == <span class="string">'posix'</span>:</span><br><span class="line">		filename = file[file.rfind(<span class="string">'/'</span>) + <span class="number">1</span>:]</span><br><span class="line">	<span class="keyword">else</span>:</span><br><span class="line">		filename = file[file.rfind(<span class="string">'\\'</span>) + <span class="number">1</span>:]</span><br><span class="line">	<span class="keyword">for</span> size <span class="keyword">in</span> (<span class="number">32</span>, <span class="number">64</span>, <span class="number">128</span>):</span><br><span class="line">		outfile = <span class="string">f'thumnails/<span class="subst">&#123;filename&#125;</span>_<span class="subst">&#123;size&#125;</span>_<span class="subst">&#123;size&#125;</span>.png'</span></span><br><span class="line">		image = Image.open(infile)</span><br><span class="line">		image.thumbnail((size, size))</span><br><span class="line">		image.save(outfile, format=<span class="string">'PNG'</span>)</span><br><span class="line">        </span><br><span class="line"> <span class="function"><span class="keyword">def</span> <span class="title">get_all_files</span><span class="params">(path)</span>:</span></span><br><span class="line"> 	<span class="keyword">if</span> os.path.exists(path):</span><br><span class="line">		<span class="keyword">for</span> file <span class="keyword">in</span> os.listdir(path):</span><br><span class="line">			<span class="keyword">yield</span> os.path.join(path, file)</span><br><span class="line">            </span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    start = time.time()</span><br><span class="line">    threads = []</span><br><span class="line">   	<span class="keyword">for</span> infile <span class="keyword">in</span> get_all_files(<span class="string">'images'</span>):</span><br><span class="line">        thread = Thread(target=gen_thumnail, args=(infile, ))</span><br><span class="line">        threads.append(thread)</span><br><span class="line">        thread.start()</span><br><span class="line">    <span class="keyword">for</span> thread <span class="keyword">in</span> threads:</span><br><span class="line">        thread.join()</span><br><span class="line">    end = time.time()</span><br><span class="line">    print(<span class="string">f'共执行了<span class="subst">&#123;end - start&#125;</span>秒'</span>)</span><br></pre></td></tr></table></figure>
+<p>方式三:通过concurrent.futures下的ThreadPoolExecutor创建线程池来实现多线程,这种方式性能相对于前面两种方式性能更好，但是耗费的空间更多。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> time</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> pillow <span class="keyword">import</span> Image</span><br><span class="line"><span class="keyword">from</span> concurrent.futures <span class="keyword">import</span> ThreadPollExecutor</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">gen_thumnail</span><span class="params">(infile)</span>:</span></span><br><span class="line">	file, ext = os.path.splitext(infile)</span><br><span class="line">	<span class="keyword">if</span> os.name == <span class="string">'posix'</span>:</span><br><span class="line">		filename = file[file.rfind(<span class="string">'/'</span>) + <span class="number">1</span>:]</span><br><span class="line">	<span class="keyword">else</span>:</span><br><span class="line">		filename = file[file.rfind(<span class="string">'\\'</span>) + <span class="number">1</span>:]</span><br><span class="line">	<span class="keyword">for</span> size <span class="keyword">in</span> (<span class="number">32</span>, <span class="number">64</span>, <span class="number">128</span>):</span><br><span class="line">		outfile = <span class="string">f'thumnails/<span class="subst">&#123;filename&#125;</span>_<span class="subst">&#123;size&#125;</span>_<span class="subst">&#123;size&#125;</span>.png'</span></span><br><span class="line">		image = Image.open(infile)</span><br><span class="line">		image.thumbnail((size, size))</span><br><span class="line">		image.save(outfile, format=<span class="string">'PNG'</span>)</span><br><span class="line">        </span><br><span class="line"> <span class="function"><span class="keyword">def</span> <span class="title">get_all_files</span><span class="params">(path)</span>:</span></span><br><span class="line"> 	<span class="keyword">if</span> os.path.exists(path):</span><br><span class="line">		<span class="keyword">for</span> file <span class="keyword">in</span> os.listdir(path):</span><br><span class="line">			<span class="keyword">yield</span> os.path.join(path, file)</span><br><span class="line">            </span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    start = time.time()</span><br><span class="line">    futures = []</span><br><span class="line">    <span class="keyword">with</span> ThreadPoolExecutor(max_workers=<span class="number">10</span>) <span class="keyword">as</span> pool:</span><br><span class="line">        <span class="keyword">for</span> infile <span class="keyword">in</span> glob.glob(<span class="string">'images/*'</span>):</span><br><span class="line">            future = pool.submit(gen_thumnail, infile)</span><br><span class="line">            futures.append(future)</span><br><span class="line">    <span class="keyword">for</span> future <span class="keyword">in</span> futures:</span><br><span class="line">        future.result()</span><br><span class="line">    end = time.time()</span><br><span class="line">    print(<span class="string">f'共执行了<span class="subst">&#123;end - start&#125;</span>秒'</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="多进程实现生产者-消费者模式"><a href="#多进程实现生产者-消费者模式" class="headerlink" title="多进程实现生产者-消费者模式"></a>多进程实现生产者-消费者模式</h3><p>多个线程竞争一个资源 - 保护临界资源 - 锁（Lock/RLock）<br>多个线程竞争多个资源（线程数&gt;资源数） - 信号量（Semaphore）<br>多个线程的调度 - 暂停线程执行/唤醒等待中的线程 - Condition</p>
+<p>5个线程同时向一个账户里面存钱，每次存5~10块钱，同时5个线程同时从该账户取钱，不管是加钱的线程还是取钱的线程都要先获得账户的锁，如果取钱的线程发现账户里的钱不够了，那么就要让出锁，同时唤醒加钱线程。同样加钱的线程加完钱之后需要让出锁，同时通知取钱的线程账户里面有钱了。</p>
+<h5 id="1-创建账户"><a href="#1-创建账户" class="headerlink" title="1.创建账户"></a>1.创建账户</h5><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> concurrent.futures <span class="keyword">import</span> ThreadPoolExecutor</span><br><span class="line"><span class="keyword">from</span> random <span class="keyword">import</span> randint</span><br><span class="line"><span class="keyword">from</span> time <span class="keyword">import</span> sleep</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> threading</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Account</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="string">"""银行账户"""</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, balance=<span class="number">0</span>)</span>:</span></span><br><span class="line">        self.balance = balance</span><br><span class="line">        lock = threading.Lock()</span><br><span class="line">        self.condition = threading.Condition(lock)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">withdraw</span><span class="params">(self, money)</span>:</span></span><br><span class="line">        <span class="string">"""取钱"""</span></span><br><span class="line">        <span class="keyword">with</span> self.condition:</span><br><span class="line">            <span class="keyword">while</span> money &gt; self.balance:</span><br><span class="line">                self.condition.wait()</span><br><span class="line">            new_balance = self.balance - money</span><br><span class="line">            sleep(<span class="number">0.001</span>)</span><br><span class="line">            self.balance = new_balance</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">deposit</span><span class="params">(self, money)</span>:</span></span><br><span class="line">        <span class="string">"""存钱"""</span></span><br><span class="line">        <span class="keyword">with</span> self.condition:</span><br><span class="line">            new_balance = self.balance + money</span><br><span class="line">            sleep(<span class="number">0.001</span>)</span><br><span class="line">            self.balance = new_balance</span><br><span class="line">            self.condition.notify_all()</span><br></pre></td></tr></table></figure>
+<p>调用账户实现生产者-消费者模式</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">add_money</span><span class="params">(account)</span>:</span></span><br><span class="line">    <span class="keyword">while</span> <span class="keyword">True</span>:</span><br><span class="line">        money = randint(<span class="number">5</span>, <span class="number">10</span>)</span><br><span class="line">        account.deposit(money)</span><br><span class="line">        print(threading.current_thread().name, </span><br><span class="line">              <span class="string">':'</span>, money, <span class="string">'====&gt;'</span>, account.balance)</span><br><span class="line">        sleep(<span class="number">0.5</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">sub_money</span><span class="params">(account)</span>:</span></span><br><span class="line">    <span class="keyword">while</span> <span class="keyword">True</span>:</span><br><span class="line">        money = randint(<span class="number">10</span>, <span class="number">30</span>)</span><br><span class="line">        account.withdraw(money)</span><br><span class="line">        print(threading.current_thread().name, </span><br><span class="line">              <span class="string">':'</span>, money, <span class="string">'&lt;===='</span>, account.balance)</span><br><span class="line">        sleep(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span><span class="params">()</span>:</span></span><br><span class="line">    account = Account()</span><br><span class="line">    <span class="keyword">with</span> ThreadPoolExecutor(max_workers=<span class="number">10</span>) <span class="keyword">as</span> pool:</span><br><span class="line">        <span class="keyword">for</span> _ <span class="keyword">in</span> range(<span class="number">5</span>):</span><br><span class="line">            pool.submit(add_money, account)</span><br><span class="line">            pool.submit(sub_money, account)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    main()</span><br></pre></td></tr></table></figure>
+<h3 id="协程实现异步访问网络"><a href="#协程实现异步访问网络" class="headerlink" title="协程实现异步访问网络"></a>协程实现异步访问网络</h3><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="string">aiohttp - 异步HTTP网络访问</span></span><br><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="keyword">import</span> asyncio</span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> aiohttp</span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">fetch</span><span class="params">(session, url)</span>:</span></span><br><span class="line">    <span class="keyword">async</span> <span class="keyword">with</span> session.get(url, ssl=<span class="keyword">False</span>) <span class="keyword">as</span> resp:</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">await</span> resp.text()</span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">main</span><span class="params">(url, pattern)</span>:</span></span><br><span class="line">    <span class="keyword">async</span> <span class="keyword">with</span> aiohttp.ClientSession() <span class="keyword">as</span> session:</span><br><span class="line">        html = <span class="keyword">await</span> fetch(session, url)</span><br><span class="line">        <span class="keyword">return</span> pattern.search(html).group(<span class="string">'title'</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    pattern = re.compile(<span class="string">r'\&lt;title\&gt;(?P&lt;title&gt;.*)\&lt;\/title\&gt;'</span>)</span><br><span class="line">    urls = (<span class="string">'https://www.python.org/'</span>,</span><br><span class="line">            <span class="string">'https://git-scm.com/'</span>,</span><br><span class="line">            <span class="string">'https://www.jd.com/'</span>,</span><br><span class="line">            <span class="string">'https://www.taobao.com/'</span>,</span><br><span class="line">            <span class="string">'https://www.douban.com/'</span>)</span><br><span class="line">    loop = asyncio.get_event_loop()</span><br><span class="line">    futures = asyncio.gather(</span><br><span class="line">        *[main(url, pattern) <span class="keyword">for</span> url <span class="keyword">in</span> urls]) </span><br><span class="line">    futures.add_done_callback(<span class="keyword">lambda</span> x: print(x.result()))</span><br><span class="line">    loop.run_until_complete(futures)</span><br><span class="line">    loop.close()</span><br></pre></td></tr></table></figure>
+
+        </section>
+    </article>
+    
+        <!-- disqus 评论框 start -->
+        <div class="comment">
+            <div id="disqus_thread" class="disqus-thread">
+              <i>Loading comments box needs to over the wall</i>
+            </div>
+        </div>
+        <!-- disqus 评论框 end -->
+    
+    
+        <!-- livere 评论框 start -->
+        <div class="comment">
+            <div id="lv-container" data-id="city" data-uid="your_livere_uid"></div>
+        </div>
+        <!-- livere 评论框 end -->
+        
+  </div>
+  <aside>
+    
+    <div class="toc-container">
+        <h1>目录</h1>
+        <div class="content">
+            <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#进程、线程、协程理解"><span class="toc-number">1.</span> <span class="toc-text">进程、线程、协程理解</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#多进程程序实现"><span class="toc-number">2.</span> <span class="toc-text">多进程程序实现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#多线程程序实现"><span class="toc-number">3.</span> <span class="toc-text">多线程程序实现</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#实现多线程的方式"><span class="toc-number">3.0.1.</span> <span class="toc-text">实现多线程的方式</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#多进程实现生产者-消费者模式"><span class="toc-number">4.</span> <span class="toc-text">多进程实现生产者-消费者模式</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-创建账户"><span class="toc-number">4.0.1.</span> <span class="toc-text">1.创建账户</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#协程实现异步访问网络"><span class="toc-number">5.</span> <span class="toc-text">协程实现异步访问网络</span></a></li></ol>
+        </div>
+    </div>
+    
+  </aside>
+</main>
+
+<!-- disqus 公共JS代码 -->
+<script type="text/javascript">
+  /* * * CONFIGURATION VARIABLES * * */
+  var disqus_shortname = "your_disqus_shortname";
+  var disqus_identifier = "http://yoursite.com/2019/01/12/Python多线程总结/";
+  var disqus_url = "http://yoursite.com/2019/01/12/Python多线程总结/";
+
+  isAgent(getDisqus)
+
+  // determine user agent in China
+  function isAgent(cb) {
+    var url = '//graph.facebook.com/feed?callback=h';
+    var xhr = new XMLHttpRequest();
+    var called = false;
+    xhr.open('GET', url);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+      called = true;
+      cb(true);
+      }
+    };
+    xhr.send();
+    // timeout 1s, this facebook API is very fast.
+    setTimeout(function() {
+      if (!called) {
+      xhr.abort();
+      cb(false)
+      }
+    }, 1000);
+  }
+
+  function getDisqus(isAgent) {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; 
+    dsq.async = true
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq)
+  }
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+<script type="text/javascript">
+  (function(d, s) {
+      var j, e = d.getElementsByTagName(s)[0];
+
+      if (typeof LivereTower === 'function') { return; }
+
+      j = d.createElement(s);
+      j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+      j.async = true;
+
+      e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+</script>
+
+
+  <footer>
+  <div class="copyright">
+    <div>
+      &copy; 2019 | Powered by <a href="https://hexo.io" target="_blank">Hexo</a>&nbsp
+    </div>
+    <div>
+      Theme by <a href="https://github.com/lewis-geek/hexo-theme-Aath" target="_blank">Aath</a>
+    </div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="/lib/in-view.min.js"></script>
+<script src="/lib/lodash.min.js"></script>
+<script>
+  var isDown = true
+  var oldY = 0
+  inView.offset(50)
+
+  document.body.addEventListener('touchstart', function(){});
+  
+  window.addEventListener('scroll', _.throttle(e => {
+    var currentY = window.scrollY
+    if((oldY - currentY) < 0) {
+      isDown = true
+    } else {
+      isDown = false
+    }
+    oldY = currentY
+  }, 250))
+
+  $("article img").each(function() {
+      var strA = "<a data-fancybox='gallery' href='" + this.src + "'></a>";
+      $(this).wrapAll(strA);
+  });
+
+  $('.toc-link').each(function() {
+      var href = $(this).attr("href");
+      
+      inView(href).on('exit', () => {
+        if (isDown) {
+          handleActive(href)
+        }
+      })
+
+      inView(href).on('enter', () => {
+        if (!isDown) {
+          handleActive(href)
+        }
+      })
+
+      this.onclick = function(e) {
+        var pos = $(href).offset().top - 10;
+        $("html,body").animate({scrollTop: pos}, 300);
+        setTimeout(() => {
+          handleActive(href)
+        }, 350)
+        return false
+      }
+  })
+
+  function handleActive(href) {
+    document.querySelectorAll('.toc-link').forEach(elm => {
+      elm.classList.remove('active')
+    })
+    document.querySelector(".toc [href='"+ href +"']").classList.add('active')
+  }
+</script>
+<script src="/lib/jquery.fancybox.min.js"></script>
+
+
+</body>
+</html>

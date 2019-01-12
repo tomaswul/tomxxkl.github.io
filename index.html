@@ -56,6 +56,28 @@
   <div class="posts-list">
     
       <section>
+        <a href="/2019/01/12/Python多线程总结/">
+          <h3 class='post-head'>
+            Python多线程总结
+          </h3>
+        </a>
+        
+        <div class="post-content">
+          
+            
+              
+                <h3 id="进程、线程、协程理解"><a href="#进程、线程、协程理解" class="headerlink" title="进程、线程、协程理解"></a>进程、线程、协程理解</h3><p>进程是计算机分配资源的最小单元，线程是计算机分配cpu的最小单元，协程是线程里面执行具体某个功能的程序，一个进程里面至少包含一个线程, 一个线程可以包含多个协程。协程之间的cpu切换是线程内部的cpu切换基本是不耗时的。线程之间的切换是耗时的。在Python由于全局解释器锁的存在，多线程不能发挥多核特性，但是多线程可以提高cpu的使用率，多线程程序对其他程序是很不友好的。多进程可以执行计算密集型任务。如算大数是否是素数。多进程可以发挥计算机的多核特性。单线程多协程的程序往往性能更优于多线程程序,因为没有cpu切换时间的开销。</p>
+              
+          
+        </div>
+        <div class='post-meta'>
+          <i class="fa fa-calendar" aria-hidden="true"></i> <time>2019/01/12</time>
+          
+          
+        </div>
+      </section>
+    
+      <section>
         <a href="/2019/01/12/github-flow使用过程/">
           <h3 class='post-head'>
             github-flow使用过程
@@ -63,6 +85,11 @@
         </a>
         
         <div class="post-content">
+          
+            
+              
+                <h3 id="Git的规范流程-分支管理策略"><a href="#Git的规范流程-分支管理策略" class="headerlink" title="Git的规范流程(分支管理策略)"></a>Git的规范流程(分支管理策略)</h3><p>绝对不允许在master分支上做开发</p>
+              
           
         </div>
         <div class='post-meta'>
@@ -233,28 +260,6 @@
         </div>
         <div class='post-meta'>
           <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/12/06</time>
-          
-          
-        </div>
-      </section>
-    
-      <section>
-        <a href="/2018/12/05/scrapy框架学习/">
-          <h3 class='post-head'>
-            scrapy框架学习 
-          </h3>
-        </a>
-        
-        <div class="post-content">
-          
-            
-              
-                <h3 id="Scrapy-框架"><a href="#Scrapy-框架" class="headerlink" title="Scrapy 框架"></a>Scrapy 框架</h3><ul>
-              
-          
-        </div>
-        <div class='post-meta'>
-          <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/12/05</time>
           
           
         </div>
