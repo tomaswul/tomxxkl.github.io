@@ -87,6 +87,7 @@
 <p>方式二:使用django_redis里的get_redis_connection(alias=’数据库名’)，获取的连接时redis原生的连接。优点是功能强大，缺点是操作相对复杂。</p>
 <p>例子:</p>
 <figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> django.http <span class="keyword">import</span> JsonResponse</span><br><span class="line"><span class="keyword">from</span> django_redis <span class="keyword">import</span> get_redis_connection</span><br><span class="line"></span><br><span class="line">cli = get_redis_connection(alias=<span class="string">'default'</span>)</span><br><span class="line"><span class="keyword">if</span> cli.get(<span class="string">f'moible_code:<span class="subst">&#123;tel&#125;</span>'</span>):</span><br><span class="line">    resp = JsonResponse(&#123;<span class="string">'code'</span>: <span class="number">20001</span>,</span><br></pre></td></tr></table></figure>
+<h3 id="补充"><a href="#补充" class="headerlink" title="补充"></a>补充</h3><p>网站优化的两大定律：<br>第一定律：使用缓存 - 用空间换取时间 - Redis/Memcached<br>第二定律：使用消息队列 - 能推迟做的事情都不要马上做 - 削峰 - 上下游节点解耦合</p>
 
         </section>
     </article>
@@ -112,7 +113,7 @@
     <div class="toc-container">
         <h1>目录</h1>
         <div class="content">
-            <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#Django中间件"><span class="toc-number">1.</span> <span class="toc-text">Django中间件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Django使用celery"><span class="toc-number">2.</span> <span class="toc-text">Django使用celery</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Django实现redis缓存"><span class="toc-number">3.</span> <span class="toc-text">Django实现redis缓存</span></a></li></ol>
+            <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#Django中间件"><span class="toc-number">1.</span> <span class="toc-text">Django中间件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Django使用celery"><span class="toc-number">2.</span> <span class="toc-text">Django使用celery</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Django实现redis缓存"><span class="toc-number">3.</span> <span class="toc-text">Django实现redis缓存</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#补充"><span class="toc-number">4.</span> <span class="toc-text">补充</span></a></li></ol>
         </div>
     </div>
     
