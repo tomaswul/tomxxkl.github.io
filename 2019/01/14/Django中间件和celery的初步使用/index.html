@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang=>
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  
+    <link rel="icon" href="/favicon.ico">
+  
+    
+  <title>Django中间件和celery的初步使用 | tomxxkl的个人博客</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/lib/jquery.fancybox.min.css">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+  <header>
+  <div class="header-container">
+    <a class='logo' href="/">
+      <span>tomxxkl的个人博客</span>
+    </a>
+    <ul class="right-header">
+      
+        <li class="nav-item">
+          
+            <a href="/" class="item-link">首页</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/about" class="item-link">关于</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/archives" class="item-link">归档</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/tags" class="item-link">标签</a>
+          
+        </li>
+      
+    </ul>
+  </div>
+</header>
+
+  <main id='post'>
+  <div class="content">
+    <article>
+        <section class="content markdown-body">
+          <h1>Django中间件和celery的初步使用</h1>
+          <div class='post-meta'>
+            <i class="fa fa-calendar" aria-hidden="true"></i> <time>2019/01/14</time>
+            
+            
+          </div>
+          <h3 id="Django中间件"><a href="#Django中间件" class="headerlink" title="Django中间件"></a>Django中间件</h3><p>Django新版本中的中间件是是类似装饰器的写法，和之前的写法有很大的区别，但是效果实际是一样的只是更好理解了。要写Django中间件需要在settings.py文件将中间的配置加上，如下。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">TEMPLATES = &#123;</span><br><span class="line">	<span class="string">'common.middlewares.block_sms_middleware'</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>进行如上配置后需要创建中间件的模块并进行方式的编写。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> re</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> django.http <span class="keyword">import</span> JsonResponse</span><br><span class="line"><span class="keyword">from</span> django_redis <span class="keyword">import</span> get_redis_connection</span><br><span class="line"></span><br><span class="line"><span class="string">'''</span></span><br><span class="line"><span class="string">中间件 - 拦截过滤器(代理模式, AOP)</span></span><br><span class="line"><span class="string">'''</span></span><br><span class="line"><span class="comment"># 正则表达式的命名捕获组</span></span><br><span class="line">PATTERN = re.compile(<span class="string">r'/mobile_code/(?P&lt;tel&gt;1[3-9]\d&#123;9&#125;)/'</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">block_sms_middleware</span><span class="params">(get_resp)</span>:</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">middleware</span><span class="params">(request, *args, **kwargs)</span>:</span></span><br><span class="line">        <span class="comment"># 对请求过滤的代码</span></span><br><span class="line">        <span class="keyword">if</span> request.path.startswith(<span class="string">'/mobile_code'</span>):</span><br><span class="line">            <span class="comment"># fullmatch是完全匹配才会返回matcher对象</span></span><br><span class="line">            <span class="comment"># matcher = PATTERN.fullmatch(request.path)</span></span><br><span class="line">            matcher = PATTERN.match(request.path)</span><br><span class="line">            <span class="keyword">if</span> matcher:</span><br><span class="line">                tel = matcher.group(<span class="string">'tel'</span>)</span><br><span class="line">                cli = get_redis_connection(alias=<span class="string">'default'</span>)</span><br><span class="line">                <span class="keyword">if</span> cli.get(<span class="string">f'moible_code:<span class="subst">&#123;tel&#125;</span>'</span>):</span><br><span class="line">                    resp = JsonResponse(&#123;<span class="string">'code'</span>: <span class="number">20001</span>,</span><br><span class="line">                                         <span class="string">'message'</span>: <span class="string">'请不要在120秒以内重复发生手机验证码'</span>&#125;)</span><br><span class="line">                <span class="keyword">else</span>:</span><br><span class="line">                    resp = get_resp(request, *args, **kwargs)</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                resp = JsonResponse(&#123;<span class="string">'code'</span>: <span class="number">20002</span>,</span><br><span class="line">                                     <span class="string">'message'</span>: <span class="string">'请输入正确的手机号'</span>&#125;)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            resp = get_resp(request, *args, **kwargs)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 对响应过滤的代码</span></span><br><span class="line">        <span class="keyword">return</span> resp</span><br></pre></td></tr></table></figure>
+<p>在这个中间件可以进行请求过滤之前的拦截，也可以进行请求完成之后响应开始之前的拦截以及异常拦截。</p>
+<h3 id="Django使用celery"><a href="#Django使用celery" class="headerlink" title="Django使用celery"></a>Django使用celery</h3><p>Celery是一个异步任务的调度工具。</p>
+<p>​        Celery 是 Distributed Task Queue，分布式任务队列，分布式决定了可以有多个 worker 的存在，队列表示其是异步操作，即存在一个产生任务提出需求的工头，和一群等着被分配工作的码农。</p>
+<p>​        在 Python 中定义 Celery 的时候，我们要引入 Broker，中文翻译过来就是“中间人”的意思，在这里 Broker 起到一个中间人的角色。在工头提出任务的时候，把所有的任务放到 Broker 里面，在 Broker 的另外一头，一群码农等着取出一个个任务准备着手做。</p>
+<p>​        这种模式注定了整个系统会是个开环系统，工头对于码农们把任务做的怎样是不知情的。所以我们要引入 Backend 来保存每次任务的结果。这个 Backend 有点像我们的 Broker，也是存储任务的信息用的，只不过这里存的是那些任务的返回结果。我们可以选择只让错误执行的任务返回结果到 Backend，这样我们取回结果，便可以知道有多少任务执行失败了。</p>
+<p>​    如果在使用使用redis做消息队列的时候，同时将redis作为了缓存，那么还需要再使用缓存的地方注册当前项目的settings.py文件，否则会导致文件报错，具体如下</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># backend 是程序执行完成之后的执行结果的处理</span></span><br><span class="line"><span class="comment"># broker代表消息代理(从哪里获取消息队列服务)</span></span><br><span class="line"><span class="comment"># 注册环境变量(注册django配置文件)</span></span><br><span class="line">os.environ.setdefault(<span class="string">'DJANGO_SETTINGS_MODULE'</span>, <span class="string">'fangtx.settings'</span>)</span><br><span class="line"></span><br><span class="line">app = Celery(<span class="string">'common.utils'</span>,</span><br><span class="line">             broker=<span class="string">'redis://:qtsSDFG123@119.23.202.138:6379/0'</span>,</span><br><span class="line">             )</span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取配置信息</span></span><br><span class="line">app.config_from_object(<span class="string">'django.conf:settings'</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 用app.task装饰需要异步执行函数，(注册异步函数)</span></span><br><span class="line"><span class="meta">@app.task</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">send_sms</span><span class="params">(code, mobile)</span>:</span></span><br><span class="line">    <span class="comment"># django_redis默认使用了Pickle序列化来(反)序列化的数据，只有set,get方法(简单但是弱小)</span></span><br><span class="line">    <span class="comment"># caches['default'].set (f'mobile_code:&#123;mobile&#125;', code, timeout=120)</span></span><br><span class="line">    <span class="comment"># 如果想用原生的redis做</span></span><br><span class="line">    cli = get_redis_connection(alias=<span class="string">'default'</span>)</span><br><span class="line">    cli.set(<span class="string">f'mobile_code:<span class="subst">&#123;mobile&#125;</span>'</span>, code, ex=<span class="number">120</span>)</span><br><span class="line">    text = <span class="string">f"您的验证码是：<span class="subst">&#123;code&#125;</span>。请不要把验证码泄露给其他人。"</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        params = urllib.parse.urlencode(&#123;<span class="string">'account'</span>: account, <span class="string">'password'</span> : password, <span class="string">'content'</span>: text, <span class="string">'mobile'</span>:mobile,<span class="string">'format'</span>:<span class="string">'json'</span> &#125;)</span><br><span class="line">        headers = &#123;<span class="string">"Content-type"</span>: <span class="string">"application/x-www-form-urlencoded"</span>, <span class="string">"Accept"</span>: <span class="string">"text/plain"</span>&#125;</span><br><span class="line">        conn = http.client.HTTPConnection(host, port=<span class="number">80</span>, timeout=<span class="number">30</span>)</span><br><span class="line">        conn.request(<span class="string">"POST"</span>, sms_send_uri, params, headers)</span><br><span class="line">        response = conn.getresponse()</span><br><span class="line">        response_str = response.read()</span><br><span class="line">        <span class="keyword">return</span> response_str</span><br><span class="line">    <span class="keyword">except</span> URLError <span class="keyword">or</span> KeyError <span class="keyword">as</span> e:</span><br><span class="line">        <span class="keyword">return</span> json.dumps (&#123;</span><br><span class="line">            <span class="string">'code'</span>: <span class="number">500</span>,</span><br><span class="line">            <span class="string">'msg'</span>: <span class="string">'短信服务暂时无法使用'</span></span><br><span class="line">        &#125;)</span><br><span class="line">    <span class="keyword">finally</span>:</span><br><span class="line">        conn.close ()</span><br></pre></td></tr></table></figure>
+<p>进行了异步函数注册之后，在实际调用的时候需要如下调用，首先将函数推迟执行(实际上是放到消息队列)</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">mobile_code</span><span class="params">(request, tel)</span>:</span></span><br><span class="line">    <span class="string">'''</span></span><br><span class="line"><span class="string">    短信验证码</span></span><br><span class="line"><span class="string">    :param request:</span></span><br><span class="line"><span class="string">    :param tel: 电话号码</span></span><br><span class="line"><span class="string">    :return: json响应格式数据</span></span><br><span class="line"><span class="string">    '''</span></span><br><span class="line">    <span class="comment"># if caches['default'].get(f'mobile_code:&#123;tel&#125;'):</span></span><br><span class="line">    code = get_mobile_code()</span><br><span class="line">    request.session[<span class="string">'mobile_code'</span>] = code</span><br><span class="line">    <span class="comment"># 调用三方平台的一个风险是时间不可预估，但是我们的应用不能够因为三方平台而阻塞</span></span><br><span class="line">    <span class="comment"># 所以通常调用三方平台不需要马上获得执行结果的场景都要异步化的处理</span></span><br><span class="line">    <span class="comment"># 让发送短信的函数延迟执行(将函数调用变成一条消息放到消息队列-消息的生产者)</span></span><br><span class="line">    send_sms.delay(code, tel)</span><br><span class="line">    <span class="comment"># 启动消息的消费者来处理消息可以使用下面的命令来创建消费者</span></span><br><span class="line">    <span class="comment"># celery -A common.utils worker -l info</span></span><br><span class="line">    <span class="comment"># 在celery4.x版本并且系统是window10的需要先安装三方库eventlet</span></span><br><span class="line">    <span class="comment"># 命令:celery - A common.utils worker -l info -P eventlet</span></span><br><span class="line">    <span class="keyword">return</span> JsonResponse(&#123;<span class="string">'code'</span>: <span class="number">20000</span>, <span class="string">'message'</span>: <span class="string">'短信验证码已经发出'</span>&#125;)</span><br></pre></td></tr></table></figure>
+<p>之后通过celery -A common.utils worker -l info 执行消费者从消息队列里把要执行的函数取出来。</p>
+<p>注意: 如果使用的celery的版本在4.x之上并且使用的是windows平台的话，需要进行如下操作才能使用消息队列</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">pip install evenetlet</span><br><span class="line"></span><br><span class="line">celert -A common.utils worker -l info -P eventlet</span><br></pre></td></tr></table></figure>
+<h3 id="Django实现redis缓存"><a href="#Django实现redis缓存" class="headerlink" title="Django实现redis缓存"></a>Django实现redis缓存</h3><p>Django要实现redis缓存首先需要在项目的settings里面添加如下配置(按项目的实际需求添加)</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">CACHES = &#123;</span><br><span class="line">    <span class="comment"># 默认缓存</span></span><br><span class="line">    <span class="string">'default'</span>: &#123;</span><br><span class="line">        <span class="string">'BACKEND'</span>: <span class="string">'django_redis.cache.RedisCache'</span>,</span><br><span class="line">        <span class="string">'LOCATION'</span>: [</span><br><span class="line">            <span class="string">'redis://119.23.202.138:6379/0'</span>,</span><br><span class="line">        ],</span><br><span class="line">        <span class="string">'KEY_PREFIX'</span>: <span class="string">'fangtx'</span>,</span><br><span class="line">        <span class="string">'OPTIONS'</span>: &#123;</span><br><span class="line">            <span class="string">'CLIENT_CLASS'</span>: <span class="string">'django_redis.client.DefaultClient'</span>,</span><br><span class="line">            <span class="string">'CONNECTION_POOL_KWARGS'</span>: &#123;</span><br><span class="line">                <span class="string">'max_connections'</span>: <span class="number">1000</span>,</span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="string">'PASSWORD'</span>: <span class="string">'qtsSDFG123'</span>,</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="comment"># 页面缓存</span></span><br><span class="line">    <span class="string">'page'</span>: &#123;</span><br><span class="line">        <span class="string">'BACKEND'</span>: <span class="string">'django_redis.cache.RedisCache'</span>,</span><br><span class="line">        <span class="string">'LOCATION'</span>: [</span><br><span class="line">            <span class="string">'redis://119.23.202.138:6379/1'</span>,</span><br><span class="line">        ],</span><br><span class="line">        <span class="string">'KEY_PREFIX'</span>: <span class="string">'fangtx:page'</span>,</span><br><span class="line">        <span class="string">'OPTIONS'</span>: &#123;</span><br><span class="line">            <span class="string">'CLIENT_CLASS'</span>: <span class="string">'django_redis.client.DefaultClient'</span>,</span><br><span class="line">            <span class="string">'CONNECTION_POOL_KWARGS'</span>: &#123;</span><br><span class="line">                <span class="string">'max_connections'</span>: <span class="number">500</span>,</span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="string">'PASSWORD'</span>: <span class="string">'qtsSDFG123'</span>,</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="comment"># 会话缓存</span></span><br><span class="line">    <span class="string">'session'</span>: &#123;</span><br><span class="line">        <span class="string">'BACKEND'</span>: <span class="string">'django_redis.cache.RedisCache'</span>,</span><br><span class="line">        <span class="string">'LOCATION'</span>: [</span><br><span class="line">            <span class="string">'redis://119.23.202.138:6379/2'</span>,</span><br><span class="line">        ],</span><br><span class="line">        <span class="string">'KEY_PREFIX'</span>: <span class="string">'fangtx:session'</span>,</span><br><span class="line">        <span class="string">'TIMEOUT'</span>: <span class="number">1209600</span>,</span><br><span class="line">        <span class="string">'OPTIONS'</span>: &#123;</span><br><span class="line">            <span class="string">'CLIENT_CLASS'</span>: <span class="string">'django_redis.client.DefaultClient'</span>,</span><br><span class="line">            <span class="string">'CONNECTION_POOL_KWARGS'</span>: &#123;</span><br><span class="line">                <span class="string">'max_connections'</span>: <span class="number">2000</span>,</span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="string">'PASSWORD'</span>: <span class="string">'qtsSDFG123'</span>,</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="comment"># 接口数据缓存</span></span><br><span class="line">    <span class="string">'api'</span>: &#123;</span><br><span class="line">        <span class="string">'BACKEND'</span>: <span class="string">'django_redis.cache.RedisCache'</span>,</span><br><span class="line">        <span class="string">'LOCATION'</span>: [</span><br><span class="line">            <span class="string">'redis://119.23.202.138:6379/3'</span>,</span><br><span class="line">        ],</span><br><span class="line">        <span class="string">'KEY_PREFIX'</span>: <span class="string">'fangtx:api'</span>,</span><br><span class="line">        <span class="string">'OPTIONS'</span>: &#123;</span><br><span class="line">            <span class="string">'CLIENT_CLASS'</span>: <span class="string">'django_redis.client.DefaultClient'</span>,</span><br><span class="line">            <span class="string">'CONNECTION_POOL_KWARGS'</span>: &#123;</span><br><span class="line">                <span class="string">'max_connections'</span>: <span class="number">500</span>,</span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="string">'PASSWORD'</span>: <span class="string">'qtsSDFG123'</span>,</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">SESSION_ENGINE = <span class="string">'django.contrib.sessions.backends.cache'</span></span><br><span class="line">SESSION_CACHE_ALIAS = <span class="string">'session'</span></span><br></pre></td></tr></table></figure>
+<p>添加完成这个配置之后。有两种方式调用redis实现缓存</p>
+<p>方式一:使用django.core.cache里的caches(这是一个redis缓存字典)或者cache(只是redis默认的default缓存)。这种方式会自动把要放入redis缓存中的数据进行pickle序列化并且只有两个函数get和set。优点是操作简单，缺点是功能弱小。</p>
+<p>例子:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> django.core.cache <span class="keyword">import</span> caches</span><br><span class="line">caches[<span class="string">'default'</span>].set (<span class="string">f'mobile_code:<span class="subst">&#123;mobile&#125;</span>'</span>, code, timeout=<span class="number">120</span>)</span><br></pre></td></tr></table></figure>
+<p>方式二:使用django_redis里的get_redis_connection(alias=’数据库名’)，获取的连接时redis原生的连接。优点是功能强大，缺点是操作相对复杂。</p>
+<p>例子:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> django.http <span class="keyword">import</span> JsonResponse</span><br><span class="line"><span class="keyword">from</span> django_redis <span class="keyword">import</span> get_redis_connection</span><br><span class="line"></span><br><span class="line">cli = get_redis_connection(alias=<span class="string">'default'</span>)</span><br><span class="line"><span class="keyword">if</span> cli.get(<span class="string">f'moible_code:<span class="subst">&#123;tel&#125;</span>'</span>):</span><br><span class="line">    resp = JsonResponse(&#123;<span class="string">'code'</span>: <span class="number">20001</span>,</span><br></pre></td></tr></table></figure>
+
+        </section>
+    </article>
+    
+        <!-- disqus 评论框 start -->
+        <div class="comment">
+            <div id="disqus_thread" class="disqus-thread">
+              <i>Loading comments box needs to over the wall</i>
+            </div>
+        </div>
+        <!-- disqus 评论框 end -->
+    
+    
+        <!-- livere 评论框 start -->
+        <div class="comment">
+            <div id="lv-container" data-id="city" data-uid="your_livere_uid"></div>
+        </div>
+        <!-- livere 评论框 end -->
+        
+  </div>
+  <aside>
+    
+    <div class="toc-container">
+        <h1>目录</h1>
+        <div class="content">
+            <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#Django中间件"><span class="toc-number">1.</span> <span class="toc-text">Django中间件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Django使用celery"><span class="toc-number">2.</span> <span class="toc-text">Django使用celery</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Django实现redis缓存"><span class="toc-number">3.</span> <span class="toc-text">Django实现redis缓存</span></a></li></ol>
+        </div>
+    </div>
+    
+  </aside>
+</main>
+
+<!-- disqus 公共JS代码 -->
+<script type="text/javascript">
+  /* * * CONFIGURATION VARIABLES * * */
+  var disqus_shortname = "your_disqus_shortname";
+  var disqus_identifier = "http://yoursite.com/2019/01/14/Django中间件和celery的初步使用/";
+  var disqus_url = "http://yoursite.com/2019/01/14/Django中间件和celery的初步使用/";
+
+  isAgent(getDisqus)
+
+  // determine user agent in China
+  function isAgent(cb) {
+    var url = '//graph.facebook.com/feed?callback=h';
+    var xhr = new XMLHttpRequest();
+    var called = false;
+    xhr.open('GET', url);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+      called = true;
+      cb(true);
+      }
+    };
+    xhr.send();
+    // timeout 1s, this facebook API is very fast.
+    setTimeout(function() {
+      if (!called) {
+      xhr.abort();
+      cb(false)
+      }
+    }, 1000);
+  }
+
+  function getDisqus(isAgent) {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; 
+    dsq.async = true
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq)
+  }
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+<script type="text/javascript">
+  (function(d, s) {
+      var j, e = d.getElementsByTagName(s)[0];
+
+      if (typeof LivereTower === 'function') { return; }
+
+      j = d.createElement(s);
+      j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+      j.async = true;
+
+      e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+</script>
+
+
+  <footer>
+  <div class="copyright">
+    <div>
+      &copy; 2019 | Powered by <a href="https://hexo.io" target="_blank">Hexo</a>&nbsp
+    </div>
+    <div>
+      Theme by <a href="https://github.com/lewis-geek/hexo-theme-Aath" target="_blank">Aath</a>
+    </div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="/lib/in-view.min.js"></script>
+<script src="/lib/lodash.min.js"></script>
+<script>
+  var isDown = true
+  var oldY = 0
+  inView.offset(50)
+
+  document.body.addEventListener('touchstart', function(){});
+  
+  window.addEventListener('scroll', _.throttle(e => {
+    var currentY = window.scrollY
+    if((oldY - currentY) < 0) {
+      isDown = true
+    } else {
+      isDown = false
+    }
+    oldY = currentY
+  }, 250))
+
+  $("article img").each(function() {
+      var strA = "<a data-fancybox='gallery' href='" + this.src + "'></a>";
+      $(this).wrapAll(strA);
+  });
+
+  $('.toc-link').each(function() {
+      var href = $(this).attr("href");
+      
+      inView(href).on('exit', () => {
+        if (isDown) {
+          handleActive(href)
+        }
+      })
+
+      inView(href).on('enter', () => {
+        if (!isDown) {
+          handleActive(href)
+        }
+      })
+
+      this.onclick = function(e) {
+        var pos = $(href).offset().top - 10;
+        $("html,body").animate({scrollTop: pos}, 300);
+        setTimeout(() => {
+          handleActive(href)
+        }, 350)
+        return false
+      }
+  })
+
+  function handleActive(href) {
+    document.querySelectorAll('.toc-link').forEach(elm => {
+      elm.classList.remove('active')
+    })
+    document.querySelector(".toc [href='"+ href +"']").classList.add('active')
+  }
+</script>
+<script src="/lib/jquery.fancybox.min.js"></script>
+
+
+</body>
+</html>
