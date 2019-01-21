@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang=>
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  
+    <link rel="icon" href="/favicon.ico">
+  
+    
+  <title>Nginx负载均衡和MySQL主从配置 | tomxxkl的个人博客</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/lib/jquery.fancybox.min.css">
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+  <header>
+  <div class="header-container">
+    <a class='logo' href="/">
+      <span>tomxxkl的个人博客</span>
+    </a>
+    <ul class="right-header">
+      
+        <li class="nav-item">
+          
+            <a href="/" class="item-link">首页</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/about" class="item-link">关于</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/archives" class="item-link">归档</a>
+          
+        </li>
+      
+        <li class="nav-item">
+          
+            <a href="/tags" class="item-link">标签</a>
+          
+        </li>
+      
+    </ul>
+  </div>
+</header>
+
+  <main id='post'>
+  <div class="content">
+    <article>
+        <section class="content markdown-body">
+          <h1>Nginx负载均衡和MySQL主从配置</h1>
+          <div class='post-meta'>
+            <i class="fa fa-calendar" aria-hidden="true"></i> <time>2019/01/21</time>
+            
+            
+          </div>
+          <h3 id="Nginx负载均衡"><a href="#Nginx负载均衡" class="headerlink" title="Nginx负载均衡"></a>Nginx负载均衡</h3><p>Nginx服务适合用来做静态资源分发的服务器，但是一个Nginx可能满足不了真正的业务需求，这个时候就需要配置一个Nginx集群来做Web服务器。而这个集群的架构是1-n模式的架构。用来发起的请求往往先到一个Nginx服务器，这个Nginx服务器不提供具体的服务只对用户的请求做转发。转发到提供具体内容的服务器(也是Nginx服务器)。这部分的Nginx服务器时真正提供服务的服务器。</p>
+<h4 id="使用Docker安装Nginx服务器"><a href="#使用Docker安装Nginx服务器" class="headerlink" title="使用Docker安装Nginx服务器"></a>使用Docker安装Nginx服务器</h4><h5 id="1-安装Nginx负载服务器"><a href="#1-安装Nginx负载服务器" class="headerlink" title="1.安装Nginx负载服务器"></a>1.安装Nginx负载服务器</h5><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">yum -y install nginx</span><br></pre></td></tr></table></figure>
+<h5 id="2-创建三个Nginx内容服务器"><a href="#2-创建三个Nginx内容服务器" class="headerlink" title="2.创建三个Nginx内容服务器"></a>2.创建三个Nginx内容服务器</h5><p>首先创建三个文件夹在root目录下的nginx文件夹nginx-a，nginx-b，nginx-c</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mkdir -r /root/nginx/nginx-a /root/nginx/nginx-b /root/nginx/nginx-c</span><br></pre></td></tr></table></figure>
+<p>然后在每个nginx-X文件夹下建立三个文件夹conf，html，logs</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mkdir conf html logs</span><br></pre></td></tr></table></figure>
+<p>复制yum安装的nginx服务器的配置到每个Nginx-X/conf下</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">cp -r /etc/nginx/* /root/nginx/nginx-a/conf</span><br></pre></td></tr></table></figure>
+<p>修改每个conf下的nginx.conf配置文件</p>
+<figure class="highlight nginx"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 配置用户,这个用户默认是nginx,这样就会导致文件所有者不是nginx的文件，无法被加载</span></span><br><span class="line"><span class="attribute">user</span> root;</span><br><span class="line"><span class="comment"># 工作进程数(建议跟CPU的核数量一致,auto默认是和cpu的核数一样)</span></span><br><span class="line"><span class="attribute">worker_processes</span> auto;</span><br><span class="line"><span class="comment"># 错误日志</span></span><br><span class="line"><span class="attribute">error_log</span> /var/log/nginx/error.log;</span><br><span class="line"><span class="comment"># 进程文件</span></span><br><span class="line"><span class="attribute">pid</span> /run/nginx.pid;</span><br><span class="line"><span class="comment"># 包含其他的配置</span></span><br><span class="line"><span class="attribute">include</span> /usr/share/nginx/modules/<span class="regexp">*.conf</span>;</span><br><span class="line"><span class="comment"># 工作模式(多路IO复用方式)和连接上限</span></span><br><span class="line"><span class="section">events</span> &#123;</span><br><span class="line">    <span class="attribute">use</span> <span class="literal">epoll</span>;</span><br><span class="line">    <span class="attribute">worker_connections</span> <span class="number">1024</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment"># HTTP服务器相关配置</span></span><br><span class="line"><span class="section">http</span> &#123;</span><br><span class="line">    <span class="attribute">log_format</span>  main  <span class="string">'<span class="variable">$remote_addr</span> - <span class="variable">$remote_user</span> [<span class="variable">$time_local</span>] "<span class="variable">$request</span>" '</span></span><br><span class="line">                      <span class="string">'<span class="variable">$status</span> <span class="variable">$body_bytes_sent</span> "<span class="variable">$http_referer</span>" '</span></span><br><span class="line">                      <span class="string">'"<span class="variable">$http_user_agent</span>" "<span class="variable">$http_x_forwarded_for</span>"'</span>;</span><br><span class="line">	<span class="comment"># 访问日志</span></span><br><span class="line">    <span class="attribute">access_log</span>  /var/log/nginx/access.log  main;</span><br><span class="line">	<span class="comment"># 开启高效文件传输模式</span></span><br><span class="line">    <span class="attribute">sendfile</span>            <span class="literal">on</span>;</span><br><span class="line">	<span class="comment"># 用sendfile传输文件时有利于改善性能</span></span><br><span class="line">    <span class="attribute">tcp_nopush</span>          <span class="literal">on</span>;</span><br><span class="line">	<span class="comment"># 禁用Nagle来解决交互性问题</span></span><br><span class="line">    <span class="attribute">tcp_nodelay</span>         <span class="literal">on</span>;</span><br><span class="line">	<span class="comment"># 客户端保持连接时间</span></span><br><span class="line">    <span class="attribute">keepalive_timeout</span>   <span class="number">65</span>;</span><br><span class="line">    <span class="attribute">types_hash_max_size</span> <span class="number">2048</span>;</span><br><span class="line"></span><br><span class="line">	<span class="comment"># 包含MIME类型的配置</span></span><br><span class="line">    <span class="attribute">include</span>             /etc/nginx/mime.types;</span><br><span class="line">	<span class="comment"># 默认使用二进制流格式</span></span><br><span class="line">    <span class="attribute">default_type</span>        application/octet-stream;</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Load modular configuration files from the /etc/nginx/conf.d directory.</span></span><br><span class="line">    <span class="comment"># See http://nginx.org/en/docs/ngx_core_module.html#include</span></span><br><span class="line">    <span class="comment"># for more information.</span></span><br><span class="line">	<span class="comment"># 包含其他配置文件</span></span><br><span class="line">    <span class="attribute">include</span> /etc/nginx/conf.d/<span class="regexp">*.conf</span>;</span><br><span class="line"></span><br><span class="line">    <span class="section">server</span> &#123;</span><br><span class="line">		<span class="comment"># 服务器监听的端口(IPV4)</span></span><br><span class="line">        <span class="attribute">listen</span>       <span class="number">80</span> default_server;</span><br><span class="line">		<span class="comment"># 服务器监听的端口(IPV6)</span></span><br><span class="line">        <span class="attribute">listen</span>       [::]:<span class="number">80</span> default_server;</span><br><span class="line">        <span class="attribute">server_name</span>  _;</span><br><span class="line">        <span class="attribute">root</span>         /usr/share/nginx/html;</span><br><span class="line"></span><br><span class="line">        <span class="comment"># Load configuration files for the default server block.</span></span><br><span class="line">		<span class="comment"># 包含项目的Nginx配置文件</span></span><br><span class="line">        <span class="attribute">include</span> /etc/nginx/default.d/<span class="regexp">*.conf</span>;</span><br><span class="line"></span><br><span class="line">        <span class="attribute">location</span> / &#123;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="attribute">error_page</span> <span class="number">404</span> /<span class="number">404</span>.html;</span><br><span class="line">            <span class="attribute">location</span> = /40x.html &#123;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="attribute">error_page</span> <span class="number">500</span> <span class="number">502</span> <span class="number">503</span> <span class="number">504</span> /50x.html;</span><br><span class="line">            <span class="attribute">location</span> = /50x.html &#123;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>每个nginx-X/conf/nginx.conf修改为如上的配置后，使用docker创建三个nginx服务器，并映射文件到上述配置中</p>
+<p>nginx-a</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">docker run -d -p 801:80 --name nginx-b -v /root/nginx/nginx-a/conf:/etc/nginx -v /root/nginx/nginx-a/html:/usr/share/nginx/html -v /root/nginx/nginx-a/logs:/var/log/nginx nginx</span><br></pre></td></tr></table></figure>
+<p>nginx-b</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">docker run -d -p 802:80 --name nginx-b -v /root/nginx/nginx-b/conf:/etc/nginx -v /root/nginx/nginx-b/html:/usr/share/nginx/html -v /root/nginx/nginx-b/logs:/var/log/nginx nginx</span><br></pre></td></tr></table></figure>
+<p>nginx-c</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">docker run -d -p 803:80 --name nginx-c -v /root/nginx/nginx-c/conf:/etc/nginx -v /root/nginx/nginx-c/html:/usr/share/nginx/html -v /root/nginx/nginx-c/logs:/var/log/nginx nginx</span><br></pre></td></tr></table></figure>
+<h5 id="3-修改Nginx负载服务器配置"><a href="#3-修改Nginx负载服务器配置" class="headerlink" title="3.修改Nginx负载服务器配置"></a>3.修改Nginx负载服务器配置</h5><p>配置好三个nginx内容服务器之后，再进行Nginx负载服务的配置，修改/etc/nginx/nginx.conf文件的内容为如下</p>
+<figure class="highlight nginx"><table><tr><td class="code"><pre><span class="line"><span class="attribute">user</span> nginx;</span><br><span class="line"><span class="attribute">worker_processes</span> auto;</span><br><span class="line"><span class="attribute">error_log</span> /var/log/nginx/error.log;</span><br><span class="line"><span class="attribute">pid</span> /run/nginx.pid;</span><br><span class="line"></span><br><span class="line"><span class="comment"># Load dynamic modules. See /usr/share/nginx/README.dynamic.</span></span><br><span class="line"><span class="attribute">include</span> /usr/share/nginx/modules/<span class="regexp">*.conf</span>;</span><br><span class="line"></span><br><span class="line"><span class="section">events</span> &#123;</span><br><span class="line">    <span class="attribute">worker_connections</span> <span class="number">1024</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="section">http</span> &#123;</span><br><span class="line">	<span class="attribute">upstream</span> fangtx &#123;</span><br><span class="line">		<span class="comment"># 配置每个nginx内容服务器，并设置权重，这种负载均衡的方式是WRR</span></span><br><span class="line">		<span class="comment"># 也可以使用hash或者安装fair等方式实现负载均衡</span></span><br><span class="line">		<span class="attribute">server</span> <span class="number">172.18.28.55:801</span> weight=<span class="number">4</span>;</span><br><span class="line">		<span class="attribute">server</span> <span class="number">172.18.28.55:802</span> weight=<span class="number">2</span>;</span><br><span class="line">		<span class="attribute">server</span> <span class="number">172.18.28.55:803</span> weight=<span class="number">2</span>;</span><br><span class="line">	&#125;</span><br><span class="line">    <span class="section">server</span> &#123;</span><br><span class="line">        <span class="attribute">listen</span>       <span class="number">80</span> default_server;</span><br><span class="line">        <span class="attribute">listen</span>       [::]:<span class="number">80</span> default_server;</span><br><span class="line">        <span class="attribute">server_name</span>  _;</span><br><span class="line">		<span class="attribute">location</span> / &#123;</span><br><span class="line">			<span class="attribute">proxy_set_header</span> Host <span class="variable">$host</span>; </span><br><span class="line">			<span class="attribute">proxy_set_header</span> X-Real-IP <span class="variable">$remote_addr</span>; </span><br><span class="line">        	<span class="attribute">proxy_set_header</span> X-Forwarded-For <span class="variable">$proxy_add_x_forwarded_for</span>; </span><br><span class="line">			<span class="attribute">proxy_buffering</span> <span class="literal">off</span>;</span><br><span class="line">			<span class="attribute">proxy_pass</span> http://fangtx;</span><br><span class="line">		&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>到此，Nginx负载均衡配置完成，启动Nginx即可以实现负载均衡</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">systemctl start nginx</span><br></pre></td></tr></table></figure>
+<h3 id="MySQL主从配置"><a href="#MySQL主从配置" class="headerlink" title="MySQL主从配置"></a>MySQL主从配置</h3><p>在真实的业务中，对数据库的读操作远远多于写操作，因此对MySQL进行主从配置是提升性能很好的方式。主服务器负责写操作(数量少)，从服务器负责读操作(数量多)。主从复制最小的比例是1:3即一个主机，三个从机。本次依然使用docker进行主从配置</p>
+<h4 id="1-建立相应文件夹"><a href="#1-建立相应文件夹" class="headerlink" title="1.建立相应文件夹"></a>1.建立相应文件夹</h4><p>在root文件夹下建立如下结构的文件和文件夹</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mysql</span><br><span class="line">├── master</span><br><span class="line">│   ├── conf</span><br><span class="line">│   │   └── mysqld.cnf</span><br><span class="line">│   ├── data</span><br><span class="line">│   └── logs</span><br><span class="line">├── slave-1</span><br><span class="line">│   ├── conf</span><br><span class="line">│   │   └── mysqld.cnf</span><br><span class="line">│   ├── data</span><br><span class="line">│   └── logs</span><br><span class="line">├── slave-2</span><br><span class="line">│   ├── conf</span><br><span class="line">│   │   └── mysqld.cnf</span><br><span class="line">│   ├── data</span><br><span class="line">│   └── logs</span><br><span class="line">└── slave-3</span><br><span class="line">    ├── conf</span><br><span class="line">    │   └── mysqld.cnf</span><br><span class="line">    └── data</span><br></pre></td></tr></table></figure>
+<h4 id="2-进行三个从机的mysqld-cnf文件配置"><a href="#2-进行三个从机的mysqld-cnf文件配置" class="headerlink" title="2.进行三个从机的mysqld.cnf文件配置"></a>2.进行三个从机的mysqld.cnf文件配置</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[mysqld]</span><br><span class="line">pid-file=/var/run/mysqld/mysqld.pid</span><br><span class="line">socket=/var/run/mysqld/mysqld.sock</span><br><span class="line">datadir=/var/lib/mysql</span><br><span class="line">log-error=/var/log/mysql/error.log</span><br><span class="line">server-id=101</span><br><span class="line">log-bin=/var/log/mysql/mysql-bin.log</span><br><span class="line">expire_logs_days=30</span><br><span class="line">max_binlog_size=256M</span><br><span class="line">symbolic-links=0</span><br><span class="line"># 慢查询日志配置</span><br><span class="line">slow_query_log=ON</span><br><span class="line">slow_query_log_file=/var/log/mysql/slow.log</span><br><span class="line"># 超过一秒的查询就设置为慢查询</span><br><span class="line">long_query_time=1</span><br></pre></td></tr></table></figure>
+<h4 id="3-进行主机的mysqld-cnf文件配置"><a href="#3-进行主机的mysqld-cnf文件配置" class="headerlink" title="3.进行主机的mysqld.cnf文件配置"></a>3.进行主机的mysqld.cnf文件配置</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[mysqld]</span><br><span class="line">pid-file=/var/run/mysqld/mysqld.pid</span><br><span class="line">socket=/var/run/mysqld/mysqld.sock</span><br><span class="line">datadir=/var/lib/mysql</span><br><span class="line">log-error=/var/log/mysql/error.log</span><br><span class="line">server-id=1</span><br><span class="line">log-bin=/var/log/mysql/mysql-bin.log</span><br><span class="line">expire_logs_days=30</span><br><span class="line">max_binlog_size=256M</span><br><span class="line">symbolic-links=0</span><br></pre></td></tr></table></figure>
+<h4 id="4-使用docker创建主机"><a href="#4-使用docker创建主机" class="headerlink" title="4.使用docker创建主机"></a>4.使用docker创建主机</h4><p>mysql-master</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">docker run -d -p 3306:3306 -v /root/mysql/master/conf:/etc/mysql/mysql.conf.d -v /root/mysql/master/data/:/val/lib/mysql --name mysql-master -e MYSQL_ROOT_PASSWORD=123456 mysql:5.7</span><br></pre></td></tr></table></figure>
+<h4 id="5-使用docker创建从机"><a href="#5-使用docker创建从机" class="headerlink" title="5.使用docker创建从机"></a>5.使用docker创建从机</h4><p>mysql-slave-1</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">docker run -d -p 3308:3306 -v /root/mysql/slave-1/conf:/etc/mysql/mysql.conf.d -v /root/mysql/slave-1/data/:/val/lib/mysql --name mysql-slave-1 -e MYSQL_ROOT_PASSWORD=123456 --link mysql-master:mysql-master mysql:5.7</span><br></pre></td></tr></table></figure>
+<p>mysql-slave-2</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">docker run -d -p 3309:3306 -v /root/mysql/slave-2/conf:/etc/mysql/mysql.conf.d -v /root/mysql/slave-2/data/:/val/lib/mysql --name mysql-slave-2 -e MYSQL_ROOT_PASSWORD=123456 --link mysql-master:mysql-master mysql:5.7</span><br></pre></td></tr></table></figure>
+<p>mysql-slave-3</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">docker run -d -p 3310:3306 -v /root/mysql/slave-3/conf:/etc/mysql/mysql.conf.d -v /root/mysql/slave-3/data/:/val/lib/mysql --name mysql-slave-3 -e MYSQL_ROOT_PASSWORD=123456 --link mysql-master:mysql-master mysql:5.7</span><br></pre></td></tr></table></figure>
+<p>这儿主创建主服务器相比，多加了一个 –link mysql-master:mysql-master 这是给主服务器起别名，下次重启后主机ip发生变化后依然可以通过别名找到主服务器ip</p>
+<h4 id="6-进入主服务器进行配置"><a href="#6-进入主服务器进行配置" class="headerlink" title="6.进入主服务器进行配置"></a>6.进入主服务器进行配置</h4><p>进入docker创建的虚拟机</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">docker exec -it mysql-master /bin/bash</span><br></pre></td></tr></table></figure>
+<p>进入mysql数据库</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mysql -u root -p</span><br></pre></td></tr></table></figure>
+<p>创建slave用户并给予相应权限</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># identified by后面跟的是从机访问主机的密码</span><br><span class="line">mysql&gt; grant replication slave on *.* to &apos;slave&apos;@&apos;%&apos; identified by &apos;iamslave&apos;;</span><br><span class="line">Query OK, 0 rows affected, 1 warning (0.00 sec)</span><br><span class="line"></span><br><span class="line"># 刷新权限</span><br><span class="line">mysql&gt; flush privileges;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br></pre></td></tr></table></figure>
+<p>记录position和File信息</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mysql&gt; show master status;</span><br><span class="line"></span><br><span class="line">+------------------+----------+--------------+------------------+-------------------+</span><br><span class="line"></span><br><span class="line">| File             | Position | Binlog_Do_DB | Binlog_Ignore_DB | Executed_Gtid_Set |</span><br><span class="line"></span><br><span class="line">+------------------+----------+--------------+------------------+-------------------+</span><br><span class="line"></span><br><span class="line">| mysql-bin.000001 |      590 |              |                  |                   |</span><br><span class="line"></span><br><span class="line">+------------------+----------+--------------+------------------+-------------------+</span><br><span class="line"></span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<p>退出</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">exit</span><br></pre></td></tr></table></figure>
+<h4 id="7-进入从服务进行配置"><a href="#7-进入从服务进行配置" class="headerlink" title="7.进入从服务进行配置"></a>7.进入从服务进行配置</h4><p>进入从服务虚拟机</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">docker exec -it mysql-slave-1 /bin/bash</span><br></pre></td></tr></table></figure>
+<p>进入从服务器的mysql数据库</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># 重置slave</span><br><span class="line">mysql&gt; reset slave;</span><br><span class="line">Query OK, 0 rows affected (0.02 sec)</span><br><span class="line"># 更改该数据的主人和其他相关信息</span><br><span class="line">mysql&gt; change master to master_host=&apos;mysql-master&apos;, master_user=&apos;slave&apos;, master_password=&apos;iamslave&apos;, master_log_file=&apos;mysql-bin.000001&apos;, master_log_pos=590;</span><br><span class="line">Query OK, 0 rows affected, 2 warnings (0.03 sec)</span><br><span class="line"># 开启奴隶</span><br><span class="line">mysql&gt; start slave;</span><br><span class="line">Query OK, 0 rows affected (0.01 sec)</span><br><span class="line"># 查看奴隶状态</span><br><span class="line">mysql&gt; show slave status\G</span><br><span class="line">*************************** 1. row ***************************</span><br><span class="line">               Slave_IO_State: Waiting for master to send event</span><br><span class="line">                  Master_Host: mysql57</span><br><span class="line">                  Master_User: slave</span><br><span class="line">                  Master_Port: 3306</span><br><span class="line">                Connect_Retry: 60</span><br><span class="line">              Master_Log_File: mysql-bin.000001</span><br><span class="line">          Read_Master_Log_Pos: 590</span><br><span class="line">               Relay_Log_File: f352f05eb9d0-relay-bin.000002</span><br><span class="line">                Relay_Log_Pos: 320</span><br><span class="line">        Relay_Master_Log_File: mysql-bin.000001</span><br><span class="line">             Slave_IO_Running: Yes</span><br><span class="line">            Slave_SQL_Running: Yes</span><br><span class="line">             Replicate_Do_DB:</span><br><span class="line">          Replicate_Ignore_DB:</span><br><span class="line">           Replicate_Do_Table:</span><br><span class="line">       Replicate_Ignore_Table:</span><br><span class="line">      Replicate_Wild_Do_Table:</span><br><span class="line">  Replicate_Wild_Ignore_Table:</span><br><span class="line">                   Last_Errno: 0</span><br><span class="line">                   Last_Error:</span><br><span class="line">                 Skip_Counter: 0</span><br><span class="line">          Exec_Master_Log_Pos: 590</span><br><span class="line">              Relay_Log_Space: 534</span><br><span class="line">              Until_Condition: None</span><br><span class="line">               Until_Log_File:</span><br><span class="line">                Until_Log_Pos: 0</span><br><span class="line">           Master_SSL_Allowed: No</span><br><span class="line">           Master_SSL_CA_File:</span><br><span class="line">           Master_SSL_CA_Path:</span><br><span class="line">              Master_SSL_Cert:</span><br><span class="line">            Master_SSL_Cipher:</span><br><span class="line">               Master_SSL_Key:</span><br><span class="line">        Seconds_Behind_Master: 0</span><br><span class="line">Master_SSL_Verify_Server_Cert: No</span><br><span class="line">                Last_IO_Errno: 0</span><br><span class="line">                Last_IO_Error:</span><br><span class="line">               Last_SQL_Errno: 0</span><br><span class="line">               Last_SQL_Error:</span><br><span class="line">  Replicate_Ignore_Server_Ids:</span><br><span class="line">             Master_Server_Id: 1</span><br><span class="line">                  Master_UUID: 30c38043-ada1-11e8-8fa1-0242ac110002</span><br><span class="line">             Master_Info_File: /var/lib/mysql/master.info</span><br><span class="line">                    SQL_Delay: 0</span><br><span class="line">          SQL_Remaining_Delay: NULL</span><br><span class="line">      Slave_SQL_Running_State: Slave has read all relay log; waiting for more updates</span><br><span class="line">           Master_Retry_Count: 86400</span><br><span class="line">                  Master_Bind:</span><br><span class="line">      Last_IO_Error_Timestamp:</span><br><span class="line">     Last_SQL_Error_Timestamp:</span><br><span class="line">               Master_SSL_Crl:</span><br><span class="line">           Master_SSL_Crlpath:</span><br><span class="line">           Retrieved_Gtid_Set:</span><br><span class="line">            Executed_Gtid_Set:</span><br><span class="line">                Auto_Position: 0</span><br><span class="line">         Replicate_Rewrite_DB:</span><br><span class="line">                 Channel_Name:</span><br><span class="line">           Master_TLS_Version:</span><br><span class="line">1 row in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; quit</span><br><span class="line">Bye</span><br><span class="line">exit</span><br></pre></td></tr></table></figure>
+<p>将每个从服务的mysql设置如上配置，就完成了MySQL的主从配置(1主3从)，主服务的更新的数据将会实时同步到每个从服务器，对于读操作则是随机从从服务器中读取</p>
+<h4 id="8-Django中实现主从MySQL路由"><a href="#8-Django中实现主从MySQL路由" class="headerlink" title="8.Django中实现主从MySQL路由"></a>8.Django中实现主从MySQL路由</h4><p>修改项目settings.py</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">DATABASES = &#123;</span><br><span class="line">    <span class="string">'default'</span>: &#123;</span><br><span class="line">        <span class="string">'ENGINE'</span>: <span class="string">'django.db.backends.mysql'</span>,</span><br><span class="line">        <span class="string">'NAME'</span>: <span class="string">'fangtx'</span>,</span><br><span class="line">        <span class="string">'HOST'</span>: <span class="string">'119.23.202.138'</span>,</span><br><span class="line">        <span class="string">'PORT'</span>: <span class="number">3306</span>,</span><br><span class="line">        <span class="string">'USER'</span>: <span class="string">'root'</span>,</span><br><span class="line">        <span class="string">'PASSWORD'</span>: <span class="string">'123456'</span>,</span><br><span class="line">        <span class="string">'TIME_ZONE'</span>: <span class="string">'Asia/Chongqing'</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="string">'slave1'</span>:&#123;</span><br><span class="line">        <span class="string">'ENGINE'</span>: <span class="string">'django.db.backends.mysql'</span>,</span><br><span class="line">        <span class="string">'NAME'</span>: <span class="string">'fangtx'</span>,</span><br><span class="line">        <span class="string">'HOST'</span>: <span class="string">'119.23.202.138'</span>,</span><br><span class="line">        <span class="string">'PORT'</span>: <span class="number">3308</span>,</span><br><span class="line">        <span class="string">'USER'</span>: <span class="string">'root'</span>,</span><br><span class="line">        <span class="string">'PASSWORD'</span>: <span class="string">'123456'</span>,</span><br><span class="line">        <span class="string">'TIME_ZONE'</span>: <span class="string">'Asia/Chongqing'</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="string">'slave2'</span>:&#123;</span><br><span class="line">        <span class="string">'ENGINE'</span>: <span class="string">'django.db.backends.mysql'</span>,</span><br><span class="line">        <span class="string">'NAME'</span>: <span class="string">'fangtx'</span>,</span><br><span class="line">        <span class="string">'HOST'</span>: <span class="string">'119.23.202.138'</span>,</span><br><span class="line">        <span class="string">'PORT'</span>: <span class="number">3309</span>,</span><br><span class="line">        <span class="string">'USER'</span>: <span class="string">'root'</span>,</span><br><span class="line">        <span class="string">'PASSWORD'</span>: <span class="string">'123456'</span>,</span><br><span class="line">        <span class="string">'TIME_ZONE'</span>: <span class="string">'Asia/Chongqing'</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="string">'slave3'</span>:&#123;</span><br><span class="line">        <span class="string">'ENGINE'</span>: <span class="string">'django.db.backends.mysql'</span>,</span><br><span class="line">        <span class="string">'NAME'</span>: <span class="string">'fangtx'</span>,</span><br><span class="line">        <span class="string">'HOST'</span>: <span class="string">'119.23.202.138'</span>,</span><br><span class="line">        <span class="string">'PORT'</span>: <span class="number">3310</span>,</span><br><span class="line">        <span class="string">'USER'</span>: <span class="string">'root'</span>,</span><br><span class="line">        <span class="string">'PASSWORD'</span>: <span class="string">'123456'</span>,</span><br><span class="line">        <span class="string">'TIME_ZONE'</span>: <span class="string">'Asia/Chongqing'</span></span><br><span class="line">    &#125;,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">DATABASE_ROUTERS = &#123;</span><br><span class="line">    <span class="string">'common.routers.BackendRouter'</span>,</span><br><span class="line">    <span class="comment"># 注意先后顺序</span></span><br><span class="line">    <span class="string">'common.routers.MasterSlaveRouter'</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>创建MySQL主从路由类</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> random </span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MasterSlaveRouter</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">db_for_read</span><span class="params">(self, model, **hints)</span>:</span></span><br><span class="line">        <span class="string">"""</span></span><br><span class="line"><span class="string">        Reads go to a randomly-chosen replica.</span></span><br><span class="line"><span class="string">        """</span></span><br><span class="line">        <span class="keyword">return</span> random.choice([<span class="string">'slave1'</span>, <span class="string">'slave2'</span>, <span class="string">'slave3'</span>])</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">db_for_write</span><span class="params">(self, model, **hints)</span>:</span></span><br><span class="line">        <span class="string">"""</span></span><br><span class="line"><span class="string">        Writes always go to primary.</span></span><br><span class="line"><span class="string">        """</span></span><br><span class="line">        <span class="keyword">return</span> <span class="string">'default'</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">allow_relation</span><span class="params">(self, obj1, obj2, **hints)</span>:</span></span><br><span class="line">        <span class="string">"""</span></span><br><span class="line"><span class="string">        Relations between objects are allowed if both objects are</span></span><br><span class="line"><span class="string">        in the primary/replica pool.</span></span><br><span class="line"><span class="string">        """</span></span><br><span class="line">        <span class="comment"># db_list = ('primary', 'replica1', 'replica2')</span></span><br><span class="line">        <span class="comment"># if obj1._state.db in db_list and obj2._state.db in db_list:</span></span><br><span class="line">        <span class="comment">#     return True</span></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">None</span></span><br><span class="line">        <span class="comment"># return True</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">allow_migrate</span><span class="params">(self, db, app_label, model_name=None, **hints)</span>:</span></span><br><span class="line">        <span class="string">"""</span></span><br><span class="line"><span class="string">        All non-auth models end up in this pool.</span></span><br><span class="line"><span class="string">        """</span></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">True</span></span><br></pre></td></tr></table></figure>
+<p>修改BackendRouter路由类的部分方法</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BackendRouter</span>:</span></span><br><span class="line">    <span class="string">"""</span></span><br><span class="line"><span class="string">    分库路由</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">db_for_read</span><span class="params">(self, model, **hints)</span>:</span></span><br><span class="line">        <span class="string">"""</span></span><br><span class="line"><span class="string">        Attempts to read auth models go to auth_db.</span></span><br><span class="line"><span class="string">        """</span></span><br><span class="line">        <span class="keyword">if</span> model._meta.app_label == <span class="string">'hrs'</span>:</span><br><span class="line">            <span class="keyword">return</span> <span class="string">'hrs'</span></span><br><span class="line">        <span class="comment"># 这儿返回None就是使用第二个路由分发器</span></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">None</span></span><br><span class="line">    <span class="keyword">pass</span></span><br></pre></td></tr></table></figure>
+
+        </section>
+    </article>
+    
+        <!-- disqus 评论框 start -->
+        <div class="comment">
+            <div id="disqus_thread" class="disqus-thread">
+              <i>Loading comments box needs to over the wall</i>
+            </div>
+        </div>
+        <!-- disqus 评论框 end -->
+    
+    
+        <!-- livere 评论框 start -->
+        <div class="comment">
+            <div id="lv-container" data-id="city" data-uid="your_livere_uid"></div>
+        </div>
+        <!-- livere 评论框 end -->
+        
+  </div>
+  <aside>
+    
+    <div class="toc-container">
+        <h1>目录</h1>
+        <div class="content">
+            <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#Nginx负载均衡"><span class="toc-number">1.</span> <span class="toc-text">Nginx负载均衡</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#使用Docker安装Nginx服务器"><span class="toc-number">1.1.</span> <span class="toc-text">使用Docker安装Nginx服务器</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-安装Nginx负载服务器"><span class="toc-number">1.1.1.</span> <span class="toc-text">1.安装Nginx负载服务器</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-创建三个Nginx内容服务器"><span class="toc-number">1.1.2.</span> <span class="toc-text">2.创建三个Nginx内容服务器</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-修改Nginx负载服务器配置"><span class="toc-number">1.1.3.</span> <span class="toc-text">3.修改Nginx负载服务器配置</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#MySQL主从配置"><span class="toc-number">2.</span> <span class="toc-text">MySQL主从配置</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-建立相应文件夹"><span class="toc-number">2.1.</span> <span class="toc-text">1.建立相应文件夹</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-进行三个从机的mysqld-cnf文件配置"><span class="toc-number">2.2.</span> <span class="toc-text">2.进行三个从机的mysqld.cnf文件配置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-进行主机的mysqld-cnf文件配置"><span class="toc-number">2.3.</span> <span class="toc-text">3.进行主机的mysqld.cnf文件配置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-使用docker创建主机"><span class="toc-number">2.4.</span> <span class="toc-text">4.使用docker创建主机</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-使用docker创建从机"><span class="toc-number">2.5.</span> <span class="toc-text">5.使用docker创建从机</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6-进入主服务器进行配置"><span class="toc-number">2.6.</span> <span class="toc-text">6.进入主服务器进行配置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#7-进入从服务进行配置"><span class="toc-number">2.7.</span> <span class="toc-text">7.进入从服务进行配置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#8-Django中实现主从MySQL路由"><span class="toc-number">2.8.</span> <span class="toc-text">8.Django中实现主从MySQL路由</span></a></li></ol></li></ol>
+        </div>
+    </div>
+    
+  </aside>
+</main>
+
+<!-- disqus 公共JS代码 -->
+<script type="text/javascript">
+  /* * * CONFIGURATION VARIABLES * * */
+  var disqus_shortname = "your_disqus_shortname";
+  var disqus_identifier = "http://yoursite.com/2019/01/21/Nginx负载均衡和MySQL主从配置/";
+  var disqus_url = "http://yoursite.com/2019/01/21/Nginx负载均衡和MySQL主从配置/";
+
+  isAgent(getDisqus)
+
+  // determine user agent in China
+  function isAgent(cb) {
+    var url = '//graph.facebook.com/feed?callback=h';
+    var xhr = new XMLHttpRequest();
+    var called = false;
+    xhr.open('GET', url);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+      called = true;
+      cb(true);
+      }
+    };
+    xhr.send();
+    // timeout 1s, this facebook API is very fast.
+    setTimeout(function() {
+      if (!called) {
+      xhr.abort();
+      cb(false)
+      }
+    }, 1000);
+  }
+
+  function getDisqus(isAgent) {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; 
+    dsq.async = true
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq)
+  }
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+<script type="text/javascript">
+  (function(d, s) {
+      var j, e = d.getElementsByTagName(s)[0];
+
+      if (typeof LivereTower === 'function') { return; }
+
+      j = d.createElement(s);
+      j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+      j.async = true;
+
+      e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+</script>
+
+
+  <footer>
+  <div class="copyright">
+    <div>
+      &copy; 2019 | Powered by <a href="https://hexo.io" target="_blank">Hexo</a>&nbsp
+    </div>
+    <div>
+      Theme by <a href="https://github.com/lewis-geek/hexo-theme-Aath" target="_blank">Aath</a>
+    </div>
+  </div>
+</footer>
+
+
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="/lib/in-view.min.js"></script>
+<script src="/lib/lodash.min.js"></script>
+<script>
+  var isDown = true
+  var oldY = 0
+  inView.offset(50)
+
+  document.body.addEventListener('touchstart', function(){});
+  
+  window.addEventListener('scroll', _.throttle(e => {
+    var currentY = window.scrollY
+    if((oldY - currentY) < 0) {
+      isDown = true
+    } else {
+      isDown = false
+    }
+    oldY = currentY
+  }, 250))
+
+  $("article img").each(function() {
+      var strA = "<a data-fancybox='gallery' href='" + this.src + "'></a>";
+      $(this).wrapAll(strA);
+  });
+
+  $('.toc-link').each(function() {
+      var href = $(this).attr("href");
+      
+      inView(href).on('exit', () => {
+        if (isDown) {
+          handleActive(href)
+        }
+      })
+
+      inView(href).on('enter', () => {
+        if (!isDown) {
+          handleActive(href)
+        }
+      })
+
+      this.onclick = function(e) {
+        var pos = $(href).offset().top - 10;
+        $("html,body").animate({scrollTop: pos}, 300);
+        setTimeout(() => {
+          handleActive(href)
+        }, 350)
+        return false
+      }
+  })
+
+  function handleActive(href) {
+    document.querySelectorAll('.toc-link').forEach(elm => {
+      elm.classList.remove('active')
+    })
+    document.querySelector(".toc [href='"+ href +"']").classList.add('active')
+  }
+</script>
+<script src="/lib/jquery.fancybox.min.js"></script>
+
+
+</body>
+</html>
