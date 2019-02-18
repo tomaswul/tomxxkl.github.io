@@ -56,160 +56,6 @@
   <div class="posts-list">
     
       <section>
-        <a href="/2018/10/26/Cookie和Session/">
-          <h3 class='post-head'>
-            Cookie和Session
-          </h3>
-        </a>
-        
-        <div class="post-content">
-          
-            
-              
-                <p>HTTP无状态协议:HTTP协议本身是没有状态的，要保持状态需要使用Cookie+Session</p>
-              
-          
-        </div>
-        <div class='post-meta'>
-          <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/10/26</time>
-          
-          
-        </div>
-      </section>
-    
-      <section>
-        <a href="/2018/10/25/Django的Templates/">
-          <h3 class='post-head'>
-            Django的Templates
-          </h3>
-        </a>
-        
-        <div class="post-content">
-          
-            
-              
-                <p>templates是MVT模式中的T，负责展示数据，相当于MVC中的V,但是templates里的html有一些独有的特性，可以实现继承。例如:index.html继承base_main.html。那么index.html就是base_main.html的子模板,而base_main.html则继承base.html,这样base.html是根模板，只需要设置大体框架,而base_main.html则是二级根模板作为对根模板的补充，而index.html则是具体的显示页面。这样就可以建立模板的继承体系，实现模板的体系化管理</p>
-              
-          
-        </div>
-        <div class='post-meta'>
-          <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/10/25</time>
-          
-          
-        </div>
-      </section>
-    
-      <section>
-        <a href="/2018/10/23/Django的模型-Model/">
-          <h3 class='post-head'>
-            Django的模型(Model)
-          </h3>
-        </a>
-        
-        <div class="post-content">
-          
-            
-              
-                <h3 id="1-模型的创建和说明"><a href="#1-模型的创建和说明" class="headerlink" title="1.模型的创建和说明"></a>1.模型的创建和说明</h3><h4 id="创建项目app"><a href="#创建项目app" class="headerlink" title="创建项目app"></a>创建项目app</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">(djenv6) D:\Python_Study\workspace\day02&gt;python manage.py startapp app</span><br></pre></td></tr></table></figure>
-              
-          
-        </div>
-        <div class='post-meta'>
-          <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/10/23</time>
-          
-          
-        </div>
-      </section>
-    
-      <section>
-        <a href="/2018/10/22/Django安装与初始化部署/">
-          <h3 class='post-head'>
-            Django安装与初始化部署
-          </h3>
-        </a>
-        
-        <div class="post-content">
-          
-            
-              
-                <p>Django最初被用来开发CMS(内容管理系统)软件</p>
-              
-          
-        </div>
-        <div class='post-meta'>
-          <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/10/22</time>
-          
-          
-        </div>
-      </section>
-    
-      <section>
-        <a href="/2018/10/20/redis学习总结/">
-          <h3 class='post-head'>
-            redis学习总结
-          </h3>
-        </a>
-        
-        <div class="post-content">
-          
-            
-              
-                <h3 id="1-redis介绍"><a href="#1-redis介绍" class="headerlink" title="1.redis介绍"></a>1.redis介绍</h3><p>Redis是一个key-value存储系统。和Memcached类似，它支持存储的value类型相对更多，包括string(字符串)、list(链表)、set(集合)、zset(sorted set –有序集合)和hash（哈希类型）。这些数据类型都支持push/pop、add/remove及取交集并集和差集及更丰富的操作，而且这些操作都是原子性的。在此基础上，redis支持各种不同方式的排序。与memcached一样，为了保证效率，数据都是缓存在内存中。区别的是redis会周期性的把更新的数据写入磁盘或者把修改操作写入追加的记录文件，并且在此基础上实现了master-slave(主从)同步。</p>
-              
-          
-        </div>
-        <div class='post-meta'>
-          <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/10/20</time>
-          
-          
-        </div>
-      </section>
-    
-      <section>
-        <a href="/2018/10/20/联系人小程序练习/">
-          <h3 class='post-head'>
-            联系人小程序练习
-          </h3>
-        </a>
-        
-        <div class="post-content">
-          
-            
-              
-                <h4 id="1-JSON文件存放数据库配置"><a href="#1-JSON文件存放数据库配置" class="headerlink" title="1.JSON文件存放数据库配置"></a>1.JSON文件存放数据库配置</h4><figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"host"</span>:<span class="string">"localhost"</span>,</span><br><span class="line">  <span class="attr">"db"</span>:<span class="string">"contact"</span>,</span><br><span class="line">  <span class="attr">"passwd"</span>:<span class="string">"123456"</span>,</span><br><span class="line">  <span class="attr">"user"</span>:<span class="string">"root"</span>,</span><br><span class="line">  <span class="attr">"port"</span>:<span class="number">3306</span>,</span><br><span class="line">  <span class="attr">"autocommit"</span>:<span class="literal">true</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-              
-          
-        </div>
-        <div class='post-meta'>
-          <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/10/20</time>
-          
-          
-        </div>
-      </section>
-    
-      <section>
-        <a href="/2018/10/16/MySQL学习总结/">
-          <h3 class='post-head'>
-            MySQL学习总结
-          </h3>
-        </a>
-        
-        <div class="post-content">
-          
-            
-              
-                <p>总结了常用的SQL语法和MySQL的实际应用</p>
-              
-          
-        </div>
-        <div class='post-meta'>
-          <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/10/16</time>
-          
-          
-        </div>
-      </section>
-    
-      <section>
         <a href="/2018/10/11/设计模式总结/">
           <h3 class='post-head'>
             设计模式总结
@@ -220,7 +66,7 @@
           
             
               
-                <h3 id="1-装饰器模式"><a href="#1-装饰器模式" class="headerlink" title="1. 装饰器模式"></a>1. 装饰器模式</h3><p>装饰器函数:用一个函数去装饰另一个函数，给他增加额外的功能，凡是需要这个额外功能的地方只需要加上装饰器即可，而不需要书写重复的代码，装饰器函数的参数是被装饰的函数，返回的是起装饰作用的函数，当调用被装饰的函数时，其实执行的是装饰器中返回的那个函数<br>给函数添加装饰器的语法，就是在函数前写上@装饰器函数()</p>
+                <h3 id="1-代理模式"><a href="#1-代理模式" class="headerlink" title="1. 代理模式"></a>1. 代理模式</h3><p>装饰器函数:用一个函数去装饰另一个函数，给他增加额外的功能，凡是需要这个额外功能的地方只需要加上装饰器即可，而不需要书写重复的代码，装饰器函数的参数是被装饰的函数，返回的是起装饰作用的函数，当调用被装饰的函数时，其实执行的是装饰器中返回的那个函数<br>给函数添加装饰器的语法，就是在函数前写上@装饰器函数()</p>
               
           
         </div>
@@ -270,6 +116,160 @@
         </div>
         <div class='post-meta'>
           <i class="fa fa-calendar" aria-hidden="true"></i> <time>2018/10/10</time>
+          
+          
+        </div>
+      </section>
+    
+      <section>
+        <a href="/2017/11/15/flask实现邮箱验证/">
+          <h3 class='post-head'>
+            flask实现邮箱验证
+          </h3>
+        </a>
+        
+        <div class="post-content">
+          
+            
+              
+                <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在程序中经常使用到邮件发送功能，如何使用flask进行邮件发送呢？Flask是一个扩展性极强的框架，在Flask核心代码上可以自由的扩展功能。比如邮件发送功能，就有flask-mail库，使用该库可以简单的实现邮件发送功能。</p>
+              
+          
+        </div>
+        <div class='post-meta'>
+          <i class="fa fa-calendar" aria-hidden="true"></i> <time>2017/11/15</time>
+          
+          
+        </div>
+      </section>
+    
+      <section>
+        <a href="/2017/11/15/flask实现表单验证/">
+          <h3 class='post-head'>
+            flask实现表单验证
+          </h3>
+        </a>
+        
+        <div class="post-content">
+          
+            
+              
+                <h3 id="2-使用flask-wtf实现表单验证"><a href="#2-使用flask-wtf实现表单验证" class="headerlink" title="2.使用flask-wtf实现表单验证"></a>2.使用flask-wtf实现表单验证</h3><p>在Flask项目开发中针对提交表单的校验，可以使用Flask-WTF扩展库进行快速的字段校验，也可以进行页面快速渲染，并提供跨站请求伪造的保护功能</p>
+              
+          
+        </div>
+        <div class='post-meta'>
+          <i class="fa fa-calendar" aria-hidden="true"></i> <time>2017/11/15</time>
+          
+          
+        </div>
+      </section>
+    
+      <section>
+        <a href="/2017/11/15/flask模型及实例/">
+          <h3 class='post-head'>
+            flask模型及实例
+          </h3>
+        </a>
+        
+        <div class="post-content">
+          
+            
+              
+                <h3 id="1-模型多对多关系"><a href="#1-模型多对多关系" class="headerlink" title="1. 模型多对多关系"></a>1. 模型多对多关系</h3><p>定义模型:</p>
+              
+          
+        </div>
+        <div class='post-meta'>
+          <i class="fa fa-calendar" aria-hidden="true"></i> <time>2017/11/15</time>
+          
+          
+        </div>
+      </section>
+    
+      <section>
+        <a href="/2017/11/14/flask模型关系/">
+          <h3 class='post-head'>
+            flask模型关系
+          </h3>
+        </a>
+        
+        <div class="post-content">
+          
+            
+              
+                <h3 id="1-flask内的模型操作"><a href="#1-flask内的模型操作" class="headerlink" title="1.flask内的模型操作"></a>1.flask内的模型操作</h3><p>语法：</p>
+              
+          
+        </div>
+        <div class='post-meta'>
+          <i class="fa fa-calendar" aria-hidden="true"></i> <time>2017/11/14</time>
+          
+          
+        </div>
+      </section>
+    
+      <section>
+        <a href="/2017/11/13/flask-migrate迁移数据库/">
+          <h3 class='post-head'>
+            flask_migrate迁移数据库
+          </h3>
+        </a>
+        
+        <div class="post-content">
+          
+            
+              
+                <p>flask框架本身不能对修改之后的模型进行迁移，因此需要使用到flask_migrate模块来进行数据库迁移管理,其使用方式类似于django中的migrate。要使用flask_migrate首先需要安装flask_migrate</p>
+              
+          
+        </div>
+        <div class='post-meta'>
+          <i class="fa fa-calendar" aria-hidden="true"></i> <time>2017/11/13</time>
+          
+          
+        </div>
+      </section>
+    
+      <section>
+        <a href="/2017/11/13/flask模板和模型/">
+          <h3 class='post-head'>
+            flask模板和模型
+          </h3>
+        </a>
+        
+        <div class="post-content">
+          
+            
+              
+                <h2 id="一、Session和Cookie"><a href="#一、Session和Cookie" class="headerlink" title="一、Session和Cookie"></a>一、Session和Cookie</h2><h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>Session和Cookie的结合使用，一般有两种存储方式:</p>
+              
+          
+        </div>
+        <div class='post-meta'>
+          <i class="fa fa-calendar" aria-hidden="true"></i> <time>2017/11/13</time>
+          
+          
+        </div>
+      </section>
+    
+      <section>
+        <a href="/2017/11/12/flask初步接触/">
+          <h3 class='post-head'>
+            flask初步接触
+          </h3>
+        </a>
+        
+        <div class="post-content">
+          
+            
+              
+                <h3 id="1-flask介绍"><a href="#1-flask介绍" class="headerlink" title="1. flask介绍"></a>1. flask介绍</h3><p>Flask是一个基于Python实现的web开发的’微’框架</p>
+              
+          
+        </div>
+        <div class='post-meta'>
+          <i class="fa fa-calendar" aria-hidden="true"></i> <time>2017/11/12</time>
           
           
         </div>
